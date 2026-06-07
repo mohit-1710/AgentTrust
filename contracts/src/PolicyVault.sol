@@ -123,9 +123,10 @@ contract PolicyVault {
             return (Decision.DENY, "payee: reputation below threshold");
         }
 
-        // Optional capability validation (ERC-8004 Validation Registry)
+        // Optional capability validation (ERC-8004 Validation Registry).
+        // v1: the trusted-attestor set doubles as the trusted-validator set.
         if (p.requireValidation) {
-            (uint64 vCount, uint8 vAvg) = validation.getSummary(payeeAgentId, none, "");
+            (uint64 vCount, uint8 vAvg) = validation.getSummary(payeeAgentId, p.acceptedClients, "");
             if (vCount == 0 || vAvg == 0) {
                 return (Decision.REQUIRE_VALIDATION, "payee: validation required");
             }
