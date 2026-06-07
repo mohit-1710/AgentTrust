@@ -3,7 +3,7 @@ title: Kani proofs
 description: Seven machine-checked invariants over the pure-Rust composer — 662 sub-checks, zero failures, ~81 s on a single CI runner. Per-harness deep-dive.
 ---
 
-PolicyVault ships with seven `#[kani::proof]` harnesses over the pure-Rust composer (and one helper). Each runs on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Source: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs).
+PolicyVault ships with seven `#[kani::proof]` harnesses over the pure-Rust composer (and one helper). Each runs on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/kani-prove.yml). Source: [`programs/policy-vault/src/proofs/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/policy-vault/src/proofs).
 
 Kani is the [model-checking/kani](https://github.com/model-checking/kani) bounded model checker. It compiles the Rust under verification to CBMC's intermediate form and explores every reachable state inside the configured bounds.
 
@@ -27,7 +27,7 @@ Kani is the [model-checking/kani](https://github.com/model-checking/kani) bounde
 
 **Property.** If the agent's KillSwitch is `paused == true` AND `KIND_KILLSWITCH` is set in the policy bitmask, `compose_decision` cannot return `Allow` for any values of the other policy fields, ledger, or input parameters.
 
-**File.** [`proofs/inv_paused_implies_no_allow.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs). **Harness:** `paused_killswitch_implies_no_allow`.
+**File.** [`proofs/inv_paused_implies_no_allow.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs). **Harness:** `paused_killswitch_implies_no_allow`.
 
 **Why it's load-bearing.** This is the safety invariant of the gate. If a future change re-orders or skips KillSwitch evaluation, Kani fails this proof loud.
 
@@ -35,7 +35,7 @@ Kani is the [model-checking/kani](https://github.com/model-checking/kani) bounde
 
 **Property.** Inductive form: if the pre-state ledger satisfies `cumulative_amount ≤ max_in_window`, then after `velocity::evaluate` returns `Allow(deltas)` the new cumulative counter still satisfies the bound.
 
-**File.** [`proofs/inv_velocity_counter_le_limit.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_velocity_counter_le_limit.rs). **Harness:** `velocity_allow_implies_cumulative_le_max`.
+**File.** [`proofs/inv_velocity_counter_le_limit.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_velocity_counter_le_limit.rs). **Harness:** `velocity_allow_implies_cumulative_le_max`.
 
 **Why it's inductive.** Every prior `Allow` preserves the bound; a fresh ledger trivially satisfies the base case. Cross-policy preservation against `spending.weekly_max` is a separate proof if/when needed.
 
@@ -45,7 +45,7 @@ The `apply_deltas` rule on the composer side — only on `Allow` — is what mak
 
 **Property.** If a STRICT policy (high `min_counterparty_tier`) produces `Allow` for a given payee, a LOOSER policy (lower or equal `min_tier`) on the same payee must also produce `Allow`. Loosening the tier requirement can never turn an `Allow` into a `Deny`.
 
-**File.** [`proofs/inv_counterparty_tier_monotone.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs). **Harness:** `counterparty_tier_monotone`.
+**File.** [`proofs/inv_counterparty_tier_monotone.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs). **Harness:** `counterparty_tier_monotone`.
 
 **Why it's anti-regression.** This is a sanity invariant. If a refactor introduces non-monotone behaviour (e.g., a config combination where loosening the threshold accidentally tightens it), Kani fails.
 
@@ -53,7 +53,7 @@ The `apply_deltas` rule on the composer side — only on `Allow` — is what mak
 
 **Property.** An expired attestation (`expires_at != 0 AND expires_at <= now_slot`) cannot produce `Allow` from `require_validation::evaluate`.
 
-**File.** [`proofs/inv_validation_expiry_correct.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs). **Harness:** `validation_expiry_correct`.
+**File.** [`proofs/inv_validation_expiry_correct.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs). **Harness:** `validation_expiry_correct`.
 
 **Why it matters.** Subject + capability + revocation are forced equal in the symbolic search so expiry is the deciding gate. Closes the obvious time-of-check / time-of-use stale-attestation hole — even if a payment race somehow passes a stale attestation through the verify path, the expiry check on the gate itself denies it.
 
@@ -61,7 +61,7 @@ The `apply_deltas` rule on the composer side — only on `Allow` — is what mak
 
 **Property.** `PolicyAuthority::count_distinct_signing_members` cannot return a count exceeding `min(member_count, signer_keys.len())`.
 
-**File.** [`proofs/inv_multisig_threshold_enforced.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_multisig_threshold_enforced.rs). **Harness:** `multisig_threshold_enforced`.
+**File.** [`proofs/inv_multisig_threshold_enforced.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_multisig_threshold_enforced.rs). **Harness:** `multisig_threshold_enforced`.
 
 **Why it's load-bearing.** This is the property that backs `set_killswitch`'s `require!(distinct_count >= threshold)` gate. A caller cannot construct a signer set that fools the function into over-counting (duplicate pubkeys, off-by-one tricks, corrupted `members` arrays).
 
@@ -76,7 +76,7 @@ The `apply_deltas` rule on the composer side — only on `Allow` — is what mak
 
 Together: `strict_returns_ok ⇔ matches!(decision, Allow)`.
 
-**File.** [`proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs).
+**File.** [`proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs).
 
 **Why it matters.** This is the on-chain forge of the SDK's atomic-tx invariant. The SDK enforces atomicity at three TS layers; this proof pins the on-chain handler that those layers feed into. If a future change re-routes the `Deny` arm to an `Ok` return, both the TS guards and this proof fail loud.
 
@@ -93,14 +93,14 @@ Combined: 0 / 258 failed.
 
 **Property.** Inductive form: if the pre-state spending counters satisfy `today_used ≤ daily_max` and `week_used ≤ weekly_max`, then whenever `spending::evaluate` returns `Allow(deltas)` the authorized payment honors all three caps at once — `amount ≤ per_tx_max`, `new_today_used ≤ daily_max`, and `new_week_used ≤ weekly_max`.
 
-**File.** [`proofs/inv_spending_allow_respects_caps.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_spending_allow_respects_caps.rs). **Harness:** `spending_allow_respects_caps`.
+**File.** [`proofs/inv_spending_allow_respects_caps.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_spending_allow_respects_caps.rs). **Harness:** `spending_allow_respects_caps`.
 
 **Why it's load-bearing.** Spending is the policy that bounds how much value moves. The per-tx bound is unconditional — the early `amount > per_tx_max` guard means any `Allow` already cleared it. The daily and weekly bounds are inductive: a fresh account starts at `today_used = week_used = 0` (base case), and every `Allow` path — the UTC/ISO-week rollover reset, the zero-amount no-op, and the checked-add accumulate behind a `v <= max` guard — preserves the bound. This pins the contract the composer relies on when it calls `spending::apply_deltas` on the all-policies-passed branch.
 
 ## Reproduce locally
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 cargo install --locked kani-verifier
 cargo kani setup
 
@@ -133,8 +133,8 @@ VERIFICATION:- SUCCESSFUL
 
 ## What Kani does NOT prove
 
-- **Solidity handler account validation.** These are tested via [`tests/policy-vault.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/policy-vault.spec.ts) — Solidity end-to-end suite, 50 cases.
-- **Borsh deserialization correctness of foreign contract accounts.** Manual byte-offset parsers in [`programs/policy-vault/src/ext/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/ext); unit tests + runtime constraint checks per parser.
+- **Solidity handler account validation.** These are tested via [`tests/policy-vault.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/policy-vault.spec.ts) — Solidity end-to-end suite, 50 cases.
+- **Borsh deserialization correctness of foreign contract accounts.** Manual byte-offset parsers in [`programs/policy-vault/src/ext/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/policy-vault/src/ext); unit tests + runtime constraint checks per parser.
 - **Integer overflow in the ERC-20 token transfer.** Legacy ERC-20 token's own invariant — out of scope for AgentTrust verification.
 - **Liveness.** A denied request never reaches Allow, but the proofs do not bound the number of denials before an Allow eventually fires. Liveness + economic-game-theoretic properties are out of scope for v1.
 
@@ -148,7 +148,7 @@ For an unbounded inductive proof on top of these, the canonical next step is `qe
 
 ## Source
 
-- All proofs: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs)
-- Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml)
-- README: [`docs/proofs/README.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/README.md)
-- Sub-check summary: [`docs/proofs/kani-summary.txt`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/kani-summary.txt)
+- All proofs: [`programs/policy-vault/src/proofs/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/policy-vault/src/proofs)
+- Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/kani-prove.yml)
+- README: [`docs/proofs/README.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/README.md)
+- Sub-check summary: [`docs/proofs/kani-summary.txt`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/kani-summary.txt)

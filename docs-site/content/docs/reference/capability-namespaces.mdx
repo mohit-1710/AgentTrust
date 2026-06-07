@@ -25,13 +25,13 @@ How to use one in a policy: [Integration → Capability namespaces](/integration
 | `agent-source.v1` | Provenance: which dev shop authored the agent. _(newly-registered)_ | [`2328df178dc6…`](https://testnet.monadexplorer.com/tx/52mqFEk5gpytgYjhsq4j7yML4tEcxg7jQhwb5Z6xqmx3cecX8vXP4C5NN6PRyXPSGtnTeSVZ8nBVaaYimU4NP4nH) | [`DqSwaqENQh…`](https://testnet.monadexplorer.com/address/DqSwaqENQhjPUajxfmzsjTcfTcnNXtNN22f3kYyAHvSJ) |
 | `usdc-payment-policy.v1` | USDC payment policy capability — Phase D attestor demo. _(already-registered)_ | `a968ecd0b93d…` | [`34gonn86Fj…`](https://testnet.monadexplorer.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR) |
 
-> Names are bounded by `MAX_NAME_LEN = 32` per [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs). contract account seeds: `["capability", capability_hash]`.
+> Names are bounded by `MAX_NAME_LEN = 32` per [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs). contract account seeds: `["capability", capability_hash]`.
 
 {/* END AUTO-GEN: namespaces */}
 
 ## Reproduce
 
-The seeded namespace set is captured in [`examples/attestor-demo/testnet-namespaces.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/attestor-demo/testnet-namespaces.json) — the source of truth this page is auto-generated from.
+The seeded namespace set is captured in [`examples/attestor-demo/testnet-namespaces.json`](https://github.com/mohit-1710/AgentTrust/blob/main/examples/attestor-demo/testnet-namespaces.json) — the source of truth this page is auto-generated from.
 
 Re-run the seed script (idempotent — already-registered namespaces no-op):
 

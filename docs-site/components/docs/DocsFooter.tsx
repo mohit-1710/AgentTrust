@@ -17,20 +17,20 @@ const LINKS: ReadonlyArray<FooterLink> = [
   },
   {
     label: 'SDK',
-    href: 'https://www.npmjs.com/package/@agenttrust-sdk/trustgate',
-    display: '@agenttrust-sdk/trustgate',
+    href: 'https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk',
+    display: '@monad-agenttrust-sdk/sdk',
     external: true,
   },
   {
     label: 'MCP',
-    href: 'https://www.npmjs.com/package/@agenttrust-sdk/mcp',
-    display: '@agenttrust-sdk/mcp',
+    href: 'https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk',
+    display: '@monad-agenttrust-sdk/sdk',
     external: true,
   },
   {
     label: 'Demo',
-    href: 'https://demo.agenttrust.tech',
-    display: 'demo.agenttrust.tech',
+    href: 'https://monadagenttrustweb.vercel.app',
+    display: 'monadagenttrustweb.vercel.app',
     external: true,
   },
 ];

@@ -10,7 +10,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <header className="docs-topbar" aria-label="AgentTrust docs navigation">
-        <a className="docs-topbar-brand" href="https://agenttrust.tech">
+        <a className="docs-topbar-brand" href="https://monadagenttrustsite.vercel.app">
           <AgentTrustLogoMark className="agenttrust-brand-mark" />
           <span>AgentTrust</span>
         </a>
@@ -23,8 +23,8 @@ export default function Layout({ children }: { children: ReactNode }) {
             <Link href="/sdk">SDK</Link>
           </span>
           <span className="docs-topbar-secondary">
-            <a href="https://github.com/agenttrust-labs/agenttrust">GitHub</a>
-            <a href="https://agenttrust.tech">Launch app</a>
+            <a href="https://github.com/mohit-1710/AgentTrust">GitHub</a>
+            <a href="https://monadagenttrustsite.vercel.app">Launch app</a>
           </span>
         </nav>
       </header>

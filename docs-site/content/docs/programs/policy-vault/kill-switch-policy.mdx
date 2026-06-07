@@ -5,7 +5,7 @@ description: First in the composer — a multisig-controlled emergency pause tha
 
 KillSwitch is the cheapest policy and runs first. When the agent's `KillSwitchState.paused == true`, the composer returns `Deny(KillSwitchEngaged)` immediately — no other policy or foreign-contract account read costs are paid.
 
-Source: [`programs/policy-vault/src/policies/killswitch.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/killswitch.rs).
+Source: [`programs/policy-vault/src/policies/killswitch.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/killswitch.rs).
 
 ## State
 
@@ -40,7 +40,7 @@ require!(
 
 `count_distinct_signing_members` is pubkey-based: a single signer signing twice counts as one. Even if `PolicyAuthority.members` somehow contained duplicates (the `init_authority` constraint rejects this, but defense in depth), the count cannot exceed `min(member_count, signer_keys.len())`. That is the load-bearing property of `multisig_threshold_enforced` (Kani #5, 149 sub-checks, 77.17 s).
 
-`PolicyAuthority` carries up to 7 members + a `threshold` (default 2). Source: [`programs/policy-vault/src/state/policy_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_authority.rs).
+`PolicyAuthority` carries up to 7 members + a `threshold` (default 2). Source: [`programs/policy-vault/src/state/policy_authority.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_authority.rs).
 
 ## Pure decision function
 
@@ -64,9 +64,9 @@ If a future change re-orders or skips KillSwitch evaluation, this proof fails lo
 
 ## Source
 
-- Policy module: [`policies/killswitch.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/killswitch.rs)
-- State: [`state/kill_switch_state.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/kill_switch_state.rs)
-- Mutation: [`instructions/set_killswitch.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/set_killswitch.rs)
-- Authority: [`state/policy_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_authority.rs)
-- Kani proof: [`proofs/inv_paused_implies_no_allow.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs)
-- Multisig Kani proof: [`proofs/inv_multisig_threshold_enforced.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_multisig_threshold_enforced.rs)
+- Policy module: [`policies/killswitch.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/killswitch.rs)
+- State: [`state/kill_switch_state.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/kill_switch_state.rs)
+- Mutation: [`instructions/set_killswitch.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/instructions/set_killswitch.rs)
+- Authority: [`state/policy_authority.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_authority.rs)
+- Kani proof: [`proofs/inv_paused_implies_no_allow.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs)
+- Multisig Kani proof: [`proofs/inv_multisig_threshold_enforced.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_multisig_threshold_enforced.rs)

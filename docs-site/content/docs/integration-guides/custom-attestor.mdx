@@ -5,7 +5,7 @@ description: Register an AttestorProfile, respond to validation requests, revoke
 
 A custom attestor registers a profile, watches off-chain for validation requests for capabilities it can attest to, signs `respond_to_validation` to write the attestation contract account, and can later revoke any attestation it issued. PolicyVault then reads the resulting contract account at fixed byte offsets.
 
-Source: [`programs/validation-registry/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/validation-registry). Testnet smoke: [`examples/attestor-demo/`](https://github.com/agenttrust-labs/agenttrust/tree/main/examples/attestor-demo).
+Source: [`programs/validation-registry/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/validation-registry). Testnet smoke: [`examples/attestor-demo/`](https://github.com/mohit-1710/AgentTrust/tree/main/examples/attestor-demo).
 
 ## Lifecycle
 
@@ -25,7 +25,7 @@ import {
   loadValidationRegistry,
   makeProvider,
   DEFAULT_TESTNET_ADDRESSES,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 
 const attestor = key.fromSecretKey(/* the attestor's signing key */);
 const provider = makeProvider({
@@ -78,7 +78,7 @@ After the attestor verifies the off-chain claim (KYC document, audit report, mod
 import {
   buildRespondToValidationIx,
   computeCapabilityHash,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 
 const subjectAsset       = new PublicKey("…");                    // payee asset
 const capabilityHash     = computeCapabilityHash("kyc.tier-1.v1"); // 32 bytes
@@ -109,7 +109,7 @@ The v1 trust model is "attestor signs the tx" — the Monad tx signature itself 
 ## Step 4 — revoke when needed
 
 ```ts
-import { buildRevokeValidationIx } from "@agenttrust-sdk/trustgate";
+import { buildRevokeValidationIx } from "@monad-agenttrust-sdk/sdk";
 
 const revocationReasonHash = sha256(Buffer.from("kyc-document-expired"));
 

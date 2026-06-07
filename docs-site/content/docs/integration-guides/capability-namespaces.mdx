@@ -5,7 +5,7 @@ description: Register a new namespace, derive its hash, gate against it from Pol
 
 Capability namespaces are the names PolicyVault gates against in `RequireValidation`. Each namespace is identified on chain by `SHA-256(name_utf8)` — that 32-byte hash is what `PolicyAccount.required_capability_hash` stores and what the `X-Capability-Required` x402 response header carries.
 
-Source: [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs). State: [`state/capability_namespace.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/state/capability_namespace.rs).
+Source: [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs). State: [`state/capability_namespace.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/validation-registry/src/state/capability_namespace.rs).
 
 ## Register a namespace
 
@@ -17,7 +17,7 @@ import {
   loadValidationRegistry,
   makeProvider,
   DEFAULT_TESTNET_ADDRESSES,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 
 const creator = key.fromSecretKey(/* funded testnet key */);
 const provider = makeProvider({
@@ -65,7 +65,7 @@ Anyone can register a namespace — rent (~0.0023 MON) is the economic deterrent
 ## Derive the contract account
 
 ```ts
-import { deriveCapabilityNamespacePda } from "@agenttrust-sdk/trustgate";
+import { deriveCapabilityNamespacePda } from "@monad-agenttrust-sdk/sdk";
 
 const namespacePda = deriveCapabilityNamespacePda(
   DEFAULT_TESTNET_ADDRESSES.validationRegistry,
@@ -119,7 +119,7 @@ The seeded v1 namespaces follow a `domain.subcategory.version` shape:
 
 Full lookup with contract accounts and Explorer URLs: [Reference → Capability namespaces](/reference/capability-namespaces).
 
-The playbook-level descriptive labels in [`docs/plan/research/06-validation-registry-class.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/plan/research/06-validation-registry-class.md) (e.g., `kyc.tier-1.v1.identity-verified`) decompose to these on-chain `name` strings plus the JSON `description` field. The chain stores the bounded name; richer metadata lives in the `schema_uri` document.
+The playbook-level descriptive labels in [`docs/plan/research/06-validation-registry-class.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/plan/research/06-validation-registry-class.md) (e.g., `kyc.tier-1.v1.identity-verified`) decompose to these on-chain `name` strings plus the JSON `description` field. The chain stores the bounded name; richer metadata lives in the `schema_uri` document.
 
 ## Sybil-resistance model — local trust, not global
 

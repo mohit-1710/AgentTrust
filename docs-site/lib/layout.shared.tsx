@@ -11,7 +11,7 @@ export function baseOptions(): BaseLayoutProps {
           <span>{appName}</span>
         </span>
       ),
-      url: 'https://agenttrust.tech',
+      url: 'https://monadagenttrustsite.vercel.app',
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
   };

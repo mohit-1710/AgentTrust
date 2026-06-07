@@ -7,12 +7,12 @@ description: Read-only policy decision call. Simulates PolicyVault's gate_paymen
 
 Use it when your facilitator already owns its x402 routing and only needs the AgentTrust decision. For atomic settlement (gate + transfer + feedback in one tx), use [`mountTrustGate`](/sdk/mount-trustgate) or [`composeAtomicSettleTx`](/sdk/exports-reference).
 
-Source: [`trustgate/sdk/src/client.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/client.ts).
+Source: [`trustgate/sdk/src/client.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/client.ts).
 
 ## Signature
 
 ```ts
-import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+import { gatePayment } from "@monad-agenttrust-sdk/sdk/client";
 
 export function gatePayment(req: GatePaymentRequest): Promise<GateDecision>;
 ```
@@ -55,7 +55,7 @@ type GateDecision =
 
 ```ts
 import { type Address } from "viem";
-import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+import { gatePayment } from "@monad-agenttrust-sdk/sdk/client";
 
 const facilitatorKey = key.fromSecretKey(new Uint8Array(JSON.parse(process.env.FACILITATOR_KEY!)));
 
@@ -87,7 +87,7 @@ switch (decision.kind) {
 
 PolicyVault's `gate_payment` (lazy variant) returns the decision via Solidity's `set_return_data` so simulation can decode it. The strict variant — used by [`composeAtomicSettleTx`](/sdk/exports-reference) — instead returns `Err` on non-`Allow`, which is what makes the atomic tx revert as a unit.
 
-`gatePayment()` simulates the lazy variant and parses the return-data via `parseGateDecision`. The wire format is documented in [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs).
+`gatePayment()` simulates the lazy variant and parses the return-data via `parseGateDecision`. The wire format is documented in [`programs/policy-vault/src/state/decision.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/decision.rs).
 
 ## Errors
 
@@ -101,7 +101,7 @@ For the atomic-settle path (which can also return `AtomicityNotEnforcedError`), 
 
 ## Source
 
-- Client: [`trustgate/sdk/src/client.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/client.ts)
-- Simulation: [`trustgate/sdk/src/chain.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/chain.ts) (`simulateGatePayment`, `parseGateDecision`)
-- Types: [`trustgate/sdk/src/types.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/types.ts)
-- Tests: [`trustgate/sdk/test/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/sdk/test)
+- Client: [`trustgate/sdk/src/client.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/client.ts)
+- Simulation: [`trustgate/sdk/src/chain.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/chain.ts) (`simulateGatePayment`, `parseGateDecision`)
+- Types: [`trustgate/sdk/src/types.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/types.ts)
+- Tests: [`trustgate/sdk/test/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/sdk/test)

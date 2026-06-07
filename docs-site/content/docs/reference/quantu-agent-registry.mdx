@@ -40,7 +40,7 @@ pub struct GiveFeedbackArgs {
 | 6 | `ReputationRegistry_program` (optional) | the ERC-8004 `atom-engine` |
 | 7 | `registry_authority` (optional) | the ERC-8004 registry authority contract account |
 
-Indexes 0..=3 are required; 4..=7 come as a group of 4 (all four or none). TrustGate's `emit_feedback` handler validates this in [`programs/trustgate/src/instructions/emit_feedback.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/instructions/emit_feedback.rs).
+Indexes 0..=3 are required; 4..=7 come as a group of 4 (all four or none). TrustGate's `emit_feedback` handler validates this in [`programs/trustgate/src/instructions/emit_feedback.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/instructions/emit_feedback.rs).
 
 The SDK's [`deriveQuantuFeedbackAccounts`](/sdk/exports-reference#quantu-helpers) returns this account bundle correctly ordered.
 
@@ -76,7 +76,7 @@ Two reasons:
 1. **Zero Cargo dep on the ERC-8004 crate.** AgentTrust would otherwise pin to the ERC-8004 published Solidity IDL or workspace package. A ERC-8004 version bump that re-orders fields would silently change PolicyVault's reads through Borsh's positional encoding. The byte-offset parser is fragile against layout changes — but fragile-with-canary, not fragile-silent. The `schema_version` byte at 560 fails loud rather than silently misread.
 2. **Bounded compute.** Borsh deserialization allocates and walks the full struct. The byte-offset parser reads exactly the five bytes PolicyVault gates against — `risk_score`, `tier_immediate`, `tier_confirmed`, `confidence`, `schema_version`. Cheaper compute units, smaller stack frame.
 
-Trade-off: the parser must be re-pinned manually if ERC-8004 bumps its layout. The pinned-commit comment in [`policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs) documents the bump procedure.
+Trade-off: the parser must be re-pinned manually if ERC-8004 bumps its layout. The pinned-commit comment in [`policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs) documents the bump procedure.
 
 ## TrustGate's internal call wrapper
 
@@ -93,7 +93,7 @@ invoke_give_feedback(&cpi_accounts, &args, signer_seeds)?;
 
 the ERC-8004 `give_feedback` instruction expects the caller to be the agent's owner. TrustGate's contract account is registered as the feedback authority via the ERC-8004 identity flow on first use (the `set_agent_wallet` instruction at `identity/instructions.rs:506-541` in the ERC-8004 source). The `client` account in the internal call is set to `authority.to_account_info()`, so ERC-8004 sees a contract account-signed call rather than the facilitator's wallet directly.
 
-internal call source: [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/ext/agent_registry.rs).
+internal call source: [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/ext/agent_registry.rs).
 
 ## Read next
 

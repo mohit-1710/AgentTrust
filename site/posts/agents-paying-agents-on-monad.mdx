@@ -60,16 +60,16 @@ The combination is what makes the bet specific. Monad runs ERC-8004 natively and
 
 PolicyVault plus the ERC-8004 registries deployed on Monad testnet. PolicyVault is the decision engine, with five composable policy kinds. KillSwitch, Spending, Velocity, CounterpartyTier, RequireValidation. The x402 server is the facilitator-side component with the atomic-settle path that bundles gate, transfer, and feedback emission into one transaction. ValidationRegistry holds the third ERC-8004 leg as an on-chain attestation surface with per-policy `accepted_attestors[]` filters.
 
-The SDK is on npm. The MCP server is on npm and live at `mcp.agenttrust.tech`. The hosted MCP is read-only by design. Thirteen tools, no shared signer. Your key stays on your machine and you own every contract record you create. The full surface comparison lives at [/quickstart#two-mcp-surfaces](/quickstart#two-mcp-surfaces). Seven Kani-verified properties gate every payment decision. Read [/blog/six-kani-proofs](/blog/six-kani-proofs) for what the proofs actually cover.
+The SDK is on npm. The MCP server is on npm and live at `github.com/mohit-1710/AgentTrust/tree/main/mcp`. The hosted MCP is read-only by design. Thirteen tools, no shared signer. Your key stays on your machine and you own every contract record you create. The full surface comparison lives at [/quickstart#two-mcp-surfaces](/quickstart#two-mcp-surfaces). Seven Kani-verified properties gate every payment decision. Read [/blog/six-kani-proofs](/blog/six-kani-proofs) for what the proofs actually cover.
 
 The demo runs a live x402 round-trip on Monad testnet. A test client agent calls a gated endpoint, the facilitator hits `/verify` against the AgentTrust gate, the gate evaluates the policy, returns the decision, and the round-trip lands a settled transaction on Explorer. The whole loop runs in under three seconds at 402 Payment Required to 200 OK. The code is open and the contract addresses are public, so any reader can verify the trace from their own machine.
 
 <DataPanel label="What ships today">
-  <DataRow label="SDK">[`@agenttrust-sdk/trustgate` on npm](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)</DataRow>
-  <DataRow label="MCP">[`@agenttrust-sdk/mcp` on npm](https://www.npmjs.com/package/@agenttrust-sdk/mcp), live at [mcp.agenttrust.tech](https://mcp.agenttrust.tech)</DataRow>
-  <DataRow label="Contracts">Monad testnet, [agenttrust-labs/agenttrust on GitHub](https://github.com/agenttrust-labs/agenttrust)</DataRow>
-  <DataRow label="Demo">Live x402 round-trip at [demo.agenttrust.tech](https://demo.agenttrust.tech)</DataRow>
-  <DataRow label="Proofs">Seven Kani-verified invariants, [run on every PR](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml)</DataRow>
+  <DataRow label="SDK">[`@monad-agenttrust-sdk/sdk` on npm](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk)</DataRow>
+  <DataRow label="MCP">[`@monad-agenttrust-sdk/sdk` on npm](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk), live at [github.com/mohit-1710/AgentTrust/tree/main/mcp](https://github.com/mohit-1710/AgentTrust/tree/main/mcp)</DataRow>
+  <DataRow label="Contracts">Monad testnet, [mohit-1710/AgentTrust on GitHub](https://github.com/mohit-1710/AgentTrust)</DataRow>
+  <DataRow label="Demo">Live x402 round-trip at [monadagenttrustweb.vercel.app](https://monadagenttrustweb.vercel.app)</DataRow>
+  <DataRow label="Proofs">Seven Kani-verified invariants, [run on every PR](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/kani-prove.yml)</DataRow>
   <DataRow label="License">MIT</DataRow>
 </DataPanel>
 
@@ -87,10 +87,10 @@ Agent payments are arriving on Monad. The trust stack has to be on chain. I am s
 
 Install the MCP and try it.
 
-- [GitHub](https://github.com/agenttrust-labs/agenttrust)
-- [Docs](https://docs.agenttrust.tech)
-- [Hosted MCP](https://mcp.agenttrust.tech)
+- [GitHub](https://github.com/mohit-1710/AgentTrust)
+- [Docs](https://monadagenttrustdocs-site.vercel.app)
+- [Hosted MCP](https://github.com/mohit-1710/AgentTrust/tree/main/mcp)
 
 ```bash
-npx -y @agenttrust-sdk/mcp@latest
+npx -y @monad-agenttrust-sdk/sdk@latest
 ```

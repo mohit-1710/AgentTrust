@@ -7,7 +7,7 @@ CounterpartyTier is the wedge. It reads the payee's `AtomStats` contract account
 
 Manual parsing — not Borsh deserialization through the ERC-8004 crate. The parser is pinned to commit `bfb09ad` and includes a schema-version canary at byte 560 that fails loud rather than silently misreading fields if ERC-8004 bumps its layout.
 
-Source: [`programs/policy-vault/src/policies/counterparty_tier.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs). Parser: [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs).
+Source: [`programs/policy-vault/src/policies/counterparty_tier.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs). Parser: [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs).
 
 ## Reads from `AtomStats`
 
@@ -81,7 +81,7 @@ In-module tests cover gate-mode selection (immediate vs confirmed), risk + confi
 
 ## Source
 
-- Policy module: [`policies/counterparty_tier.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs)
-- AtomStats parser: [`ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs)
-- Kani proof: [`proofs/inv_counterparty_tier_monotone.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs)
+- Policy module: [`policies/counterparty_tier.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs)
+- AtomStats parser: [`ext/ReputationRegistry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs)
+- Kani proof: [`proofs/inv_counterparty_tier_monotone.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs)
 - Byte-offset table: [Reference → Byte offsets](/reference/byte-offset-reference)

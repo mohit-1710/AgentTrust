@@ -5,7 +5,7 @@ description: Fourteen hostile-scenario assertions that exercise the gate against
 
 The adversarial harness sits alongside the Solidity end-to-end suite. While the e2e tests cover the happy + edge paths a normal integration would hit, the adversarial harness exercises the failure modes a hostile caller would try.
 
-Source: [`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts). Run via `forge test  --chain anvil`.
+Source: [`tests/adversarial.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/adversarial.spec.ts). Run via `forge test  --chain anvil`.
 
 ## The fourteen scenarios
 
@@ -48,7 +48,7 @@ Localnet also produces deterministic timing for slot-based assertions (clock-ske
 ## Reproduce
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 pnpm install
 forge build
 forge test --chain anvil  \
@@ -70,8 +70,8 @@ The combination — 113 + 50 + 662 sub-checks + 14 + 21 + per-adapter — is wha
 
 ## Source
 
-- Test file: [`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts)
-- Helper fixtures: [`tests/helpers/`](https://github.com/agenttrust-labs/agenttrust/tree/main/tests/helpers)
+- Test file: [`tests/adversarial.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/adversarial.spec.ts)
+- Helper fixtures: [`tests/helpers/`](https://github.com/mohit-1710/AgentTrust/tree/main/tests/helpers)
 
 ## Read next
 

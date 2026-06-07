@@ -5,7 +5,7 @@ description: Fixed offsets used by AgentTrust's manual byte-offset readers — E
 
 PolicyVault reads two foreign contract accounts through byte-precise parsers rather than Borsh deserialization. Schema-version canaries fail loud rather than silently misread fields if the upstream layout changes.
 
-Sources: [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs), [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
+Sources: [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs), [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
 
 ## ERC-8004 `AtomStats` (561 bytes)
 
@@ -92,7 +92,7 @@ PolicyVault's own state. Field offsets matter for the playbook contract; readers
 | `231` | u8 | `scope_kind` |
 | `232` | [u8; 8] | `_reserved` |
 
-Source: [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
+Source: [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
 
 ## Read next
 

@@ -5,7 +5,7 @@ description: Sliding-window cumulative-spend counter with payer-tier-decayed win
 
 Velocity is the third policy. One contract account read (`VelocityLedger`), then pure arithmetic. The window size is decayed by the payer's `trust_tier` so a tier-0 agent gets a tighter throttle than a tier-3 agent.
 
-Source: [`programs/policy-vault/src/policies/velocity.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/velocity.rs).
+Source: [`programs/policy-vault/src/policies/velocity.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/velocity.rs).
 
 ## `VelocityLedger` contract account
 
@@ -82,11 +82,11 @@ pub struct VelocityDeltas {
 
 - `velocity_counter_le_limit` (Kani #2, 9 sub-checks, 0.03 s) — if the pre-state ledger satisfies `cumulative_amount ≤ max_in_window`, then after `velocity::evaluate` returns `Allow(deltas)` the new cumulative counter still satisfies the bound. Cross-policy preservation against `spending.weekly_max` is a separate proof if/when needed.
 
-In-module unit tests cover tier decay (5 cases), window expiry, boundary cases at `max_in_window`, overflow, `max_in_window == 0`, and `now_slot < window_start_slot`. Source: [`programs/policy-vault/src/policies/velocity.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/velocity.rs) — 339 lines.
+In-module unit tests cover tier decay (5 cases), window expiry, boundary cases at `max_in_window`, overflow, `max_in_window == 0`, and `now_slot < window_start_slot`. Source: [`programs/policy-vault/src/policies/velocity.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/velocity.rs) — 339 lines.
 
 ## Source
 
-- Policy module: [`policies/velocity.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/velocity.rs)
-- State: [`state/velocity_ledger.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/velocity_ledger.rs)
-- Composer: [`policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
-- Kani proof: [`proofs/inv_velocity_counter_le_limit.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_velocity_counter_le_limit.rs)
+- Policy module: [`policies/velocity.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/velocity.rs)
+- State: [`state/velocity_ledger.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/velocity_ledger.rs)
+- Composer: [`policies/composer.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/composer.rs)
+- Kani proof: [`proofs/inv_velocity_counter_le_limit.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_velocity_counter_le_limit.rs)

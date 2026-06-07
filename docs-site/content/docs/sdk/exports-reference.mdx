@@ -1,17 +1,17 @@
 ---
 title: Exports reference
-description: Every public export from @agenttrust-sdk/trustgate, grouped by concern.
+description: Every public export from @monad-agenttrust-sdk/sdk, grouped by concern.
 ---
 
 The SDK ships three import surfaces. The `/express` and `/client` subpaths are tree-shake-friendly entry points; the root namespace re-exports everything else.
 
 ```ts
-import { mountTrustGate }                   from "@agenttrust-sdk/trustgate/express";
-import { gatePayment, settle, dispute }     from "@agenttrust-sdk/trustgate/client";
-import { /* everything else */ }            from "@agenttrust-sdk/trustgate";
+import { mountTrustGate }                   from "@monad-agenttrust-sdk/sdk/express";
+import { gatePayment, settle, dispute }     from "@monad-agenttrust-sdk/sdk/client";
+import { /* everything else */ }            from "@monad-agenttrust-sdk/sdk";
 ```
 
-Source: [`trustgate/sdk/src/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/index.ts).
+Source: [`trustgate/sdk/src/index.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/index.ts).
 
 ## Atomicity guard
 
@@ -22,7 +22,7 @@ import {
   assertAtomicityEnforced,
   composeAtomicSettleTx,
   deriveStandardAta,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 | Export | Kind | Purpose |
@@ -36,7 +36,7 @@ import {
 | `ComposeAtomicSettleArgs` | type | full arg shape, `extends AtomicityEnforced` |
 | `ComposedAtomicSettle` | type | return shape: `{ tx, instructions, accounts }` |
 
-Source: [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts).
+Source: [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/atomicity.ts).
 
 ## ERC-20 helpers
 
@@ -47,12 +47,12 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   buildTransferCheckedIx,
   deriveAssociatedTokenAddress,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 `buildTransferCheckedIx` accepts an optional `tokenProgram` to switch between legacy ERC-20 and Token-2022. The atomic-tx invariant applies to both — Token-2022's `TransferHook` extension is the canonical corruption vector that motivates the invariant; legacy ERC-20's `MissingRequiredSignature` revert produces the same atomicity behaviour.
 
-Source: [`trustgate/sdk/src/spl.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/spl.ts).
+Source: [`trustgate/sdk/src/spl.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/spl.ts).
 
 ## On-chain validator factory
 
@@ -63,12 +63,12 @@ import {
   type OnChainTxRejection,
   type ValidateOnChainTxFn,
   type MakeValidateOnChainTxOptions,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 `makeValidateOnChainTx({ connection, … })` returns a function the facilitator's `/settle` route plugs into the adapter's `validatePaymentProof` slot. Parses a confirmed USDC transfer transaction from RPC, cross-checks amount / mint / recipient / authority against the verify-time `VerifyContext`, and rejects mismatches with typed errors.
 
-Source: [`trustgate/sdk/src/onchain-validator.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/onchain-validator.ts).
+Source: [`trustgate/sdk/src/onchain-validator.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/onchain-validator.ts).
 
 ## ERC-8004 helpers
 
@@ -84,12 +84,12 @@ import {
   deriveAtomStatsPda,
   deriveAtomRegistryAuthorityPda,
   deriveQuantuFeedbackAccounts,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 The `ERC-8004*` helpers derive ERC-8004 contract accounts without depending on the ERC-8004 TypeScript package. Pinned to commit `bfb09ad` per [Reference → Mainnet program IDs](/reference/mainnet-program-ids). `deriveQuantuFeedbackAccounts` returns the full account bundle the `give_feedback` internal call needs in `remaining_accounts` order.
 
-Source: [`trustgate/sdk/src/quantu.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/quantu.ts).
+Source: [`trustgate/sdk/src/quantu.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/quantu.ts).
 
 ## emit_feedback factory
 
@@ -104,12 +104,12 @@ import {
   type PriorEmissionLookupFn,
   type PriorEmissionResult,
   type MakePriorEmissionLookupOptions,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 `makeEmitFeedbackCpi({ connection, … })` returns the function adapters plug into their `emitFeedback` slot. `makePriorEmissionLookup({ connection, … })` returns the `priorEmissionLookup` function — looks up `FeedbackEmissionLog` by `payment_id_hash` so retries return a stable receipt instead of double-emitting.
 
-Source: [`trustgate/sdk/src/emit-feedback.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/emit-feedback.ts).
+Source: [`trustgate/sdk/src/emit-feedback.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/emit-feedback.ts).
 
 ## ValidationRegistry
 
@@ -137,12 +137,12 @@ import {
   type BuildRequestValidationArgs,
   type BuildRespondToValidationArgs,
   type BuildRevokeValidationArgs,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 Full instruction-builder set for the third leg of ERC-8004. `computeCapabilityHash(name)` returns `SHA-256(name)`; `computeNamespaceHash(name)` is an alias kept for clarity. `fetch*` helpers return decoded views of each contract account.
 
-Source: [`trustgate/sdk/src/validation-registry.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/validation-registry.ts).
+Source: [`trustgate/sdk/src/validation-registry.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/validation-registry.ts).
 
 ## contract account derivers + Solidity loaders
 
@@ -158,12 +158,12 @@ import {
   makeProvider,
   simulateGatePayment,
   parseGateDecision,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 `load*` helpers fetch the IDL from chain by default (`forge idl fetch <programId>`). Pass an explicit `idl` argument to use a bundled snapshot — useful for latency-sensitive paths or freshly redeployed programs before `forge idl upgrade`.
 
-Source: [`trustgate/sdk/src/chain.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/chain.ts).
+Source: [`trustgate/sdk/src/chain.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/chain.ts).
 
 ## x402 headers
 
@@ -177,12 +177,12 @@ import {
   X_PAYMENT_REASON_NAME,
   X_CAPABILITY_REQUIRED,
   X_AGENT_TRUST_DECISION,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 `buildHeadersForDecision(decision, network)` returns the header map for `Allow` / `Deny` / `RequireValidation`. `denyReasonName(code)` maps `1..=15` to the canonical name (e.g., `6` → `CounterpartyTierBelowMin`).
 
-Source: [`trustgate/sdk/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/x402.ts).
+Source: [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/x402.ts).
 
 ## Types + constants
 
@@ -192,7 +192,7 @@ import {
   DenyReasonCode,
   ProgramIds,
   DEFAULT_TESTNET_ADDRESSES,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 ```
 
 ```ts
@@ -208,7 +208,7 @@ interface ProgramIds {
 }
 ```
 
-`DEFAULT_TESTNET_ADDRESSES` carries the deployed-testnet IDs. Override via `ProgramIds` for mainnet redeploys. Source: [`trustgate/sdk/src/types.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/types.ts).
+`DEFAULT_TESTNET_ADDRESSES` carries the deployed-testnet IDs. Override via `ProgramIds` for mainnet redeploys. Source: [`trustgate/sdk/src/types.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/types.ts).
 
 ## Express + client subpaths
 
@@ -216,10 +216,10 @@ These have their own dedicated entry points and don't re-export through the root
 
 ```ts
 // Express middleware (peer dep: express ^4.21)
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 // Client helpers
-import { gatePayment, settle, dispute } from "@agenttrust-sdk/trustgate/client";
+import { gatePayment, settle, dispute } from "@monad-agenttrust-sdk/sdk/client";
 ```
 
 References: [mountTrustGate](/sdk/mount-trustgate), [gatePayment](/sdk/gate-payment).

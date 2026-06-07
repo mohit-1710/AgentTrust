@@ -62,7 +62,7 @@ export async function buildDocsAssistantPrompt(): Promise<string> {
 
 For greetings, thanks, and simple assistant capability questions, respond naturally and briefly, then invite the user to ask about AgentTrust docs.
 
-For AgentTrust technical questions, answer using ONLY the documentation below. If the answer is not in the docs, say "Not covered in current docs — see github.com/agenttrust-labs/agenttrust". Cite the page path you are answering from when relevant.
+For AgentTrust technical questions, answer using ONLY the documentation below. If the answer is not in the docs, say "Not covered in current docs — see github.com/mohit-1710/AgentTrust". Cite the page path you are answering from when relevant.
 
 Format answers in Markdown. Use code fences for code, inline code for identifiers (contract addresses, account names, method names), and bullet lists for enumerations. Keep answers concise unless the user asks for depth.
 

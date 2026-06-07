@@ -96,7 +96,7 @@ pub struct ValidationAttestation {
 
 contract account seeds: `["attestation", subject_asset, capability_hash, attestor]`. Account size: 290 bytes.
 
-This is the contract account PolicyVault's `RequireValidation` policy reads at fixed byte offsets via [`ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs). Field declaration order is **load-bearing** — reordering fields silently breaks PolicyVault's reads.
+This is the contract account PolicyVault's `RequireValidation` policy reads at fixed byte offsets via [`ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs). Field declaration order is **load-bearing** — reordering fields silently breaks PolicyVault's reads.
 
 ## Capability namespace + hash
 
@@ -150,7 +150,7 @@ Four-signature chained-validation trace on testnet (`gate_payment` → `request_
 
 ## Source
 
-- Program entry: [`programs/validation-registry/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/lib.rs)
-- State: [`state/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/validation-registry/src/state)
-- Instructions: [`instructions/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/validation-registry/src/instructions)
-- PolicyVault byte-offset parser: [`policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
+- Program entry: [`programs/validation-registry/src/lib.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/validation-registry/src/lib.rs)
+- State: [`state/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/validation-registry/src/state)
+- Instructions: [`instructions/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/validation-registry/src/instructions)
+- PolicyVault byte-offset parser: [`policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)

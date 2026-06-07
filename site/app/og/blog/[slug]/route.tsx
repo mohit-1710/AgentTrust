@@ -149,7 +149,7 @@ export async function GET(_req: Request, context: OgRouteContext) {
             }}
           >
             <span style={{ display: "flex" }}>{post.author}</span>
-            <span style={{ display: "flex" }}>agenttrust.tech</span>
+            <span style={{ display: "flex" }}>monadagenttrustsite.vercel.app</span>
           </div>
         </div>
       </div>

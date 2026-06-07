@@ -5,7 +5,7 @@ description: Three guided MCP workflows — audit a payment, set up an agent, ex
 
 MCP prompts are reusable, parameterised templates that the server returns in response to `prompts/get`. The client (Claude Desktop, Cursor, OpenAI Agents SDK) presents the prompt's messages to the model, which then drives the tool calls. Prompts encode the right *order* of tool calls for common workflows.
 
-Source: [`mcp/src/prompts/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/prompts).
+Source: [`mcp/src/prompts/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/prompts).
 
 ## Three prompts
 
@@ -78,11 +78,11 @@ In Claude Desktop, prompts appear as slash commands when an MCP server is connec
 
 ## Validation
 
-Phase M validated all three prompts via direct `prompts/get` calls. All three return non-empty `messages` arrays with structured user prompts referencing the right tools. Missing-argument probes return clean `-32603 missing required argument` errors. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M1.5.
+Phase M validated all three prompts via direct `prompts/get` calls. All three return non-empty `messages` arrays with structured user prompts referencing the right tools. Missing-argument probes return clean `-32603 missing required argument` errors. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M1.5.
 
 Phase P verified `agenttrust_explain_failure` end-to-end with Claude `sonnet` driving the workflow against live testnet state — the model called `agenttrust_explain_decision(6)` then `agenttrust_get_killswitch` to inspect the actual policy fields, and produced a remediation in plain language.
 
 ## Source
 
-- Prompts: [`mcp/src/prompts/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/prompts)
-- Server wiring: [`mcp/src/server.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/server.ts)
+- Prompts: [`mcp/src/prompts/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/prompts)
+- Server wiring: [`mcp/src/server.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/src/server.ts)

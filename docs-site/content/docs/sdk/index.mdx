@@ -1,18 +1,18 @@
 ---
-title: "@agenttrust-sdk/trustgate"
+title: "@monad-agenttrust-sdk/sdk"
 description: TypeScript surface for AgentTrust on Monad — Express middleware, client helpers, atomicity guard, contract account derivers, and the full ValidationRegistry instruction builder set.
 ---
 
-[`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) is the TypeScript package every facilitator pulls in. Express middleware, client helpers for direct calls, the atomicity guard, contract account derivers + Solidity loaders for all three programs, and instruction builders for ValidationRegistry's full lifecycle.
+[`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) is the TypeScript package every facilitator pulls in. Express middleware, client helpers for direct calls, the atomicity guard, contract account derivers + Solidity loaders for all three programs, and instruction builders for ValidationRegistry's full lifecycle.
 
-Source: [`trustgate/sdk/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/sdk). License: MIT.
+Source: [`trustgate/sdk/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/sdk). License: MIT.
 
 ## Install
 
 ```bash
-pnpm add @agenttrust-sdk/trustgate
-# or: npm install @agenttrust-sdk/trustgate
-# or: yarn add @agenttrust-sdk/trustgate
+pnpm add @monad-agenttrust-sdk/sdk
+# or: npm install @monad-agenttrust-sdk/sdk
+# or: yarn add @monad-agenttrust-sdk/sdk
 ```
 
 Peer dep: `express ^4.21` (only required if you mount the middleware). Node `>=20`.
@@ -20,9 +20,9 @@ Peer dep: `express ^4.21` (only required if you mount the middleware). Node `>=2
 ## Three import surfaces
 
 ```ts
-import { mountTrustGate }                   from "@agenttrust-sdk/trustgate/express";
-import { gatePayment, settle, dispute }     from "@agenttrust-sdk/trustgate/client";
-import { composeAtomicSettleTx }            from "@agenttrust-sdk/trustgate";
+import { mountTrustGate }                   from "@monad-agenttrust-sdk/sdk/express";
+import { gatePayment, settle, dispute }     from "@monad-agenttrust-sdk/sdk/client";
+import { composeAtomicSettleTx }            from "@monad-agenttrust-sdk/sdk";
 ```
 
 The root namespace re-exports every helper grouped by concern — atomicity guard, contract account derivers, Solidity loaders, ERC-8004 helpers, ValidationRegistry instruction builders, ERC-20 helpers, x402 header constants. Full list: [Exports reference](/sdk/exports-reference).
@@ -34,7 +34,7 @@ The `/express` and `/client` subpaths are tree-shake-friendly entry points; the 
 ```ts
 import express from "express";
 import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 const app = express();
 app.use(express.json());
@@ -64,7 +64,7 @@ Full route reference: [mountTrustGate](/sdk/mount-trustgate).
 
 ```ts
 import { type Address } from "viem";
-import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+import { gatePayment } from "@monad-agenttrust-sdk/sdk/client";
 
 const decision = await gatePayment({
   rpcUrl:          "https://testnet-rpc.monad.xyz",
@@ -96,7 +96,7 @@ import {
   AtomicityEnforced,
   AtomicityNotEnforcedError,
   composeAtomicSettleTx,
-} from "@agenttrust-sdk/trustgate";
+} from "@monad-agenttrust-sdk/sdk";
 
 // 1. Compile-time literal-type guard:
 //    `AtomicityEnforced` is `{ atomicityEnforced: true }` (literal `true`).

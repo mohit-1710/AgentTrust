@@ -74,7 +74,7 @@ Cold-start your serverless function and replay the call. Nothing breaks. Nothing
 ## The two MCP surfaces
 
 <Note>
-This flow only runs on the local install of `@agenttrust-sdk/mcp`. The hosted MCP at `mcp.agenttrust.tech` is read-only by design. Thirteen tools, no shared signer. A shared signer would mean every user's on-chain identity is owned by the operator, which is a security model, not a UX shortcut. Write tools live in the local install so your key stays on your machine and you own every contract record you create. The full comparison lives at [/quickstart#two-mcp-surfaces](/quickstart#two-mcp-surfaces).
+This flow only runs on the local install of `@monad-agenttrust-sdk/sdk`. The hosted MCP at `github.com/mohit-1710/AgentTrust/tree/main/mcp` is read-only by design. Thirteen tools, no shared signer. A shared signer would mean every user's on-chain identity is owned by the operator, which is a security model, not a UX shortcut. Write tools live in the local install so your key stays on your machine and you own every contract record you create. The full comparison lives at [/quickstart#two-mcp-surfaces](/quickstart#two-mcp-surfaces).
 </Note>
 
 ## What you do with it
@@ -96,7 +96,7 @@ The testnet contract addresses are public. Verify the trace yourself. Beat B of 
 Install the MCP and try it.
 
 ```bash
-npx -y @agenttrust-sdk/mcp@latest
+npx -y @monad-agenttrust-sdk/sdk@latest
 ```
 
 One prompt to Claude. One signature. Seven steps. Read [/architecture](/architecture) when you want to know how the x402 server routes the internal call under the hood.

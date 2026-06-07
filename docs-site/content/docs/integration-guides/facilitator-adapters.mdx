@@ -5,7 +5,7 @@ description: Add a new x402 facilitator without rewriting AgentTrust routes or p
 
 The adapter layer is what makes AgentTrust facilitator-agnostic. the molandak x402 facilitator is the canonical reference; Dexter is the in-flight second worked example; atxp and MCPay are roadmap. Routes (`/verify`, `/settle`, `/dispute`), the PolicyVault gate, and the registry reads do not branch on facilitator name. Protocol quirks live in one adapter file.
 
-The adapter implementations live in [`trustgate/server/src/facilitators/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators). The server package is workspace-internal (not published to npm); copy the pattern from [`facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh) into your own server, or use the published [SDK middleware](/sdk/mount-trustgate) which dispatches through the adapter layer for you.
+The adapter implementations live in [`trustgate/server/src/facilitators/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators). The server package is workspace-internal (not published to npm); copy the pattern from [`facilitators/pay-sh/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators/pay-sh) into your own server, or use the published [SDK middleware](/sdk/mount-trustgate) which dispatches through the adapter layer for you.
 
 ## Mental model
 
@@ -62,7 +62,7 @@ If an adapter needs a sixth method, that is a contract change, not a one-off esc
 1. Read the facilitator's wire format. Identify challenge headers, proof headers, body shape, recipient encoding, payment ID hints, Allow/Deny responses.
 2. Define strict Zod schemas for the request body and proof payload. Reject unknown root fields.
 3. Implement one `FacilitatorAdapter` class.
-4. Re-export from [`trustgate/server/src/facilitators/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/index.ts).
+4. Re-export from [`trustgate/server/src/facilitators/index.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/index.ts).
 5. Register with `FacilitatorRegistry`.
 6. Add unit tests mirroring the molandak x402 facilitator coverage (50+ cases — schema, signature, proof-validator, feedback idempotency).
 7. Add a demo under `examples/<name>-demo` if the integration needs a runnable walkthrough.
@@ -97,11 +97,11 @@ Every adapter must preserve the same proof-of-payment checks:
 - idempotent feedback emission — `priorEmissionLookup` short-circuits a second emission for the same `payment_id_hash`
 - stable reason codes on `Deny` — clients consume the numeric `reasonCode`, decoupled from Borsh wire-format ordering
 
-The the molandak x402 facilitator adapter's [`proof-validator.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) and [`feedback.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/feedback.ts) are the reference pattern.
+The the molandak x402 facilitator adapter's [`proof-validator.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) and [`feedback.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/feedback.ts) are the reference pattern.
 
 ## Conformance test
 
-CI runs [`.github/workflows/adapter-contract-conformance.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/adapter-contract-conformance.yml) on every PR. The workflow walks every registered adapter and asserts:
+CI runs [`.github/workflows/adapter-contract-conformance.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/adapter-contract-conformance.yml) on every PR. The workflow walks every registered adapter and asserts:
 
 - `parseRequest` accepts the verify-shape and rejects malformed inputs with HTTP `400`.
 - `formatChallenge` emits the right headers per decision arm (Allow, Deny + reason, RequireValidation + capability hash).

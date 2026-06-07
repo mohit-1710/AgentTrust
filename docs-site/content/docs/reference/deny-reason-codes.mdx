@@ -13,7 +13,7 @@ pub enum GateDecision {
 }
 ```
 
-Source: [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs).
+Source: [`programs/policy-vault/src/state/decision.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/decision.rs).
 
 ## All fifteen codes
 
@@ -38,8 +38,8 @@ Source: [`programs/policy-vault/src/state/decision.rs`](https://github.com/agent
 ## SDK consumption
 
 ```ts
-import type { GateDecision, DenyReasonCode } from "@agenttrust-sdk/trustgate";
-import { denyReasonName } from "@agenttrust-sdk/trustgate";
+import type { GateDecision, DenyReasonCode } from "@monad-agenttrust-sdk/sdk";
+import { denyReasonName } from "@monad-agenttrust-sdk/sdk";
 
 const decision: GateDecision = await gatePayment(/* … */);
 
@@ -65,7 +65,7 @@ X-Payment-Reason-Name: CounterpartyTierBelowMin
 X-Payment-Network: Monad-testnet
 ```
 
-Headers are built via `buildHeadersForDecision` in [`trustgate/sdk/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/x402.ts).
+Headers are built via `buildHeadersForDecision` in [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/x402.ts).
 
 ## MCP tool
 

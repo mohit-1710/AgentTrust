@@ -7,7 +7,7 @@ The load-bearing safety property of the SDK:
 
 > `gate_payment` + ERC-20 `transferChecked` + `emit_feedback` MUST execute as one Monad transaction. Splitting them silently corrupts state when a Token-2022 mint's `TransferHook` extension reverts the transfer.
 
-Background writeup: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/transfer-hook-atomicity.md). The proof is structured as five layers; all five must hold.
+Background writeup: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/transfer-hook-atomicity.md). The proof is structured as five layers; all five must hold.
 
 ## The corruption vector
 
@@ -24,12 +24,12 @@ A Token-2022 `TransferHook` extension is the canonical instance of this fault mo
 
 | Layer | What it proves | Evidence |
 |---|---|---|
-| A.1 — compile-time guard | `AtomicityEnforced` is a literal `true` marker. TS rejects `false`, missing, and `boolean` widening at compile time. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 31-33 + [`test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("AtomicityEnforced literal-type guard")` |
-| A.2 — runtime guard | `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` casts. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 51-58 + 6-case test suite |
-| A.3 — composer structure | `composeAtomicSettleTx` returns ONE `Transaction` with EXACTLY 3 instructions in canonical order — gate (PolicyVault) + `transferChecked` (Token / Token-2022) + `emit_feedback` (TrustGate). | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("composeAtomicSettleTx")` (5 cases including Token-2022 program-id propagation) |
-| B — single-tx atomic revert | When the bundled tx contains a failing inner ix, Monad reverts the entire bundle; `gate_payment_strict`'s state mutation rolls back. PolicyAccount + VelocityLedger stay clean. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("B. single-tx atomic revert")` |
-| C — split-tx corruption (anti-pattern) | If a caller splits the bundle into two txs, gate_payment_strict commits in tx1, the failing transfer reverts in tx2, and VelocityLedger is left dirty (counted a payment that never moved). This is the corruption vector A + B prevent. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("C. split-tx anti-pattern corrupts state")` |
-| On-chain forge | `gate_payment_strict_correctness` (Kani #6, 258 sub-checks) — strict handler returns `Ok(())` if and only if the lazy composer returns `Allow`. | [`programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs) |
+| A.1 — compile-time guard | `AtomicityEnforced` is a literal `true` marker. TS rejects `false`, missing, and `boolean` widening at compile time. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 31-33 + [`test/atomicity.test.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("AtomicityEnforced literal-type guard")` |
+| A.2 — runtime guard | `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` casts. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 51-58 + 6-case test suite |
+| A.3 — composer structure | `composeAtomicSettleTx` returns ONE `Transaction` with EXACTLY 3 instructions in canonical order — gate (PolicyVault) + `transferChecked` (Token / Token-2022) + `emit_feedback` (TrustGate). | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("composeAtomicSettleTx")` (5 cases including Token-2022 program-id propagation) |
+| B — single-tx atomic revert | When the bundled tx contains a failing inner ix, Monad reverts the entire bundle; `gate_payment_strict`'s state mutation rolls back. PolicyAccount + VelocityLedger stay clean. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("B. single-tx atomic revert")` |
+| C — split-tx corruption (anti-pattern) | If a caller splits the bundle into two txs, gate_payment_strict commits in tx1, the failing transfer reverts in tx2, and VelocityLedger is left dirty (counted a payment that never moved). This is the corruption vector A + B prevent. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("C. split-tx anti-pattern corrupts state")` |
+| On-chain forge | `gate_payment_strict_correctness` (Kani #6, 258 sub-checks) — strict handler returns `Ok(())` if and only if the lazy composer returns `Allow`. | [`programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs) |
 
 ## A — SDK type + runtime guards
 
@@ -79,7 +79,7 @@ Five test cases pin this contract — including a Token-2022 program-id propagat
 
 ## B+C — Localnet runtime proofs
 
-The Solidity TS test [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) splits into two `describe` blocks:
+The Solidity TS test [`tests/atomic-tx-invariant.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/atomic-tx-invariant.spec.ts) splits into two `describe` blocks:
 
 - **`B. single-tx atomic revert`.** Builds the bundled tx with an intentionally-failing System.transfer (source key never signs → guaranteed `MissingRequiredSignature`) and asserts the entire bundle reverts; PolicyAccount + VelocityLedger remain in their pre-tx state.
 - **`C. split-tx anti-pattern corrupts state`.** Splits the same flow into two transactions. Tx 1 commits the gate's velocity update. Tx 2 reverts on the failing transfer. The ledger now reflects a payment that never moved — the corruption vector that B prevents.
@@ -108,7 +108,7 @@ The on-chain forge + the SDK guards together close the corruption vector at thre
 ## Reproduce
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 pnpm install
 
 # A — SDK layers

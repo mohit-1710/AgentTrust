@@ -5,12 +5,12 @@ description: Drop-in Express middleware. Adds the four x402 routes to any app �
 
 `mountTrustGate(app, config)` adds four endpoints to any Express app. The atomicity guard runs at the top of the call so a missing or `false` `atomicityEnforced` flag fails synchronously before any route binds.
 
-Source: [`trustgate/sdk/src/express.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/express.ts).
+Source: [`trustgate/sdk/src/express.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/express.ts).
 
 ## Signature
 
 ```ts
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 export function mountTrustGate(
   app:    Application,
@@ -77,7 +77,7 @@ X-Capability-Required: 366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976e
 X-Payment-Network: Monad-testnet
 ```
 
-Headers built via `buildHeadersForDecision` in [`trustgate/sdk/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/x402.ts).
+Headers built via `buildHeadersForDecision` in [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/x402.ts).
 
 ### `GET /receipt/:paymentIdHashHex`
 
@@ -148,14 +148,14 @@ export async function mountTrustGate(app, config) {
 
 Compile-time: `await mountTrustGate(app, { …, atomicityEnforced: false });` is a TS error. Runtime: `await mountTrustGate(app, { …, atomicityEnforced: true as any });` works because TS would have already let it through, BUT `await mountTrustGate(app, JSON.parse(unsafeUserConfig));` still fails the runtime guard.
 
-Six SDK unit tests cover both layers in [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) — including the `as any` cast bypass and the `composeAtomicSettleTx` three-instruction structure check.
+Six SDK unit tests cover both layers in [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/test/atomicity.test.ts) — including the `as any` cast bypass and the `composeAtomicSettleTx` three-instruction structure check.
 
 ## Example
 
 ```ts
 import express from "express";
 import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 const app = express();
 app.use(express.json());
@@ -176,10 +176,10 @@ app.get("/", (_req, res) => res.send("AgentTrust facilitator up"));
 app.listen(3000, () => console.log("listening on :3000"));
 ```
 
-The hosted facilitator at [`api.agenttrust.tech`](https://api.agenttrust.tech) runs exactly this code path. Health: `GET /healthz`.
+The hosted facilitator at [`api.monadagenttrustsite.vercel.app`](https://api.monadagenttrustsite.vercel.app) runs exactly this code path. Health: `GET /healthz`.
 
 ## Source
 
-- Express middleware: [`trustgate/sdk/src/express.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/express.ts)
-- x402 helpers: [`trustgate/sdk/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/x402.ts)
-- Atomicity tests: [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts)
+- Express middleware: [`trustgate/sdk/src/express.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/express.ts)
+- x402 helpers: [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/x402.ts)
+- Atomicity tests: [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/test/atomicity.test.ts)

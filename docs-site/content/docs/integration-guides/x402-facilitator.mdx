@@ -25,7 +25,7 @@ The published SDK is the easy path:
 ```ts
 import express from "express";
 import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 const app = express();
 app.use(express.json());
@@ -91,9 +91,9 @@ The facilitator must keep the policy gate, token transfer, and feedback emission
 
 | File | Purpose |
 |---|---|
-| [`trustgate/server/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/x402.ts) | x402 wire envelope helpers |
-| [`trustgate/sdk/src/express.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/express.ts) | Published Express middleware |
-| [`trustgate/server/src/facilitators/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators) | Per-facilitator adapter implementations |
+| [`trustgate/server/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/x402.ts) | x402 wire envelope helpers |
+| [`trustgate/sdk/src/express.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/express.ts) | Published Express middleware |
+| [`trustgate/server/src/facilitators/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators) | Per-facilitator adapter implementations |
 
 ## Read next
 

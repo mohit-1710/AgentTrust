@@ -37,7 +37,7 @@ The strict variant is the load-bearing one for atomicity. Phase J5 added a Kani 
 | `PolicyAccount` | `["policy", agent_asset, policy_id_le]` | 240 | Per-policy config + lazy counters |
 | `VelocityLedger` | `["velocity", agent_asset, policy_id_le]` | 80 | Sliding-window cumulative-spend counter |
 
-Per-program byte layouts live on each policy page (linked below). The full `PolicyAccount` declaration is in [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
+Per-program byte layouts live on each policy page (linked below). The full `PolicyAccount` declaration is in [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
 
 ## The composer
 
@@ -88,11 +88,11 @@ Full table with remediation hints: [Reference → DenyReason codes](/reference/d
 
 <KaniProofBadge />
 
-Seven Kani harnesses run on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Verification → Kani proofs](/verification/kani-proofs).
+Seven Kani harnesses run on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Verification → Kani proofs](/verification/kani-proofs).
 
 ## Source
 
-- Program entry: [`programs/policy-vault/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/lib.rs)
-- Composer: [`programs/policy-vault/src/policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
-- DenyReason: [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs)
-- Kani proofs: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs)
+- Program entry: [`programs/policy-vault/src/lib.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/lib.rs)
+- Composer: [`programs/policy-vault/src/policies/composer.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/composer.rs)
+- DenyReason: [`programs/policy-vault/src/state/decision.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/decision.rs)
+- Kani proofs: [`programs/policy-vault/src/proofs/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/policy-vault/src/proofs)

@@ -20,14 +20,14 @@ ERC-8004 is a public standard. AgentTrust reads these registries directly; the a
 ## TypeScript constants
 
 ```ts
-import { ERC8004_ADDRESSES } from "@agenttrust-sdk/trustgate";
+import { ERC8004_ADDRESSES } from "@monad-agenttrust-sdk/sdk";
 
 ERC8004_ADDRESSES.identityRegistry;   // Address
 ERC8004_ADDRESSES.reputationRegistry; // Address
 ERC8004_ADDRESSES.validationRegistry; // Address
 ```
 
-Source: [`trustgate/sdk/src/erc8004.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/erc8004.ts).
+Source: [`trustgate/sdk/src/erc8004.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/erc8004.ts).
 
 ## AgentTrust mainnet posture
 
@@ -36,7 +36,7 @@ The AgentTrust contracts target a mainnet redeploy as a post-hackathon deliverab
 Override the contract addresses for a mainnet redeploy:
 
 ```ts
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 await mountTrustGate(app, {
   rpcUrl:             "https://rpc.monad.xyz",

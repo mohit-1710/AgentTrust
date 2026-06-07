@@ -3,26 +3,26 @@ title: Quickstart
 description: Hit the hosted testnet build, install the SDK, wire the MCP server. Three paths, no clone, under five minutes.
 ---
 
-Three live paths. Each runs against the hosted testnet endpoints under `*.agenttrust.tech`. None require a local clone.
+Three live paths. Each runs against the hosted testnet endpoints under `*.monadagenttrustsite.vercel.app`. None require a local clone.
 
 ## 1. Hit the live demo
 
-The demo at [`demo.agenttrust.tech`](https://demo.agenttrust.tech) runs the full the molandak x402 facilitator + AgentTrust flow against deployed testnet programs. With no payment proof, `/protected` returns a real x402 v2 challenge:
+The demo at [`monadagenttrustweb.vercel.app`](https://monadagenttrustweb.vercel.app) runs the full the molandak x402 facilitator + AgentTrust flow against deployed testnet programs. With no payment proof, `/protected` returns a real x402 v2 challenge:
 
 ```bash
-curl -i https://demo.agenttrust.tech/protected
+curl -i https://monadagenttrustweb.vercel.app/protected
 ```
 
 The response carries `HTTP/2 402` with a SERVICE-signed `payment-required` envelope (base64). To walk the full Allow → settle → emit_feedback path, install the molandak x402 facilitator and let it pay:
 
 ```bash
-pay --sandbox curl https://demo.agenttrust.tech/protected
+pay --sandbox curl https://monadagenttrustweb.vercel.app/protected
 ```
 
 Three deterministic counterparties drive each decision branch. Fetch their pubkeys from the demo's health endpoint:
 
 ```bash
-curl -s https://demo.agenttrust.tech/health | jq '.counterparties'
+curl -s https://monadagenttrustweb.vercel.app/health | jq '.counterparties'
 ```
 
 | Tier | Header | Decision |
@@ -35,10 +35,10 @@ The full atomic-settlement trace (gate, transfer, feedback) for the tier-3 path 
 
 ## 2. Install the SDK
 
-Add [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) to any Node project:
+Add [`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) to any Node project:
 
 ```bash
-pnpm add @agenttrust-sdk/trustgate
+pnpm add @monad-agenttrust-sdk/sdk
 ```
 
 Mount the middleware on an Express app:
@@ -46,7 +46,7 @@ Mount the middleware on an Express app:
 ```ts
 import express from "express";
 import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
 
 const app = express();
 app.use(express.json());
@@ -72,14 +72,14 @@ You now have:
 
 ## 3. Wire the MCP server
 
-[`@agenttrust-sdk/mcp`](https://www.npmjs.com/package/@agenttrust-sdk/mcp) exposes 21 tools to any Model Context Protocol client. For Claude Desktop, drop this into your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+[`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) exposes 21 tools to any Model Context Protocol client. For Claude Desktop, drop this into your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
 ```json
 {
   "mcpServers": {
     "agenttrust": {
       "command": "npx",
-      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "args": ["-y", "@monad-agenttrust-sdk/sdk"],
       "env": {
         "RPC_URL": "https://testnet-rpc.monad.xyz",
         "NETWORK": "Monad-testnet"
@@ -95,7 +95,7 @@ Restart Claude Desktop. Then ask:
 - *"Simulate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?"*
 - *"Search the AgentTrust docs for the atomic-tx invariant."*
 
-A hosted HTTP transport is also live at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) for clients that speak `StreamableHTTPServerTransport`. Full setup: [MCP → Install](/mcp/install).
+A hosted HTTP transport is also live at [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) for clients that speak `StreamableHTTPServerTransport`. Full setup: [MCP → Install](/mcp/install).
 
 ## What's running where
 
@@ -103,10 +103,10 @@ A hosted HTTP transport is also live at [`mcp.agenttrust.tech`](https://mcp.agen
 
 | Surface | URL |
 | --- | --- |
-| Demo | [`demo.agenttrust.tech`](https://demo.agenttrust.tech) |
-| Facilitator (`/verify` + `/settle`) | [`api.agenttrust.tech`](https://api.agenttrust.tech) |
-| MCP HTTP endpoint | [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) |
-| Repo | [`github.com/agenttrust-labs/agenttrust`](https://github.com/agenttrust-labs/agenttrust) |
+| Demo | [`monadagenttrustweb.vercel.app`](https://monadagenttrustweb.vercel.app) |
+| Facilitator (`/verify` + `/settle`) | [`api.monadagenttrustsite.vercel.app`](https://api.monadagenttrustsite.vercel.app) |
+| MCP HTTP endpoint | [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) |
+| Repo | [`github.com/mohit-1710/AgentTrust`](https://github.com/mohit-1710/AgentTrust) |
 
 ## Read next
 

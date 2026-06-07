@@ -12,7 +12,7 @@ Monad testnet — chainId `10143`, RPC `https://testnet-rpc.monad.xyz`, explorer
 ## TypeScript constants
 
 ```ts
-import { DEFAULT_TESTNET_ADDRESSES } from "@agenttrust-sdk/trustgate";
+import { DEFAULT_TESTNET_ADDRESSES } from "@monad-agenttrust-sdk/sdk";
 
 DEFAULT_TESTNET_ADDRESSES.policyVault;          // Address
 DEFAULT_TESTNET_ADDRESSES.trustGate;            // Address (camelCase as of 0.2.0)
@@ -25,7 +25,7 @@ Note: as of SDK 0.2.0, `ProgramIds.trustgate` (lowercase) was renamed to `Progra
 
 | Contract | Source | Testnet address |
 |---|---|---|
-| `PolicyVault` | [`contracts/src/PolicyVault.sol`](https://github.com/agenttrust-labs/agenttrust/blob/main/contracts/src/PolicyVault.sol) | `0x34b3bB1a99377128126201359749FE7614275E37` |
+| `PolicyVault` | [`contracts/src/PolicyVault.sol`](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/src/PolicyVault.sol) | `0x34b3bB1a99377128126201359749FE7614275E37` |
 | `IdentityRegistry` | ERC-8004 | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
 | `ReputationRegistry` | ERC-8004 | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
 | `ValidationRegistry` | ERC-8004 | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` |
@@ -52,7 +52,7 @@ curl "https://testnet.monadexplorer.com/api?module=contract&action=getabi&addres
 
 The SDK's `loadPolicyVault` / `loadTrustGate` / `loadValidationRegistry` use bundled ABI snapshots by default. Pass an explicit `abi` argument to override — useful for latency-sensitive paths or freshly-redeployed contracts.
 
-Latest evidence snapshot (SHA-256 hashes + instruction counts): [`docs/proofs/idl-on-chain.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/idl-on-chain.json).
+Latest evidence snapshot (SHA-256 hashes + instruction counts): [`docs/proofs/idl-on-chain.json`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/idl-on-chain.json).
 
 ## Read next
 

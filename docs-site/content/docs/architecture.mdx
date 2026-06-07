@@ -11,7 +11,7 @@ AgentTrust is three Solidity contracts plus a TypeScript surface that mounts the
 ┌───────────────────────────────────────────────────────────────────────┐
 │  x402 Facilitator (the molandak x402 facilitator ★ default · Dexter · atxp · MCPay)          │
 │                                                                       │
-│   import { mountTrustGate } from "@agenttrust-sdk/trustgate/express"  │
+│   import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express"  │
 │   await mountTrustGate(app, { atomicityEnforced: true, … })           │
 │                                                                       │
 │  ★ the molandak x402 facilitator = molandak x402 facilitator (May 5, 2026)  │
@@ -111,7 +111,7 @@ Every x402 facilitator carries the same payment intent but differs in headers, b
 | `validatePaymentProof(proof, ctx)` | verify proof shape and cross-check the verify-time context |
 | `emitFeedback(ctx, settlement)` | call the feedback internal call idempotently |
 
-Routes (`/verify`, `/settle`, `/dispute`), the policy gate, and the registry reads do not branch on facilitator name. the molandak x402 facilitator is the canonical implementation in [`trustgate/server/src/facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh); Dexter, atxp, and MCPay share the same interface. Adding a fifth facilitator stays under a hundred lines.
+Routes (`/verify`, `/settle`, `/dispute`), the policy gate, and the registry reads do not branch on facilitator name. the molandak x402 facilitator is the canonical implementation in [`trustgate/server/src/facilitators/pay-sh/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators/pay-sh); Dexter, atxp, and MCPay share the same interface. Adding a fifth facilitator stays under a hundred lines.
 
 Walkthrough: [the molandak x402 facilitator adapter](/integration-guides/pay-sh-adapter). Build your own: [Facilitator adapters](/integration-guides/facilitator-adapters).
 
@@ -133,7 +133,7 @@ The SDK closes the corruption vector at three layers:
 2. **Runtime guard.** `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` cast bypasses.
 3. **Composer structure.** `composeAtomicSettleTx` returns one `Transaction` with exactly three instructions in canonical order (gate, transfer, feedback). Any other shape is a programming error.
 
-Plus the on-chain Kani proof `gate_payment_strict_correctness` pins the strict handler's contract end-to-end: `Ok(())` if and only if the composer returned `Allow`. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant). Background: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/transfer-hook-atomicity.md).
+Plus the on-chain Kani proof `gate_payment_strict_correctness` pins the strict handler's contract end-to-end: `Ok(())` if and only if the composer returned `Allow`. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant). Background: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/transfer-hook-atomicity.md).
 
 ## ERC-8004 wiring
 

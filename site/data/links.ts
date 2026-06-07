@@ -1,5 +1,5 @@
-const DOCS_URL = "https://docs.agenttrust.tech";
-const GITHUB_REPO_URL = "https://github.com/agenttrust-labs/agenttrust";
+const DOCS_URL = "https://monadagenttrustdocs-site.vercel.app";
+const GITHUB_REPO_URL = "https://github.com/mohit-1710/AgentTrust";
 
 function docsPath(path: string): string {
   return `${DOCS_URL}${path}`;
@@ -25,9 +25,9 @@ export const PUBLIC_LINKS = {
   github: GITHUB_REPO_URL,
   githubIssues: `${GITHUB_REPO_URL}/issues`,
   githubLicense: `${GITHUB_REPO_URL}/blob/main/LICENSE`,
-  npm: "https://www.npmjs.com/package/@agenttrust-sdk/trustgate",
+  npm: "https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk",
   privacy: "/privacy",
-  site: "https://agenttrust.tech",
+  site: "https://monadagenttrustsite.vercel.app",
   terms: "/terms",
   blog: "/blog",
   blogFeed: "/blog/feed.xml",

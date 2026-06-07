@@ -27,8 +27,8 @@ export const KANI_HARNESSES = [
 
 export const KANI_TOTAL_SUB_CHECKS = 662;
 
-export const SDK_PACKAGE = '@agenttrust-sdk/trustgate';
-export const GITHUB_REPO = 'github.com/agenttrust-labs/agenttrust';
+export const SDK_PACKAGE = '@monad-agenttrust-sdk/sdk';
+export const GITHUB_REPO = 'github.com/mohit-1710/AgentTrust';
 export const LICENSE = 'MIT';
 
 export const POLICY_ORDER = [

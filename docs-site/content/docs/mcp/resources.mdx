@@ -5,7 +5,7 @@ description: Four MCP resource URIs — testnet program manifest, docs corpus mi
 
 The MCP server exposes four `resources/list`-able URIs. Resources are read-only by design; writes happen through tools.
 
-Source: [`mcp/src/resources/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/resources).
+Source: [`mcp/src/resources/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/resources).
 
 ## URI manifest
 
@@ -49,7 +49,7 @@ Returns:
 
 ## Docs corpus mirror
 
-Every MDX page under [`docs-site/content/docs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/docs-site/content/docs) is exposed as an individual resource. Example URIs:
+Every MDX page under [`docs-site/content/docs/`](https://github.com/mohit-1710/AgentTrust/tree/main/docs-site/content/docs) is exposed as an individual resource. Example URIs:
 
 ```
 agenttrust://docs/index
@@ -91,9 +91,9 @@ All resource URIs go through a path-normalization step before file reads. Probes
 }
 ```
 
-Same protection on the `examples/` URIs. Source: [`mcp/src/resources/docs.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/resources/docs.ts) — the indexer normalises every path against the corpus root before serving bytes.
+Same protection on the `examples/` URIs. Source: [`mcp/src/resources/docs.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/src/resources/docs.ts) — the indexer normalises every path against the corpus root before serving bytes.
 
-Phase M validated this against a deliberate traversal probe — clean error, no escape. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M1.4.
+Phase M validated this against a deliberate traversal probe — clean error, no escape. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M1.4.
 
 ## How clients use resources
 
@@ -110,6 +110,6 @@ Claude Desktop and Cursor surface resources in their model-context UI — the us
 
 ## Source
 
-- Resource handlers: [`mcp/src/resources/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/resources)
-- Server wiring: [`mcp/src/server.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/server.ts)
-- Path-traversal tests: [`mcp/test/resources/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/test/resources)
+- Resource handlers: [`mcp/src/resources/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/resources)
+- Server wiring: [`mcp/src/server.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/src/server.ts)
+- Path-traversal tests: [`mcp/test/resources/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/test/resources)

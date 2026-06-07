@@ -1,9 +1,9 @@
 ---
 title: Install
-description: Wire @agenttrust-sdk/mcp into Claude Desktop, Cursor, or any MCP-capable client — stdio or hosted HTTP.
+description: Wire @monad-agenttrust-sdk/sdk into Claude Desktop, Cursor, or any MCP-capable client — stdio or hosted HTTP.
 ---
 
-Three install paths: Claude Desktop (one command), Cursor, or any generic stdio MCP client. Plus the always-on hosted HTTP endpoint at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) for cloud agents.
+Three install paths: Claude Desktop (one command), Cursor, or any generic stdio MCP client. Plus the always-on hosted HTTP endpoint at [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) for cloud agents.
 
 ## Claude Desktop (recommended)
 
@@ -14,7 +14,7 @@ Add to your config — `~/Library/Application Support/Claude/claude_desktop_conf
   "mcpServers": {
     "agenttrust": {
       "command": "npx",
-      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "args": ["-y", "@monad-agenttrust-sdk/sdk"],
       "env": {
         "RPC_URL": "https://testnet-rpc.monad.xyz",
         "NETWORK": "Monad-testnet"
@@ -52,7 +52,7 @@ Cursor's MCP config lives at `~/.cursor/mcp.json` (or per-workspace `.cursor/mcp
   "mcpServers": {
     "agenttrust": {
       "command": "npx",
-      "args": ["-y", "@agenttrust-sdk/mcp"]
+      "args": ["-y", "@monad-agenttrust-sdk/sdk"]
     }
   }
 }
@@ -63,8 +63,8 @@ Cursor's MCP config lives at `~/.cursor/mcp.json` (or per-workspace `.cursor/mcp
 The package ships a binary entry point. Once installed:
 
 ```bash
-pnpm add @agenttrust-sdk/mcp
-node ./node_modules/@agenttrust-sdk/mcp/dist/index.js   # stdio transport, default
+pnpm add @monad-agenttrust-sdk/sdk
+node ./node_modules/@monad-agenttrust-sdk/sdk/dist/index.js   # stdio transport, default
 ```
 
 The server speaks MCP over stdin/stdout. Any compliant MCP client attaches by spawning this command.
@@ -74,13 +74,13 @@ The server speaks MCP over stdin/stdout. Any compliant MCP client attaches by sp
 The public hosted MCP HTTP endpoint is **already live**:
 
 ```
-https://mcp.agenttrust.tech
+https://github.com/mohit-1710/AgentTrust/tree/main/mcp
 ```
 
 Health check:
 
 ```bash
-curl https://mcp.agenttrust.tech/healthz
+curl https://github.com/mohit-1710/AgentTrust/tree/main/mcp/healthz
 # → {"ok":true,"service":"agenttrust-mcp","version":"0.4.5","network":"Monad-testnet","toolCount":21,…}
 ```
 
@@ -110,7 +110,7 @@ If you already use `an EVM keystore` locally, no env is needed. To set an explic
   "mcpServers": {
     "agenttrust": {
       "command": "npx",
-      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "args": ["-y", "@monad-agenttrust-sdk/sdk"],
       "env": {
         "RPC_URL":     "https://testnet-rpc.monad.xyz",
         "NETWORK":     "Monad-testnet",
@@ -140,12 +140,12 @@ Write tools that fail the signer check return a structured envelope, not a raw c
 {
   "errorCode": "auth_required",
   "message":   "Signer required (needed by `agenttrust_init_policy`).",
-  "hint":      "This is the hosted read-only endpoint. To use write tools, install MCP locally: npx -y @agenttrust-sdk/mcp@latest. Hosted MCP signs nothing on your behalf by design — your key stays on your machine.",
+  "hint":      "This is the hosted read-only endpoint. To use write tools, install MCP locally: npx -y @monad-agenttrust-sdk/sdk@latest. Hosted MCP signs nothing on your behalf by design — your key stays on your machine.",
   "cause":     "This tool requires a signer. Set one of: PRIVATE_KEY, KEY_PATH, or `Monad config get`."
 }
 ```
 
-The hosted endpoint at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) is **read-only by design** and ships no signer. A shared signer would mean every user's on-chain identity is owned by the operator; that's a security model, not a UX shortcut. For write tools, install the MCP locally with your own key. See [/quickstart](/quickstart#two-mcp-surfaces) for the surface comparison table.
+The hosted endpoint at [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) is **read-only by design** and ships no signer. A shared signer would mean every user's on-chain identity is owned by the operator; that's a security model, not a UX shortcut. For write tools, install the MCP locally with your own key. See [/quickstart](/quickstart#two-mcp-surfaces) for the surface comparison table.
 
 Convert a Foundry key to base58:
 
@@ -181,7 +181,7 @@ cat an EVM keystore | jq -r '.[0:64]' | npx bs58 encode
 ## Build + test from source
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 pnpm install
 pnpm --filter ./trustgate/sdk run build   # MCP depends on the SDK build output
 pnpm --filter ./mcp run build
@@ -199,7 +199,7 @@ cast interface 0x8004B663056A597Dffe9eCcC1965A193B7388713 --rpc-url https://test
 cast interface 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 --rpc-url https://testnet-rpc.monad.xyz  # validation_registry
 ```
 
-The MCP server bundles snapshots at `mcp/src/idl/*.json` as a defensive fallback (saves an RPC round-trip on cold start; keeps the server bootable in offline / air-gapped harnesses). Latest evidence snapshot: [`docs/proofs/idl-on-chain.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/idl-on-chain.json).
+The MCP server bundles snapshots at `mcp/src/idl/*.json` as a defensive fallback (saves an RPC round-trip on cold start; keeps the server bootable in offline / air-gapped harnesses). Latest evidence snapshot: [`docs/proofs/idl-on-chain.json`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/idl-on-chain.json).
 
 ## Read next
 

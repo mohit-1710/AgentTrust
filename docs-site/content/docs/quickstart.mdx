@@ -14,7 +14,7 @@ Drop this block into `~/Library/Application Support/Claude/claude_desktop_config
   "mcpServers": {
     "agenttrust": {
       "command": "npx",
-      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "args": ["-y", "@monad-agenttrust-sdk/sdk"],
       "env": {
         "RPC_URL": "https://testnet-rpc.monad.xyz",
         "CHAIN_ID": "10143",
@@ -83,8 +83,8 @@ AgentTrust ships two MCP surfaces. They serve different purposes — pick the on
 
 | Surface | Tools | Signs with | Use for |
 |---|---|---|---|
-| Local install — `npx -y @agenttrust-sdk/mcp@latest` | 21 (10 read + 8 write + 3 discovery) | Your key (layered chain: `PRIVATE_KEY` → `KEY_PATH` → `an EVM keystore`) | Building with AgentTrust. Creating policies, attesting capabilities, emitting feedback. Your key stays on your machine; you own every contract account you create. |
-| Hosted — `mcp.agenttrust.tech` | 13 (10 read + 3 discovery) | Nothing — no shared signer by design | Discovery, inspection, reputation lookups, docs search, demo state browsing. Anything that doesn't require a transaction signature. |
+| Local install — `npx -y @monad-agenttrust-sdk/sdk@latest` | 21 (10 read + 8 write + 3 discovery) | Your key (layered chain: `PRIVATE_KEY` → `KEY_PATH` → `an EVM keystore`) | Building with AgentTrust. Creating policies, attesting capabilities, emitting feedback. Your key stays on your machine; you own every contract account you create. |
+| Hosted — `github.com/mohit-1710/AgentTrust/tree/main/mcp` | 13 (10 read + 3 discovery) | Nothing — no shared signer by design | Discovery, inspection, reputation lookups, docs search, demo state browsing. Anything that doesn't require a transaction signature. |
 
 The hosted MCP is read-only by design, not by accident. A shared signer would mean every user's on-chain identity is owned by the operator — that's a security model, not a UX shortcut. If you want to call a write tool, install locally. The same Claude Code / Cursor config block works for both — just swap the transport.
 
@@ -101,7 +101,7 @@ Sixty seconds is enough to feel the shape. The deeper paths:
   <Card title="MCP server" href="/mcp">
     Twenty-one tools, four resources, three guided prompts. Full install reference at /mcp/install.
   </Card>
-  <Card title="@agenttrust-sdk/trustgate" href="/sdk">
+  <Card title="@monad-agenttrust-sdk/sdk" href="/sdk">
     The TypeScript SDK every facilitator pulls in. Express middleware, client helpers, the atomicity guard, the full ValidationRegistry instruction builder set.
   </Card>
   <Card title="Architecture" href="/architecture">

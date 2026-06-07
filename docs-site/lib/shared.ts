@@ -4,7 +4,7 @@ export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
 
 export const gitConfig = {
-  user: 'agenttrust-labs',
-  repo: 'agenttrust',
+  user: 'mohit-1710',
+  repo: 'AgentTrust',
   branch: 'main',
 };

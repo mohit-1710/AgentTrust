@@ -3,7 +3,7 @@ title: the molandak x402 facilitator adapter
 description: Walk the live the molandak x402 facilitator + AgentTrust integration end to end — challenge, retry, settle, feedback, with hosted-demo paths and the SERVICE-signed envelope contract.
 ---
 
-The molandak x402 facilitator runs on Monad testnet at `https://x402-facilitator.molandak.org`. AgentTrust ships the molandak x402 facilitator integration as the canonical `FacilitatorAdapter` implementation. Source: [`trustgate/server/src/facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh).
+The molandak x402 facilitator runs on Monad testnet at `https://x402-facilitator.molandak.org`. AgentTrust ships the molandak x402 facilitator integration as the canonical `FacilitatorAdapter` implementation. Source: [`trustgate/server/src/facilitators/pay-sh/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators/pay-sh).
 
 ## What the adapter does
 
@@ -18,28 +18,28 @@ The molandak x402 facilitator runs on Monad testnet at `https://x402-facilitator
 
 ## Hit the live demo
 
-[`demo.agenttrust.tech`](https://demo.agenttrust.tech) runs the full the molandak x402 facilitator + AgentTrust pipeline against deployed testnet programs. With no payment proof:
+[`monadagenttrustweb.vercel.app`](https://monadagenttrustweb.vercel.app) runs the full the molandak x402 facilitator + AgentTrust pipeline against deployed testnet programs. With no payment proof:
 
 ```bash
-curl -i https://demo.agenttrust.tech/protected
+curl -i https://monadagenttrustweb.vercel.app/protected
 ```
 
 Returns `HTTP/2 402` with a SERVICE-signed `payment-required` envelope. With the molandak x402 facilitator installed, let the CLI pay and retry:
 
 ```bash
-pay --sandbox curl https://demo.agenttrust.tech/protected
+pay --sandbox curl https://monadagenttrustweb.vercel.app/protected
 ```
 
 The demo seeds three deterministic counterparties. Drive each branch by passing the matching `X-Demo-Payer-Agent` header:
 
 ```bash
 # Allow path (tier 3)
-PAYER=$(curl -s https://demo.agenttrust.tech/health | jq -r '.counterparties[2].agent')
-pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://demo.agenttrust.tech/protected
+PAYER=$(curl -s https://monadagenttrustweb.vercel.app/health | jq -r '.counterparties[2].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://monadagenttrustweb.vercel.app/protected
 
 # Deny path (tier 0)
-PAYER=$(curl -s https://demo.agenttrust.tech/health | jq -r '.counterparties[0].agent')
-pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://demo.agenttrust.tech/protected
+PAYER=$(curl -s https://monadagenttrustweb.vercel.app/health | jq -r '.counterparties[0].agent')
+pay --sandbox curl -H "X-Demo-Payer-Agent: $PAYER" https://monadagenttrustweb.vercel.app/protected
 ```
 
 | Counterparty tier | Decision |
@@ -69,16 +69,16 @@ The SERVICE emits a signed challenge when it returns the the molandak x402 facil
 
 | File | Purpose |
 |---|---|
-| [`facilitators/pay-sh/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/index.ts) | The five-method `PaySh` class |
-| [`facilitators/pay-sh/schemas.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/schemas.ts) | Strict Zod wire schemas |
-| [`facilitators/pay-sh/sig.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/sig.ts) | SERVICE challenge signature helpers |
-| [`facilitators/pay-sh/proof-validator.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) | Replay, self-pay, amount, mint, recipient checks |
-| [`facilitators/pay-sh/feedback.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/feedback.ts) | Idempotent feedback emission |
-| [`examples/pay-sh-demo/src/middleware.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/src/middleware.ts) | Express bridge from the molandak x402 facilitator retry to AgentTrust |
+| [`facilitators/pay-sh/index.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/index.ts) | The five-method `PaySh` class |
+| [`facilitators/pay-sh/schemas.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/schemas.ts) | Strict Zod wire schemas |
+| [`facilitators/pay-sh/sig.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/sig.ts) | SERVICE challenge signature helpers |
+| [`facilitators/pay-sh/proof-validator.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) | Replay, self-pay, amount, mint, recipient checks |
+| [`facilitators/pay-sh/feedback.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/feedback.ts) | Idempotent feedback emission |
+| [`examples/pay-sh-demo/src/middleware.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/examples/pay-sh-demo/src/middleware.ts) | Express bridge from the molandak x402 facilitator retry to AgentTrust |
 
 ## Production wiring
 
-The demo proves the pipeline without requiring testnet RPC in CI. The server package carries the real testnet path: [`trustgate/server/src/chain.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/chain.ts) loads deployed program IDLs, `/verify` simulates `gate_payment`, and `/settle` delegates proof validation plus feedback emission through the active adapter.
+The demo proves the pipeline without requiring testnet RPC in CI. The server package carries the real testnet path: [`trustgate/server/src/chain.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/chain.ts) loads deployed program IDLs, `/verify` simulates `gate_payment`, and `/settle` delegates proof validation plus feedback emission through the active adapter.
 
 Production swaps three dependency seams the demo stubs:
 
@@ -117,7 +117,7 @@ Do not remove these checks when adapting the molandak x402 facilitator into a pr
 - reject replayed proof bindings
 - reject transfer authority equal to facilitator fee payer (self-pay defense)
 
-These are part of the adapter, not the route layer. The the molandak x402 facilitator adapter's [`proof-validator.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) is the reference implementation.
+These are part of the adapter, not the route layer. The the molandak x402 facilitator adapter's [`proof-validator.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/facilitators/pay-sh/proof-validator.ts) is the reference implementation.
 
 ## Live evidence
 

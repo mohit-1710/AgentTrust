@@ -39,12 +39,12 @@ done
 | 6 | `gate_payment_strict_correctness` (J5) | 258 (`131 + 127`) | ~0.9 s |
 | 7 | `spending_allow_respects_caps` | 27 | 0.67 s |
 
-**Total: 662 sub-checks, 7/7 proven, ~81 s on a single CI runner.** Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Kani proofs](/verification/kani-proofs).
+**Total: 662 sub-checks, 7/7 proven, ~81 s on a single CI runner.** Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Kani proofs](/verification/kani-proofs).
 
 Reproduce:
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 cargo install --locked kani-verifier
 cargo kani --manifest-path programs/policy-vault/Cargo.toml \
   --harness paused_killswitch_implies_no_allow
@@ -52,7 +52,7 @@ cargo kani --manifest-path programs/policy-vault/Cargo.toml \
 
 ## the molandak x402 facilitator + AgentTrust atomic settlement (live testnet)
 
-A real signed USDC transfer flowed through `demo.agenttrust.tech/protected`, completed `gate_payment + transfer + emit_feedback` atomically, and wrote a `FeedbackEmissionLog` contract account on chain (2026-05-06).
+A real signed USDC transfer flowed through `monadagenttrustweb.vercel.app/protected`, completed `gate_payment + transfer + emit_feedback` atomically, and wrote a `FeedbackEmissionLog` contract account on chain (2026-05-06).
 
 | Step | Tx |
 |---|---|
@@ -94,9 +94,9 @@ Reproduce: `pnpm --filter ./examples/attestor-demo run seed:namespaces` is idemp
 
 | Service | URL | Healthz |
 |---|---|---|
-| Demo | [`demo.agenttrust.tech`](https://demo.agenttrust.tech) | `GET /health` |
-| Facilitator (`/verify` + `/settle`) | [`api.agenttrust.tech`](https://api.agenttrust.tech) | `GET /healthz` |
-| MCP HTTP endpoint | [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) | `GET /healthz` (returns `version: "0.4.5"`, `toolCount: 21`) |
+| Demo | [`monadagenttrustweb.vercel.app`](https://monadagenttrustweb.vercel.app) | `GET /health` |
+| Facilitator (`/verify` + `/settle`) | [`api.monadagenttrustsite.vercel.app`](https://api.monadagenttrustsite.vercel.app) | `GET /healthz` |
+| MCP HTTP endpoint | [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) | `GET /healthz` (returns `version: "0.4.5"`, `toolCount: 21`) |
 
 Singapore region, `shared-cpu-1x@256MB`, two machines for HA, `min_machines_running = 1`. Lets-Encrypt certs on every subdomain.
 
@@ -104,18 +104,18 @@ Singapore region, `shared-cpu-1x@256MB`, two machines for HA, `min_machines_runn
 
 | Layer | What it proves | Evidence |
 |---|---|---|
-| Compile-time literal-type guard | `AtomicityEnforced` is `{ atomicityEnforced: true }` (literal `true`). TS rejects `false`, missing, or `boolean` widening. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 31-33 |
-| Runtime guard | `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` casts. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 51-58 |
-| Composer structure | `composeAtomicSettleTx` returns one `Transaction` with exactly three instructions in canonical order. | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("composeAtomicSettleTx")` (5 cases) |
-| Single-tx atomic revert (localnet) | Bundled tx with failing inner ix reverts the whole bundle; `gate_payment_strict` rolls back. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("B. single-tx atomic revert")` |
-| Split-tx corruption (localnet) | Splitting the bundle leaves `VelocityLedger` dirty after the transfer reverts — the fault model A+B prevents. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("C. split-tx anti-pattern corrupts state")` |
-| On-chain forge | `gate_payment_strict_correctness` Kani proof binds strict `Ok(())` to composer `Allow`. | [`programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs) |
+| Compile-time literal-type guard | `AtomicityEnforced` is `{ atomicityEnforced: true }` (literal `true`). TS rejects `false`, missing, or `boolean` widening. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 31-33 |
+| Runtime guard | `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` casts. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 51-58 |
+| Composer structure | `composeAtomicSettleTx` returns one `Transaction` with exactly three instructions in canonical order. | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("composeAtomicSettleTx")` (5 cases) |
+| Single-tx atomic revert (localnet) | Bundled tx with failing inner ix reverts the whole bundle; `gate_payment_strict` rolls back. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("B. single-tx atomic revert")` |
+| Split-tx corruption (localnet) | Splitting the bundle leaves `VelocityLedger` dirty after the transfer reverts — the fault model A+B prevents. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("C. split-tx anti-pattern corrupts state")` |
+| On-chain forge | `gate_payment_strict_correctness` Kani proof binds strict `Ok(())` to composer `Allow`. | [`programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs) |
 
-Full deep-dive: [Atomic-tx invariant](/verification/atomic-tx-invariant). Background writeup: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/transfer-hook-atomicity.md).
+Full deep-dive: [Atomic-tx invariant](/verification/atomic-tx-invariant). Background writeup: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/transfer-hook-atomicity.md).
 
 ## Adversarial harness — fourteen hostile-scenario assertions
 
-[`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts) exercises the gate against malformed contract accounts, replayed proofs, corrupted state, schema-version drift, expired attestations, off-curve attestor pubkeys, and more. Per-scenario detail: [Adversarial harness](/verification/adversarial-harness).
+[`tests/adversarial.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/adversarial.spec.ts) exercises the gate against malformed contract accounts, replayed proofs, corrupted state, schema-version drift, expired attestations, off-curve attestor pubkeys, and more. Per-scenario detail: [Adversarial harness](/verification/adversarial-harness).
 
 ## Test coverage
 
@@ -152,19 +152,19 @@ Full deep-dive: [Atomic-tx invariant](/verification/atomic-tx-invariant). Backgr
 | `secret-scan.yml` | gitleaks against the diff |
 | `build.yml` | cargo + forge build |
 
-Latest run summary: [`docs/proofs/ci-runs.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/ci-runs.md).
+Latest run summary: [`docs/proofs/ci-runs.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/ci-runs.md).
 
 ## Phase reports
 
 | Phase | Date | Report |
 |---|---|---|
-| F (verification) | 2026-05-06 | [`phase-f-verification-report.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-f-verification-report.md) |
-| G | 2026-05-07 | [`phase-g-report.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-g-report.md) |
-| H (hosting + npm) | 2026-05-07 | [`phase-h-report.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-h-report.md) |
-| J (Kani strict-correctness) | 2026-05-07 | [`phase-j-report.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-j-report.md) |
-| M (MCP comprehensive E2E) | 2026-05-07 | [`phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) |
-| P (real-LLM tool routing) | 2026-05-08 | [`phase-p-llm-routing.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-p-llm-routing.md) |
-| Atomic-tx invariant proof | 2026-05-07 | [`transfer-hook-atomicity.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/transfer-hook-atomicity.md) |
+| F (verification) | 2026-05-06 | [`phase-f-verification-report.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-f-verification-report.md) |
+| G | 2026-05-07 | [`phase-g-report.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-g-report.md) |
+| H (hosting + npm) | 2026-05-07 | [`phase-h-report.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-h-report.md) |
+| J (Kani strict-correctness) | 2026-05-07 | [`phase-j-report.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-j-report.md) |
+| M (MCP comprehensive E2E) | 2026-05-07 | [`phase-m-mcp-e2e.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) |
+| P (real-LLM tool routing) | 2026-05-08 | [`phase-p-llm-routing.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-p-llm-routing.md) |
+| Atomic-tx invariant proof | 2026-05-07 | [`transfer-hook-atomicity.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/transfer-hook-atomicity.md) |
 
 ## Read next
 

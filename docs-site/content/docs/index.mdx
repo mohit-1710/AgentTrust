@@ -13,31 +13,31 @@ Three live paths against the hosted testnet build. No clone, no setup.
 
 ```bash
 # 1. See an x402 challenge from a real facilitator
-curl -i https://demo.agenttrust.tech/protected
+curl -i https://monadagenttrustweb.vercel.app/protected
 
 # 2. Install the SDK
-pnpm add @agenttrust-sdk/trustgate
+pnpm add @monad-agenttrust-sdk/sdk
 
 # 3. Wire the MCP server into Claude Desktop / Cursor
-npx -y @agenttrust-sdk/mcp
+npx -y @monad-agenttrust-sdk/sdk
 ```
 
 ## What's deployed
 
 <ProgramIdsTable />
 
-[SDK on npm](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) ·
-[MCP on npm](https://www.npmjs.com/package/@agenttrust-sdk/mcp) ·
-[Repo](https://github.com/agenttrust-labs/agenttrust) ·
-[Hosted demo](https://demo.agenttrust.tech) ·
-[Hosted facilitator](https://api.agenttrust.tech) ·
-[Hosted MCP](https://mcp.agenttrust.tech)
+[SDK on npm](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) ·
+[MCP on npm](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) ·
+[Repo](https://github.com/mohit-1710/AgentTrust) ·
+[Hosted demo](https://monadagenttrustweb.vercel.app) ·
+[Hosted facilitator](https://api.monadagenttrustsite.vercel.app) ·
+[Hosted MCP](https://github.com/mohit-1710/AgentTrust/tree/main/mcp)
 
 ## The three components
 
 **PolicyVault** is the decision engine. Five orthogonal policy kinds — `KillSwitch`, `Spending`, `Velocity`, `CounterpartyTier`, `RequireValidation` — composed under one `gate_payment` call with fail-fast semantics. The composer returns `Allow`, `Deny(reason)`, or `RequireValidation(capability_hash)`. `CounterpartyTier` reads the ERC-8004 reputation tier from the `ReputationRegistry`, with a schema-version canary that catches drift.
 
-**x402 server** is the facilitator-side component. One authority per facilitator (`TrustGateAuthority`) signs the call into the ERC-8004 `ReputationRegistry` feedback method. `FeedbackEmissionLog` is the per-payment idempotency receipt — the `init` guard reverts on the second tx with the same `payment_id_hash`, so retries cannot double-emit. The TypeScript SDK, [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate), mounts on any Express app in five lines.
+**x402 server** is the facilitator-side component. One authority per facilitator (`TrustGateAuthority`) signs the call into the ERC-8004 `ReputationRegistry` feedback method. `FeedbackEmissionLog` is the per-payment idempotency receipt — the `init` guard reverts on the second tx with the same `payment_id_hash`, so retries cannot double-emit. The TypeScript SDK, [`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk), mounts on any Express app in five lines.
 
 **ValidationRegistry** holds the third ERC-8004 leg. Five methods — `register_namespace`, `register_attestor`, `request_validation`, `respond_to_validation`, `revoke_validation`. The v1 sybil-resistance model is downstream-consumer filtering: PolicyVault stores a per-policy `accepted_attestors[]` array; only attestations from those keys flip the gate to `Allow`. Permissionless registration plus opinionated downstream filtering scales with the number of facilitators.
 

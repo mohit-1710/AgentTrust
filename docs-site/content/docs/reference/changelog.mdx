@@ -1,20 +1,20 @@
 ---
 title: Changelog
-description: Release notes for @agenttrust-sdk/trustgate and @agenttrust-sdk/mcp — auto-generated from each package's CHANGELOG.md.
+description: Release notes for @monad-agenttrust-sdk/sdk and @monad-agenttrust-sdk/sdk — auto-generated from each package's CHANGELOG.md.
 ---
 
-The published packages keep their own `CHANGELOG.md` (Keep-a-Changelog format) under [`trustgate/sdk/`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/CHANGELOG.md) and [`mcp/`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/CHANGELOG.md). This page is built from those files at lint time so the docs never drift.
+The published packages keep their own `CHANGELOG.md` (Keep-a-Changelog format) under [`trustgate/sdk/`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/CHANGELOG.md) and [`mcp/`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/CHANGELOG.md). This page is built from those files at lint time so the docs never drift.
 
-Phase reports (Phase F → Phase Q) live separately under [`docs/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/docs/proofs); the [Live evidence](/verification/live-evidence) page indexes them.
+Phase reports (Phase F → Phase Q) live separately under [`docs/proofs/`](https://github.com/mohit-1710/AgentTrust/tree/main/docs/proofs); the [Live evidence](/verification/live-evidence) page indexes them.
 
 {/* BEGIN AUTO-GEN: changelog */}
 
 > Auto-generated from upstream package `CHANGELOG.md` files at build time.
 > If you spot drift, the `mcp/` and `trustgate/sdk/` sources are authoritative.
 
-## @agenttrust-sdk/trustgate
+## @monad-agenttrust-sdk/sdk
 
-Source of truth: [`trustgate/sdk/CHANGELOG.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/CHANGELOG.md).
+Source of truth: [`trustgate/sdk/CHANGELOG.md`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/CHANGELOG.md).
 
 ### [Unreleased]
 
@@ -79,7 +79,7 @@ polish wave.
   `scripts/check-no-workspace-spec.cjs` hard-fails any publish that
   would ship a `workspace:` specifier. The sdk has no workspace
   deps today but the guard is in place against future additions.
-  Same shape as the matching guard in `@agenttrust-sdk/mcp`.
+  Same shape as the matching guard in `@monad-agenttrust-sdk/sdk`.
 
 No runtime changes.
 
@@ -91,7 +91,7 @@ SDK-side audit P1 findings plus a new public facilitator factory.
 #### Added
 
 - `makePayShFacilitator(args)` and `makeDefaultRegistry(RegistryCtor,
-  args)` in a new `@agenttrust-sdk/trustgate/facilitator-factory`
+  args)` in a new `@monad-agenttrust-sdk/sdk/facilitator-factory`
   subpath export. Bundles the `validateOnChainTx` + `emitFeedbackCpi`
   + `priorEmissionLookup` + `signDecision` wiring documented in
   `trustgate/server/src/production.ts` into a single deps-builder.
@@ -156,7 +156,7 @@ was getting real work done.
 
 ### [0.2.0] — 2026-05-07
 
-Tag: [`sdk-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.2.0)
+Tag: [`sdk-v0.2.0`](https://github.com/mohit-1710/AgentTrust/releases/tag/sdk-v0.2.0)
 · Commit: `00ca222`
 
 #### Changed (breaking)
@@ -177,19 +177,19 @@ Tag: [`sdk-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/s
 
 ### [0.1.1] — 2026-05-04
 
-Tag: [`sdk-v0.1.1`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.1.1)
+Tag: [`sdk-v0.1.1`](https://github.com/mohit-1710/AgentTrust/releases/tag/sdk-v0.1.1)
 · Commit: `64fe14d`
 
 #### Changed
 
 - Metadata refresh after the org rebrand to
-  [`agenttrust-labs`](https://github.com/agenttrust-labs). `homepage`,
+  [`mohit-1710`](https://github.com/mohit-1710). `homepage`,
   `repository`, and `bugs` URLs now point at the new repo. No code
   changes.
 
 ### [0.1.0] — 2026-05-02
 
-Tag: [`sdk-v0.1.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/sdk-v0.1.0)
+Tag: [`sdk-v0.1.0`](https://github.com/mohit-1710/AgentTrust/releases/tag/sdk-v0.1.0)
 · Commit: `29f9961`
 
 #### Added
@@ -216,9 +216,9 @@ Tag: [`sdk-v0.1.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/s
 - Production factories: `makeValidateOnChainTx`, `makeEmitFeedbackCpi`,
   `makePriorEmissionLookup`.
 
-## @agenttrust-sdk/mcp
+## @monad-agenttrust-sdk/sdk
 
-Source of truth: [`mcp/CHANGELOG.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/CHANGELOG.md).
+Source of truth: [`mcp/CHANGELOG.md`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/CHANGELOG.md).
 
 ### [Unreleased]
 
@@ -242,7 +242,7 @@ design lives next to the code that implements it.
   `invoke_signed` internal call into `IdentityRegistry::give_feedback` failed
   with `Unknown program 0x8004A818BFB912233c491871b3d84c89A494BD9e`
   at runtime. The SDK helper at
-  [`trustgate/sdk/src/emit-feedback.ts:156-162`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/emit-feedback.ts)
+  [`trustgate/sdk/src/emit-feedback.ts:156-162`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/emit-feedback.ts)
   has shipped the correct pattern since 0.4.0; the MCP tool now mirrors
   it. **B-001 closed.** Beat F of the demo-flow gate finalises cleanly
   on testnet on 0.4.5.
@@ -253,7 +253,7 @@ design lives next to the code that implements it.
   `classifyError(err, toolName?, transport?)` accepts the active
   transport; for `transport: "http"` (the hosted MCP) the hint points
   the caller at the local-install path
-  (`npx -y @agenttrust-sdk/mcp@latest`) instead of "restart the MCP
+  (`npx -y @monad-agenttrust-sdk/sdk@latest`) instead of "restart the MCP
   server" guidance that remote callers cannot act on. The thrown source
   message in `chain.ts:requireSigner()` is trimmed to a stable
   matchable substring; the classifier emits the actionable copy. The
@@ -263,7 +263,7 @@ design lives next to the code that implements it.
 #### Docs
 
 - New "Two MCP surfaces" section in
-  [`/quickstart`](https://docs.agenttrust.tech/quickstart#two-mcp-surfaces)
+  [`/quickstart`](https://monadagenttrustdocs-site.vercel.app/quickstart#two-mcp-surfaces)
   with the comparison table (local install: full 21-tool surface +
   user's key · hosted: 13 read-only tools + no shared signer by
   design). One-paragraph framing in the top-level README.
@@ -274,7 +274,7 @@ design lives next to the code that implements it.
   describes the ephemeral asset-key behaviour correctly (the
   caller's wallet is the payer, not the agent_asset).
 - Canonical demo-video recording directive at
-  [`submission/demo-video-script.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/submission/demo-video-script.md).
+  [`submission/demo-video-script.md`](https://github.com/mohit-1710/AgentTrust/blob/main/submission/demo-video-script.md).
 
 ### [0.4.4] — 2026-05-13
 
@@ -471,7 +471,7 @@ Tag: `mcp-v0.3.3` · Republish of 0.3.2 to fix a packaging bug.
 
 #### Fixed
 
-- `@agenttrust-sdk/trustgate` dep in the published `package.json` is
+- `@monad-agenttrust-sdk/sdk` dep in the published `package.json` is
   now a concrete semver range (`^0.3.1`) instead of the pnpm
   workspace specifier (`workspace:^`). 0.3.2 was published via plain
   `npm publish` which does not rewrite `workspace:` specs — npm
@@ -485,7 +485,7 @@ below also applies to this release.
 ### [0.3.2] — 2026-05-12  [deprecated]
 
 Note: 0.3.2 is deprecated on npm because the published manifest
-carries `"@agenttrust-sdk/trustgate": "workspace:^"`, which npm
+carries `"@monad-agenttrust-sdk/sdk": "workspace:^"`, which npm
 rejects with `EUNSUPPORTEDPROTOCOL`. Use 0.3.3.
 
 Tag: `mcp-v0.3.2` · Developer-experience polish wave covering every
@@ -566,7 +566,7 @@ snippet, and the gate works first try with no pre-flight ritual.
   deployed to mainnet yet; the previous silent fall-through to testnet
   IDs produced wrong gate decisions on a mainnet RPC. (F-002)
 - HELP_TEXT corrections. Default port now `8765` (advertised 8080).
-  Docs URL now `https://docs.agenttrust.tech/mcp` (was the github.io
+  Docs URL now `https://monadagenttrustdocs-site.vercel.app/mcp` (was the github.io
   mirror). Dropped the stray backslash that leaked `\$MCP_HTTP_PORT`.
   Boot banner prints `http://localhost:PORT` for the click-through URL.
 - `RPC_URL` is validated with `new URL(rpcUrl)` at boot. A typo'd URL
@@ -668,7 +668,7 @@ Tag: `mcp-v0.2.2` · Phase N — Phase M E2E surfaced three bugs; this release c
 
 #### Note
 
-The bundled `dist/embedded-docs/` is a **publish-time snapshot**. The live docs at `docs.agenttrust.tech` evolve independently — clients that need fresh docs should set `MCP_DOCS_DIR` to a checkout's `docs-site/content/docs/` directory, or use the hosted MCP at `mcp.agenttrust.tech` (redeployed on every `main` push).
+The bundled `dist/embedded-docs/` is a **publish-time snapshot**. The live docs at `monadagenttrustdocs-site.vercel.app` evolve independently — clients that need fresh docs should set `MCP_DOCS_DIR` to a checkout's `docs-site/content/docs/` directory, or use the hosted MCP at `github.com/mohit-1710/AgentTrust/tree/main/mcp` (redeployed on every `main` push).
 
 ### [0.2.1] — 2026-05-07
 
@@ -681,12 +681,12 @@ Tag: `mcp-v0.2.1` · `simulate_payment` clearer error when no caller / PRIVATE_K
 
 ### [0.2.0] — 2026-05-07
 
-Tag: [`mcp-v0.2.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/mcp-v0.2.0)
+Tag: [`mcp-v0.2.0`](https://github.com/mohit-1710/AgentTrust/releases/tag/mcp-v0.2.0)
 · Commit: `00ca222`
 
 #### Changed
 
-- Re-pinned the `@agenttrust-sdk/trustgate` dep from `workspace:*` to
+- Re-pinned the `@monad-agenttrust-sdk/sdk` dep from `workspace:*` to
   `workspace:^`, so the published tarball ranges to `^0.2.0` (matches
   the SDK's own 0.2.0 bump). MCP code itself swept to the renamed
   `programs.trustGate` field + the new `programs.validationRegistry`
@@ -702,7 +702,7 @@ checks still green.
 
 ### [0.1.0] — 2026-05-04
 
-Tag: [`mcp-v0.1.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/mcp-v0.1.0)
+Tag: [`mcp-v0.1.0`](https://github.com/mohit-1710/AgentTrust/releases/tag/mcp-v0.1.0)
 · Commit: `66d4f04`
 
 #### Added
@@ -718,7 +718,7 @@ Tag: [`mcp-v0.1.0`](https://github.com/agenttrust-labs/agenttrust/releases/tag/m
   - **Discovery** (3): `list_facilitators`, `health`, plus an MCP
     resource at `agenttrust://programs` exposing program IDs and
     explorer URLs.
-- Two transports: stdio (default; `npx -y @agenttrust-sdk/mcp`) and
+- Two transports: stdio (default; `npx -y @monad-agenttrust-sdk/sdk`) and
   HTTP (`MCP_TRANSPORT=http MCP_HTTP_PORT=8765`).
 - Bundled IDLs for `policy_vault`, `trustgate`, `validation_registry`
   so the server boots against a freshly-redeployed program before

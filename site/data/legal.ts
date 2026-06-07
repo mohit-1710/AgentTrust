@@ -24,7 +24,7 @@ export const PRIVACY_PAGE: LegalPageContent = {
     {
       title: "External Services",
       body: [
-        "The documentation is hosted separately at docs.agenttrust.tech, and outbound links may open GitHub, npm, or social platforms.",
+        "The documentation is hosted separately at monadagenttrustdocs-site.vercel.app, and outbound links may open GitHub, npm, or social platforms.",
         "Those services may process requests according to their own privacy terms.",
       ],
     },

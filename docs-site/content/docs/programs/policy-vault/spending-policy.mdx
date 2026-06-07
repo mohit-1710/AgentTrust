@@ -5,7 +5,7 @@ description: Per-transaction, daily (UTC midnight), and weekly (ISO Monday) limi
 
 Spending is the second policy in the composer. Pure arithmetic — no foreign contract account reads. Three constraints in order: per-tx max, daily max, weekly max.
 
-Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs).
+Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/spending.rs).
 
 ## State (subset of `PolicyAccount`)
 
@@ -80,11 +80,11 @@ The Spending policy is exercised by the composer-level `gate_payment_strict_corr
 - `boundary_amount_at_daily_max_allows`
 - `negative_unix_ts_clamps_to_zero_anchors`
 
-Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs) — 301 lines including tests.
+Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/spending.rs) — 301 lines including tests.
 
 ## Source
 
-- Policy module: [`policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs)
-- Composer: [`policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
-- State: [`state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs)
-- Init instruction: [`instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs)
+- Policy module: [`policies/spending.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/spending.rs)
+- Composer: [`policies/composer.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/composer.rs)
+- State: [`state/policy_account.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_account.rs)
+- Init instruction: [`instructions/init_policy.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs)

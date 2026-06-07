@@ -1,16 +1,16 @@
 ---
 title: Hosted HTTP endpoint
-description: The streamable-HTTP MCP transport at mcp.agenttrust.tech — semantics, healthz, session model, retry behaviour.
+description: The streamable-HTTP MCP transport at github.com/mohit-1710/AgentTrust/tree/main/mcp — semantics, healthz, session model, retry behaviour.
 ---
 
-[`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) is the hosted MCP HTTP endpoint. Always-on, testnet-bound, free to hit, no install required for clients that speak `StreamableHTTPServerTransport`.
+[`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) is the hosted MCP HTTP endpoint. Always-on, testnet-bound, free to hit, no install required for clients that speak `StreamableHTTPServerTransport`.
 
-Hosted on Fly.io (Singapore region), `shared-cpu-1x@256MB`, two machines for HA, `min_machines_running = 1` so judges hitting the URL don't see a cold start. Source: [`mcp/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp). Deployed via `flyctl deploy --config mcp/fly.toml`.
+Hosted on Fly.io (Singapore region), `shared-cpu-1x@256MB`, two machines for HA, `min_machines_running = 1` so judges hitting the URL don't see a cold start. Source: [`mcp/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp). Deployed via `flyctl deploy --config mcp/fly.toml`.
 
 ## Healthz
 
 ```bash
-curl https://mcp.agenttrust.tech/healthz
+curl https://github.com/mohit-1710/AgentTrust/tree/main/mcp/healthz
 ```
 
 Returns:
@@ -38,7 +38,7 @@ The endpoint speaks Model Context Protocol over `StreamableHTTPServerTransport`.
 
 ```http
 POST / HTTP/1.1
-Host: mcp.agenttrust.tech
+Host: github.com/mohit-1710/AgentTrust/tree/main/mcp
 Content-Type: application/json
 
 {
@@ -75,7 +75,7 @@ Mcp-Session-Id: 9f3a…
 
 ```http
 POST / HTTP/1.1
-Host: mcp.agenttrust.tech
+Host: github.com/mohit-1710/AgentTrust/tree/main/mcp
 Content-Type: application/json
 Mcp-Session-Id: 9f3a…
 
@@ -187,11 +187,11 @@ Phase M end-to-end test against the hosted endpoint:
 | `tools/call agenttrust_simulate_payment` | `{ kind: "Allow" }` for the tier-3 demo agent |
 | `tools/call agenttrust_get_policy` | matching contract account `975DgYCY…` between stdio and HTTP |
 
-Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M2.
+Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M2.
 
 ## Source
 
-- Server entry: [`mcp/src/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/index.ts)
-- HTTP transport: [`mcp/src/server.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/server.ts)
-- Fly config: [`mcp/fly.toml`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/fly.toml)
-- Dockerfile: [`mcp/Dockerfile`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/Dockerfile)
+- Server entry: [`mcp/src/index.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/src/index.ts)
+- HTTP transport: [`mcp/src/server.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/src/server.ts)
+- Fly config: [`mcp/fly.toml`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/fly.toml)
+- Dockerfile: [`mcp/Dockerfile`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/Dockerfile)

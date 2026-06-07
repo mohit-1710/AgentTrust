@@ -5,7 +5,7 @@ description: The four-signature RequireValidation → respond → Allow trace th
 
 Four signatures prove the third ERC-8004 leg closes the loop end to end. Subject = ERC-8004 tier-3 agent the the molandak x402 facilitator smoke also used; capability = `usdc-payment-policy.v1`; attestor identity reused from `examples/attestor-demo/attestor-key.json` (Phase D). Captured 2026-05-06.
 
-Source script: [`examples/attestor-demo/scripts/testnet-chained-validation.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/attestor-demo/scripts/testnet-chained-validation.ts). Trace JSON: [`examples/attestor-demo/testnet-chained-validation.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/attestor-demo/testnet-chained-validation.json).
+Source script: [`examples/attestor-demo/scripts/testnet-chained-validation.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/examples/attestor-demo/scripts/testnet-chained-validation.ts). Trace JSON: [`examples/attestor-demo/testnet-chained-validation.json`](https://github.com/mohit-1710/AgentTrust/blob/main/examples/attestor-demo/testnet-chained-validation.json).
 
 ## The four signatures
 
@@ -26,19 +26,19 @@ Source script: [`examples/attestor-demo/scripts/testnet-chained-validation.ts`](
 | `ValidationRequest` (step 2's output) | [`GnbrSzWsDw1rehCrFJ4ckiM9JJJeAHdjfNDt7QQy7vhV`](https://testnet.monadexplorer.com/address/GnbrSzWsDw1rehCrFJ4ckiM9JJJeAHdjfNDt7QQy7vhV) |
 | `ValidationAttestation` (step 3's output — the headline read target) | [`C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY`](https://testnet.monadexplorer.com/address/C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY) |
 
-The `ValidationAttestation` contract account is what PolicyVault's `RequireValidation` policy reads at fixed byte offsets via [`policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs). After step 3 creates this contract account for `(subject, capability, attestor) = (5PfaofvE…, sha256(usdc-payment-policy.v1), GTzWJzV5…)`, a subsequent `gate_payment` call that passes this attestation account through the `validation_attestation` slot turns a `RequireValidation` decision into `Allow`.
+The `ValidationAttestation` contract account is what PolicyVault's `RequireValidation` policy reads at fixed byte offsets via [`policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs). After step 3 creates this contract account for `(subject, capability, attestor) = (5PfaofvE…, sha256(usdc-payment-policy.v1), GTzWJzV5…)`, a subsequent `gate_payment` call that passes this attestation account through the `validation_attestation` slot turns a `RequireValidation` decision into `Allow`.
 
 ## What the trace proves
 
 1. **The third ERC-8004 leg is real on Monad.** Identity (ERC-8004) + Reputation (ERC-8004) + Validation (AgentTrust) all wire together.
 2. **The complete `RequireValidation` round-trip works.** PolicyVault emits `capabilityHash` → attestor responds → policy now allows. Each step is a separate on-chain tx; AgentTrust composes the contract accounts without trusting any off-chain coordination.
-3. **The byte-offset parser reads the right fields.** PolicyVault's `RequireValidation` policy reads `subject_asset` at byte 8, `capability_hash` at byte 40, `attestor` at byte 72, `expires_at` at byte 208, `revoked` at byte 216 — exactly the offsets [`policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs) declares. The Phase F evidence reports verified each parsed value matches the on-chain raw bytes.
+3. **The byte-offset parser reads the right fields.** PolicyVault's `RequireValidation` policy reads `subject_asset` at byte 8, `capability_hash` at byte 40, `attestor` at byte 72, `expires_at` at byte 208, `revoked` at byte 216 — exactly the offsets [`policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs) declares. The Phase F evidence reports verified each parsed value matches the on-chain raw bytes.
 4. **The Phase D demo capability hash is consistent end to end.** `sha256("usdc-payment-policy.v1") = a968ecd0b93d9bfe57aa62c56d1e439717cf51d1dfe0ec413267834f2ca08375` — the same digest that policy-vault's `required_capability_hash` stores, that `CapabilityNamespace` keys against, that `ValidationAttestation.capability_hash` carries.
 
 ## Reproduce
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 pnpm install
 
 pnpm --filter ./examples/attestor-demo run chained
@@ -56,7 +56,7 @@ REVOKE=1 pnpm --filter ./examples/attestor-demo run chained
 
 ## How a facilitator drives this in production
 
-The the molandak x402 facilitator adapter ([`trustgate/server/src/facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh)) already surfaces `capabilityHash` in its `formatChallenge` response when the policy gate returns `RequireValidation`. A facilitator that hits this branch:
+The the molandak x402 facilitator adapter ([`trustgate/server/src/facilitators/pay-sh/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators/pay-sh)) already surfaces `capabilityHash` in its `formatChallenge` response when the policy gate returns `RequireValidation`. A facilitator that hits this branch:
 
 1. Sees `decision.kind = "RequireValidation"` + `capabilityHash` in the x402 `/verify` response body (header `X-Capability-Required: <hex>`).
 2. Looks up the attestor service that handles that capability (typically discovered out-of-band via a registry or hard-coded contract).
@@ -70,7 +70,7 @@ The script demonstrates steps 3-4 working end to end on testnet. Steps 1-2 are b
 - [`validation_expiry_correct`](/verification/kani-proofs#4-validation_expiry_correct) — an expired attestation cannot produce `Allow`.
 - [`gate_payment_strict_correctness`](/verification/kani-proofs#6-gate_payment_strict_correctness-phase-j5) — strict handler returns `Ok(())` if and only if the lazy composer returns `Allow`.
 
-If a future change broke the policy's expiry semantics or the `RequireValidation` arm slipped into `Ok`, both proofs fail loud. Plus the Solidity end-to-end suite covers the full lifecycle in [`tests/validation-registry.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/validation-registry.spec.ts).
+If a future change broke the policy's expiry semantics or the `RequireValidation` arm slipped into `Ok`, both proofs fail loud. Plus the Solidity end-to-end suite covers the full lifecycle in [`tests/validation-registry.spec.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/tests/validation-registry.spec.ts).
 
 ## Read next
 

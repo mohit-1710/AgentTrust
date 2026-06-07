@@ -11,7 +11,7 @@ The constants below are the load-bearing discriminators and seeds AgentTrust dep
 |---|---|
 | `[145, 136, 123, 3, 215, 165, 98, 41]` | `IdentityRegistry::give_feedback` 8-byte instruction discriminator. TrustGate's `emit_feedback` and `dispute_payment` invoke this via `invoke_signed`. |
 
-Source: [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/ext/agent_registry.rs). Pinned to ERC-8004 commit `bfb09ad`.
+Source: [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/ext/agent_registry.rs). Pinned to ERC-8004 commit `bfb09ad`.
 
 ## AgentTrust contract account seed prefixes
 
@@ -34,13 +34,13 @@ The SDK exposes derivers for every contract account: [SDK → Exports reference]
 
 | Account | Size | Source |
 |---|---:|---|
-| `PolicyAccount` | 240 | [`policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs) |
-| `VelocityLedger` | 80 | [`velocity_ledger.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/velocity_ledger.rs) |
-| `KillSwitchState` | 96 | [`kill_switch_state.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/kill_switch_state.rs) |
-| `PolicyAuthority` | 272 | [`policy_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_authority.rs) |
-| `TrustGateAuthority` | 104 | [`trustgate_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/state/trustgate_authority.rs) |
-| `FeedbackEmissionLog` | 72 | [`feedback_emission_log.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/state/feedback_emission_log.rs) |
-| `ValidationAttestation` | 290 | [`validation_attestation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/state/validation_attestation.rs) |
+| `PolicyAccount` | 240 | [`policy_account.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_account.rs) |
+| `VelocityLedger` | 80 | [`velocity_ledger.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/velocity_ledger.rs) |
+| `KillSwitchState` | 96 | [`kill_switch_state.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/kill_switch_state.rs) |
+| `PolicyAuthority` | 272 | [`policy_authority.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/policy_authority.rs) |
+| `TrustGateAuthority` | 104 | [`trustgate_authority.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/state/trustgate_authority.rs) |
+| `FeedbackEmissionLog` | 72 | [`feedback_emission_log.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/state/feedback_emission_log.rs) |
+| `ValidationAttestation` | 290 | [`validation_attestation.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/validation-registry/src/state/validation_attestation.rs) |
 | `AtomStats` (ERC-8004) | 561 | upstream-pinned at commit `bfb09ad`; canary at byte 560 |
 
 Sizes are validated at parse time — a size mismatch fails loud rather than silently misread.
@@ -55,7 +55,7 @@ Sizes are validated at parse time — a size mismatch fails loud rather than sil
 | `endpoint` | ≤ 64 bytes | `EndpointTooLong` |
 | `feedback_uri` | ≤ 256 bytes | `UriTooLong` |
 
-`DISPUTE_SCORE` (the score `dispute_payment` hard-codes for negative feedback) lives at [`programs/trustgate/src/constants.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/constants.rs).
+`DISPUTE_SCORE` (the score `dispute_payment` hard-codes for negative feedback) lives at [`programs/trustgate/src/constants.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/constants.rs).
 
 ## ValidationRegistry name + URI bounds
 
@@ -93,7 +93,7 @@ Bitmask flags for `PolicyAccount.enabled_kinds_bitmask`:
 | `1` | `UNRATED_ALLOW` | `Allow` |
 | `2` | `UNRATED_REQUIRE_VALIDATION` | `RequireValidation(capability_hash)` |
 
-Constants module: [`programs/policy-vault/src/constants.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/constants.rs).
+Constants module: [`programs/policy-vault/src/constants.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/constants.rs).
 
 ## Read next
 

@@ -5,7 +5,7 @@ description: In-flight worked example — the second AgentTrust facilitator adap
 
 Dexter is the second facilitator AgentTrust supports. It exists to prove that the `FacilitatorAdapter` contract is portable: every adapter must implement the same five methods, expose the same Zod-validated wire schemas, and use the same SDK factories for on-chain validation and feedback emission. If wiring a second adapter forces route edits, policy edits, or registry-read changes, the adapter boundary failed and gets fixed before the integration ships.
 
-Status: in flight. The current repo carries a stub at [`trustgate/server/src/facilitators/dexter/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/dexter) that satisfies the type contract; full implementation lands once Dexter publishes its x402 wire format. Current adapter status: [`agenttrust_list_facilitators`](/mcp/tools#agenttrust_list_facilitators) → `{ name: "dexter", status: "in-flight" }`.
+Status: in flight. The current repo carries a stub at [`trustgate/server/src/facilitators/dexter/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators/dexter) that satisfies the type contract; full implementation lands once Dexter publishes its x402 wire format. Current adapter status: [`agenttrust_list_facilitators`](/mcp/tools#agenttrust_list_facilitators) → `{ name: "dexter", status: "in-flight" }`.
 
 ## What the adapter has to land
 
@@ -19,7 +19,7 @@ The five methods every adapter implements, with Dexter-specific notes:
 | `validatePaymentProof(proof, ctx)` | Verify the proof shape; cross-check against `VerifyContext`. Same defenses as the molandak x402 facilitator: replay, self-pay, amount, mint, recipient, expiry. |
 | `emitFeedback(ctx, settlement)` | Call the feedback internal call idempotently via `priorEmissionLookup` + `emitFeedbackCpi`. |
 
-Implementation pattern: read [`facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh) end to end. Adapt the schemas + signature semantics to Dexter's wire format. Keep the proof-validator's defense list 1:1.
+Implementation pattern: read [`facilitators/pay-sh/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators/pay-sh) end to end. Adapt the schemas + signature semantics to Dexter's wire format. Keep the proof-validator's defense list 1:1.
 
 ## Why Dexter exists in the catalog
 
@@ -52,7 +52,7 @@ Each file mirrors the the molandak x402 facilitator shape. The adapter test suit
 
 ## Adapter contract conformance
 
-CI runs an adapter-contract conformance workflow ([`.github/workflows/adapter-contract-conformance.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/adapter-contract-conformance.yml)) on every PR. It walks every registered adapter and asserts:
+CI runs an adapter-contract conformance workflow ([`.github/workflows/adapter-contract-conformance.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/adapter-contract-conformance.yml)) on every PR. It walks every registered adapter and asserts:
 
 - `parseRequest` accepts the verify-shape and rejects malformed inputs with `400`.
 - `formatChallenge` emits the right headers per decision arm.

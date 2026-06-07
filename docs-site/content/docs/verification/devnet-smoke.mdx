@@ -5,7 +5,7 @@ description: The the molandak x402 facilitator + AgentTrust atomic-settlement tr
 
 A real signed USDC transfer flowed through the demo's `/protected` endpoint, completed `gate_payment + transfer + emit_feedback` atomically, and wrote a `FeedbackEmissionLog` contract account on chain. Captured 2026-05-06.
 
-Source script: [`examples/pay-sh-demo/scripts/testnet-smoke.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/scripts/testnet-smoke.ts). Trace JSON: [`examples/pay-sh-demo/testnet-smoke.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/testnet-smoke.json).
+Source script: [`examples/pay-sh-demo/scripts/testnet-smoke.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/examples/pay-sh-demo/scripts/testnet-smoke.ts). Trace JSON: [`examples/pay-sh-demo/testnet-smoke.json`](https://github.com/mohit-1710/AgentTrust/blob/main/examples/pay-sh-demo/testnet-smoke.json).
 
 ## The trace
 
@@ -36,7 +36,7 @@ Source script: [`examples/pay-sh-demo/scripts/testnet-smoke.ts`](https://github.
 From a clean checkout:
 
 ```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+git clone https://github.com/mohit-1710/AgentTrust && cd agenttrust
 pnpm install
 
 # 1. publish IDLs (one-time, ~0.03 MON)
@@ -58,11 +58,11 @@ The full trace (signatures, contract accounts, slot numbers) lands in `examples/
 
 ## Daily smoke (cron)
 
-[`.github/workflows/daily-testnet-smoke.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/daily-testnet-smoke.yml) runs the same flow on a 24-hour cron. The result is committed back to the repo at [`docs/proofs/smoke-2026-05-06.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/smoke-2026-05-06.md) (template). A failed daily smoke flips a status badge red; a green smoke means testnet, the ERC-8004 programs, and AgentTrust's three programs are all healthy.
+[`.github/workflows/daily-testnet-smoke.yml`](https://github.com/mohit-1710/AgentTrust/blob/main/.github/workflows/daily-testnet-smoke.yml) runs the same flow on a 24-hour cron. The result is committed back to the repo at [`docs/proofs/smoke-2026-05-06.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/smoke-2026-05-06.md) (template). A failed daily smoke flips a status badge red; a green smoke means testnet, the ERC-8004 programs, and AgentTrust's three programs are all healthy.
 
 ## Solidity end-to-end suite
 
-The Solidity TS suite at [`tests/`](https://github.com/agenttrust-labs/agenttrust/tree/main/tests) covers 50 end-to-end cases including the atomic-tx invariant, chained kill-switch atomicity, and full RequireValidation lifecycle. Run via:
+The Solidity TS suite at [`tests/`](https://github.com/mohit-1710/AgentTrust/tree/main/tests) covers 50 end-to-end cases including the atomic-tx invariant, chained kill-switch atomicity, and full RequireValidation lifecycle. Run via:
 
 ```bash
 forge test  --chain monad-testnet

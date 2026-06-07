@@ -13,7 +13,7 @@ export interface HeroTerminalLine {
   readonly tone: "accent" | "default" | "muted" | "success";
 }
 
-export const HERO_SDK_COMMAND = "npm install @agenttrust-sdk/trustgate";
+export const HERO_SDK_COMMAND = "npm install @monad-agenttrust-sdk/sdk";
 
 export const HERO_SDK_COPY = {
   eyebrow: "SDK Quickstart",
@@ -30,13 +30,13 @@ export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
     href: PUBLIC_LINKS.npm,
     icon: "package",
     label: "NPM Package",
-    meta: "@agenttrust-sdk/trustgate",
+    meta: "@monad-agenttrust-sdk/sdk",
   },
   {
     href: PUBLIC_LINKS.github,
     icon: "github",
     label: "GitHub",
-    meta: "agenttrust-labs/agenttrust",
+    meta: "mohit-1710/AgentTrust",
   },
 ];
 
@@ -47,7 +47,7 @@ export const HERO_TERMINAL_LINES: readonly HeroTerminalLine[] = [
     tone: "muted",
   },
   {
-    text: "curl https://demo.agenttrust.tech/protected",
+    text: "curl https://monadagenttrustweb.vercel.app/protected",
     tone: "muted",
   },
   { text: "adapter         PaySh.parseRequest -> VerifyContext", tone: "success" },

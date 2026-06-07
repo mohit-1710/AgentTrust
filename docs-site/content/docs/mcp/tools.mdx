@@ -5,7 +5,7 @@ description: All 21 MCP tools — 10 read, 8 write, 3 discovery — with input/o
 
 Each tool has a stable Zod schema. Input arguments are documented per tool below. Every write tool surfaces the resulting `txSignature` plus a Monad Explorer URL in its response.
 
-Source: [`mcp/src/tools/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools).
+Source: [`mcp/src/tools/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/tools).
 
 ## Read (10 tools — no signer required)
 
@@ -68,7 +68,7 @@ Decodes the ERC-8004 `AtomStats` at `["reputation record", agent_asset]`. Return
 }
 ```
 
-Mirrors the canonical byte offsets from [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs) verbatim — 549 / 551 / 555 / 557 / 560. Fixed in MCP 0.2.6 (Phase Q1) after the schema-version canary at byte 560 + the `tier ≤ 4` range check were added; v0.2.5 had fabricated offsets that returned junk values.
+Mirrors the canonical byte offsets from [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs) verbatim — 549 / 551 / 555 / 557 / 560. Fixed in MCP 0.2.6 (Phase Q1) after the schema-version canary at byte 560 + the `tier ≤ 4` range check were added; v0.2.5 had fabricated offsets that returned junk values.
 
 ### `agenttrust_get_validation_attestation`
 
@@ -109,7 +109,7 @@ Required args: `agent_asset`, `members` (1–5 base58 pubkeys), `threshold`. Cre
 
 ### `agenttrust_init_policy`
 
-Required args: `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: `agent_asset` (omit to let the tool generate a fresh identity), `metadata_uri` (used when self-healing ERC-8004 registration; max 256 bytes), and every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
+Required args: `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: `agent_asset` (omit to let the tool generate a fresh identity), `metadata_uri` (used when self-healing ERC-8004 registration; max 256 bytes), and every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
 
 Single-bootstrap behaviour: when `agent_asset` is omitted, the tool generates a fresh ephemeral asset key and prepends TrustGate's `register_agent_via_cpi` into the same atomic transaction. That instruction CPIs into `IdentityRegistry::register_with_options` and `ReputationRegistry::initialize_stats`. The same call also self-heals the AgentTrust `PolicyAuthority` contract account (`init_authority`) and the `KillSwitchState` contract account (`init_killswitch`) when either is missing. End result: a brand-new ERC-8004 agent profile, an `reputation record` contract account, the AgentTrust authority + kill-switch, plus the new `PolicyAccount` + `VelocityLedger` — all in one signed tx. Successful self-heal returns `healedSteps: ["register_agent_via_cpi", "init_authority", "init_killswitch"]`.
 
@@ -161,13 +161,13 @@ Maps a `DenyReason` code (`1..15`) to the canonical name + remediation hint. Sam
 
 ## Validation status
 
-Phase M comprehensive E2E (2026-05-07): all 18 tools present at the time of that report, 10/10 read tools return live testnet state with clickable Explorer URLs, 6/6 contract accounts cross-validated against on-chain ground truth, 4/4 Explorer URLs return HTTP 200. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md). The surface has since grown to 21 tools (10 read + 8 write + 3 discovery) in 0.4.x — confirmed live via [`mcp.agenttrust.tech/healthz`](https://mcp.agenttrust.tech/healthz).
+Phase M comprehensive E2E (2026-05-07): all 18 tools present at the time of that report, 10/10 read tools return live testnet state with clickable Explorer URLs, 6/6 contract accounts cross-validated against on-chain ground truth, 4/4 Explorer URLs return HTTP 200. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-m-mcp-e2e.md). The surface has since grown to 21 tools (10 read + 8 write + 3 discovery) in 0.4.x — confirmed live via [`github.com/mohit-1710/AgentTrust/tree/main/mcp/healthz`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/healthz).
 
-Phase P real-LLM tool-routing (2026-05-08): 7/10 strict pass on natural-language scenarios via Claude `sonnet`. The three false negatives were context-gathering artefacts (the LLM called `agenttrust_demo_state` first to gather context, then the expected tool); a less agentic client would score 9/10. Full report: [`docs/proofs/phase-p-llm-routing.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-p-llm-routing.md).
+Phase P real-LLM tool-routing (2026-05-08): 7/10 strict pass on natural-language scenarios via Claude `sonnet`. The three false negatives were context-gathering artefacts (the LLM called `agenttrust_demo_state` first to gather context, then the expected tool); a less agentic client would score 9/10. Full report: [`docs/proofs/phase-p-llm-routing.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-p-llm-routing.md).
 
 ## Source
 
-- Read tools: [`mcp/src/tools/read/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools/read)
-- Write tools: [`mcp/src/tools/write/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools/write)
-- Discovery tools: [`mcp/src/tools/discovery/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools/discovery)
-- Tool aggregator: [`mcp/src/tools/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/tools/index.ts)
+- Read tools: [`mcp/src/tools/read/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/tools/read)
+- Write tools: [`mcp/src/tools/write/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/tools/write)
+- Discovery tools: [`mcp/src/tools/discovery/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp/src/tools/discovery)
+- Tool aggregator: [`mcp/src/tools/index.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/mcp/src/tools/index.ts)

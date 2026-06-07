@@ -2,7 +2,7 @@ import styles from "@/components/AskAgentTrustSection.module.css";
 import { getExternalLinkAttributes } from "@/lib/linkAttributes";
 
 const PROMPT =
-  "Read https://docs.agenttrust.tech/llms.txt for context about AgentTrust. In 2 to 3 conversational sentences, explain what AgentTrust is and what's live on Monad testnet today, grounded in real contracts and integrations where possible. Focus on what this enables for the visitor. Then ask whether I'm here as a developer, evaluating for an institution, or just curious, so you can tailor what comes next.";
+  "Read https://monadagenttrustdocs-site.vercel.app/llms.txt for context about AgentTrust. In 2 to 3 conversational sentences, explain what AgentTrust is and what's live on Monad testnet today, grounded in real contracts and integrations where possible. Focus on what this enables for the visitor. Then ask whether I'm here as a developer, evaluating for an institution, or just curious, so you can tailor what comes next.";
 
 const ENCODED_PROMPT = encodeURIComponent(PROMPT);
 

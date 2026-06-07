@@ -5,7 +5,7 @@ description: Gate against a ValidationAttestation contract account — capabilit
 
 RequireValidation is the fifth and last policy. Reads one `ValidationAttestation` contract account from AgentTrust's `validation-registry` program, then checks subject, capability, revocation, expiry, and an optional per-policy attestor whitelist.
 
-Source: [`programs/policy-vault/src/policies/require_validation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs). Parser: [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
+Source: [`programs/policy-vault/src/policies/require_validation.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/require_validation.rs). Parser: [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
 
 ## Reads from `ValidationAttestation`
 
@@ -77,7 +77,7 @@ In-module tests cover the zero-hash pass-through, missing-attestation `RequiresA
 
 ## Source
 
-- Policy module: [`policies/require_validation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs)
-- ValidationAttestation parser: [`ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
-- Kani proof: [`proofs/inv_validation_expiry_correct.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs)
+- Policy module: [`policies/require_validation.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/policies/require_validation.rs)
+- ValidationAttestation parser: [`ext/validation_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
+- Kani proof: [`proofs/inv_validation_expiry_correct.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs)
 - ValidationRegistry program: [ValidationRegistry](/programs/validation-registry)

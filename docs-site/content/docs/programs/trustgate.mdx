@@ -83,7 +83,7 @@ the ERC-8004 `give_feedback` instruction expects the caller to be the agent's ow
 | 6 | `ReputationRegistry_program` (optional) | the ERC-8004 atom-engine program |
 | 7 | `registry_authority` (optional) | the ERC-8004 registry authority contract account |
 
-Indexes 0..=3 are required (`AgentRegistryProgramMismatch` on count mismatch). Indexes 4..=7 come as a group of 4 — pass all four or none. The SDK's `composeAtomicSettleTx` builds this account list correctly; integrators going lower-level should consult [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/ext/agent_registry.rs).
+Indexes 0..=3 are required (`AgentRegistryProgramMismatch` on count mismatch). Indexes 4..=7 come as a group of 4 — pass all four or none. The SDK's `composeAtomicSettleTx` builds this account list correctly; integrators going lower-level should consult [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/ext/agent_registry.rs).
 
 ## `give_feedback` args
 
@@ -127,9 +127,9 @@ Real `emit_feedback` internal call on testnet, captured 2026-05-06: [`jMobmWJUAX
 
 ## Source
 
-- Program entry: [`programs/trustgate/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/lib.rs)
-- `emit_feedback`: [`instructions/emit_feedback.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/instructions/emit_feedback.rs)
-- `dispute_payment`: [`instructions/dispute_payment.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/instructions/dispute_payment.rs)
-- `init_authority`: [`instructions/init_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/instructions/init_authority.rs)
-- internal call wrapper: [`ext/agent_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/ext/agent_registry.rs)
-- State: [`state/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/trustgate/src/state)
+- Program entry: [`programs/trustgate/src/lib.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/lib.rs)
+- `emit_feedback`: [`instructions/emit_feedback.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/instructions/emit_feedback.rs)
+- `dispute_payment`: [`instructions/dispute_payment.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/instructions/dispute_payment.rs)
+- `init_authority`: [`instructions/init_authority.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/instructions/init_authority.rs)
+- internal call wrapper: [`ext/agent_registry.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/trustgate/src/ext/agent_registry.rs)
+- State: [`state/`](https://github.com/mohit-1710/AgentTrust/tree/main/programs/trustgate/src/state)
