@@ -1,8 +1,8 @@
 {
-  "name": "@agenttrust/sdk",
+  "name": "monad-agenttrust-sdk",
   "version": "0.1.0",
-  "private": true,
-  "description": "Lean TypeScript SDK for the AgentTrust pre-payment policy gate on Monad testnet (ERC-8004 reputation + PolicyVault + x402).",
+  "description": "TypeScript SDK for the AgentTrust pre-payment policy gate on Monad — ERC-8004 reputation + PolicyVault + x402.",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -18,9 +18,29 @@
     "src",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohit-1710/AgentTrust.git",
+    "directory": "sdk"
+  },
+  "homepage": "https://github.com/mohit-1710/AgentTrust/tree/main/sdk",
+  "keywords": [
+    "monad",
+    "agenttrust",
+    "erc-8004",
+    "x402",
+    "ai-agents",
+    "agent-payments",
+    "reputation",
+    "viem"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@x402/core": "2.14.0",
