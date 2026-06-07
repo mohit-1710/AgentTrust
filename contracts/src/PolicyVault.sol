@@ -113,13 +113,14 @@ contract PolicyVault {
         if (p.acceptedClients.length == 0) {
             return (Decision.REQUIRE_VALIDATION, "no trusted attestors configured");
         }
+        // The deployed ERC-8004 Reputation Registry returns `summaryValue` as the
+        // AVERAGE feedback value already (verified on-chain), so compare directly.
         (uint64 count, int128 summaryValue,) =
             reputation.getSummary(payeeAgentId, p.acceptedClients, "", "");
         if (count < p.minFeedbackCount) {
             return (Decision.REQUIRE_VALIDATION, "payee: insufficient feedback from trusted attestors");
         }
-        int256 avgValue = int256(summaryValue) / int256(uint256(count));
-        if (avgValue < int256(p.minReputation)) {
+        if (int256(summaryValue) < int256(p.minReputation)) {
             return (Decision.DENY, "payee: reputation below threshold");
         }
 

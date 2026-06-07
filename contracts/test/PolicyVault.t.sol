@@ -118,7 +118,7 @@ contract PolicyVaultTest is Test {
 
     function test_KillSwitch_Denies() public {
         _setHealthyPolicy();
-        rep.set(3, int128(300), 0); // avg 100, healthy
+        rep.set(3, int128(100), 0); // avg 100, healthy
 
         // Sanity: allowed before the killswitch.
         _assertDecision(PolicyVault.Decision.ALLOW, 1 ether);
@@ -139,7 +139,7 @@ contract PolicyVaultTest is Test {
 
     function test_KillSwitch_CanBeReenabled() public {
         _setHealthyPolicy();
-        rep.set(3, int128(300), 0);
+        rep.set(3, int128(100), 0);
 
         vm.prank(payer);
         vault.setKillSwitch(true);
@@ -156,7 +156,7 @@ contract PolicyVaultTest is Test {
 
     function test_PerTxCap_Exceeded_Denies() public {
         _setHealthyPolicy();
-        rep.set(3, int128(300), 0);
+        rep.set(3, int128(100), 0);
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 100 ether + 1);
         assertEq(uint8(d), uint8(PolicyVault.Decision.DENY));
@@ -165,7 +165,7 @@ contract PolicyVaultTest is Test {
 
     function test_PerTxCap_ExactlyAtCap_Allows() public {
         _setHealthyPolicy();
-        rep.set(3, int128(300), 0);
+        rep.set(3, int128(100), 0);
         _assertDecision(PolicyVault.Decision.ALLOW, 100 ether);
     }
 
@@ -177,7 +177,7 @@ contract PolicyVaultTest is Test {
         // perTxCap 100, dailyCap 150. First spend of 100 leaves 50 of headroom.
         vm.prank(payer);
         vault.setPolicy(100 ether, 150 ether, int128(0), uint64(0), false, _clients());
-        rep.set(3, int128(300), 0);
+        rep.set(3, int128(100), 0);
 
         // Record a 100 ether spend in the current window.
         vm.prank(payer);
@@ -195,7 +195,7 @@ contract PolicyVaultTest is Test {
     function test_DailyCap_WindowResetsAfter24h() public {
         vm.prank(payer);
         vault.setPolicy(100 ether, 150 ether, int128(0), uint64(0), false, _clients());
-        rep.set(3, int128(300), 0);
+        rep.set(3, int128(100), 0);
 
         vm.prank(payer);
         vault.recordSpend(100 ether);
@@ -253,7 +253,7 @@ contract PolicyVaultTest is Test {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(0), uint64(5), false, _clients());
         // Only 2 feedback entries, but policy demands >= 5.
-        rep.set(2, int128(200), 0);
+        rep.set(2, int128(100), 0);
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 1 ether);
         assertEq(uint8(d), uint8(PolicyVault.Decision.REQUIRE_VALIDATION));
@@ -269,7 +269,7 @@ contract PolicyVaultTest is Test {
         // minReputation 80.
         vault.setPolicy(100 ether, 1000 ether, int128(80), uint64(1), false, _clients());
         // count 4, sum 200 -> average 50 < 80.
-        rep.set(4, int128(200), 0);
+        rep.set(4, int128(50), 0);
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 1 ether);
         assertEq(uint8(d), uint8(PolicyVault.Decision.DENY));
@@ -280,7 +280,7 @@ contract PolicyVaultTest is Test {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(80), uint64(1), false, _clients());
         // count 4, sum 400 -> average 100 >= 80.
-        rep.set(4, int128(400), 0);
+        rep.set(4, int128(100), 0);
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 1 ether);
         assertEq(uint8(d), uint8(PolicyVault.Decision.ALLOW));
@@ -291,7 +291,7 @@ contract PolicyVaultTest is Test {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(50), uint64(1), false, _clients());
         // count 4, sum 200 -> average exactly 50 >= 50.
-        rep.set(4, int128(200), 0);
+        rep.set(4, int128(50), 0);
         _assertDecision(PolicyVault.Decision.ALLOW, 1 ether);
     }
 
@@ -299,7 +299,7 @@ contract PolicyVaultTest is Test {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(0), uint64(1), false, _clients());
         // count 2, sum -10 -> average -5 < 0.
-        rep.set(2, int128(-10), 0);
+        rep.set(2, int128(-5), 0);
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 1 ether);
         assertEq(uint8(d), uint8(PolicyVault.Decision.DENY));
@@ -313,7 +313,7 @@ contract PolicyVaultTest is Test {
     function test_RequireValidation_NoValidation_RequiresValidation() public {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(50), uint64(1), true, _clients());
-        rep.set(4, int128(400), 0); // healthy reputation
+        rep.set(4, int128(100), 0); // healthy reputation
         val.set(0, 0); // no validation on record
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 1 ether);
@@ -324,7 +324,7 @@ contract PolicyVaultTest is Test {
     function test_RequireValidation_ZeroAverage_RequiresValidation() public {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(50), uint64(1), true, _clients());
-        rep.set(4, int128(400), 0);
+        rep.set(4, int128(100), 0);
         // Count present but average response is 0 -> still treated as no valid attestation.
         val.set(2, 0);
 
@@ -336,7 +336,7 @@ contract PolicyVaultTest is Test {
     function test_RequireValidation_WithValidation_Allows() public {
         vm.prank(payer);
         vault.setPolicy(100 ether, 1000 ether, int128(50), uint64(1), true, _clients());
-        rep.set(4, int128(400), 0); // healthy reputation
+        rep.set(4, int128(100), 0); // healthy reputation
         val.set(1, 100); // positive validation on record
 
         (PolicyVault.Decision d, string memory reason) = vault.gate(payer, PAYEE, 1 ether);
