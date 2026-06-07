@@ -1,5 +1,5 @@
 {
-  "name": "monad-agenttrust-sdk",
+  "name": "@monad-agenttrust-sdk/sdk",
   "version": "0.1.0",
   "description": "TypeScript SDK for the AgentTrust pre-payment policy gate on Monad — ERC-8004 reputation + PolicyVault + x402.",
   "license": "MIT",
