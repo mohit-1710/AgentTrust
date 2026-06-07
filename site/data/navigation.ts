@@ -139,6 +139,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
       },
     ],
   },
+  { label: "Demo", href: PUBLIC_LINKS.demo },
   { label: "Blog", href: PUBLIC_LINKS.blog },
   {
     label: "Resources",

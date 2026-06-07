@@ -28,6 +28,7 @@ export const PUBLIC_LINKS = {
   npm: "https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk",
   privacy: "/privacy",
   site: "https://monadagenttrustsite.vercel.app",
+  demo: "https://monadagenttrustweb.vercel.app/#demo",
   terms: "/terms",
   blog: "/blog",
   blogFeed: "/blog/feed.xml",

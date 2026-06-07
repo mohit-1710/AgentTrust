@@ -39,9 +39,15 @@ export const HERO_BODY =
 export const HERO_ACTIONS: readonly HeroAction[] = [
   {
     icon: "globe",
+    label: "Try the live demo",
+    href: PUBLIC_LINKS.demo,
+    variant: "primary",
+  },
+  {
+    icon: "globe",
     label: "Integrate SDK",
     href: PUBLIC_LINKS.docsQuickstart,
-    variant: "primary",
+    variant: "secondary",
   },
   {
     icon: "file",
