@@ -23,7 +23,7 @@ contract PolicyVault {
         bool paused; // killswitch — emergency pause for this payer
         uint256 perTxCap; // max amount per single payment (token atomic units, e.g. USDC 6dp)
         uint256 dailyCap; // max cumulative amount per rolling 24h window
-        int128 minReputation; // payee ERC-8004 summary value must be >= this
+        int128 minReputation; // payee AVERAGE ERC-8004 feedback value must be >= this (feedback decimal scale; v1 uses 0 decimals)
         uint64 minFeedbackCount; // payee must have >= this many feedback entries
         bool requireValidation; // payee must hold a positive ERC-8004 validation
         // --- velocity state (maintained by recordSpend) ---
@@ -102,10 +102,18 @@ contract PolicyVault {
 
         address[] memory none = new address[](0);
 
-        // Counterparty reputation gate (ERC-8004 Reputation Registry)
-        (uint64 count, int128 value,) = reputation.getSummary(payeeAgentId, none, "", "");
-        if (count < p.minFeedbackCount) return (Decision.DENY, "payee: insufficient feedback");
-        if (value < p.minReputation) return (Decision.DENY, "payee: reputation below threshold");
+        // Counterparty reputation gate (ERC-8004 Reputation Registry).
+        // getSummary returns a SUM of feedback values plus the entry count, so we
+        // gate on the AVERAGE. Thin feedback history -> ask for an explicit
+        // capability validation instead of a hard deny.
+        (uint64 count, int128 summaryValue,) = reputation.getSummary(payeeAgentId, none, "", "");
+        if (count < p.minFeedbackCount) {
+            return (Decision.REQUIRE_VALIDATION, "payee: insufficient feedback history");
+        }
+        int256 avgValue = int256(summaryValue) / int256(uint256(count));
+        if (avgValue < int256(p.minReputation)) {
+            return (Decision.DENY, "payee: reputation below threshold");
+        }
 
         // Optional capability validation (ERC-8004 Validation Registry)
         if (p.requireValidation) {

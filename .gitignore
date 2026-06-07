@@ -26,8 +26,7 @@ build/
 .turbo/
 
 # --- local-only (per project rules: NOT on GitHub) ---
-research/
-docs/
+do_not_push/
 .claude/
 .agents/
 
