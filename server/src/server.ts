@@ -284,8 +284,8 @@ function serializeRep(
   };
 }
 
-app.listen(config.port, () => {
-  console.log(`AgentTrust x402 gate listening on http://localhost:${config.port}`);
+app.listen(config.port, "0.0.0.0", () => {
+  console.log(`AgentTrust x402 gate listening on http://0.0.0.0:${config.port}`);
   console.log(`  network:       ${config.network}`);
   console.log(`  facilitator:   ${config.facilitatorUrl}`);
   console.log(`  USDC:          ${config.usdc}`);
