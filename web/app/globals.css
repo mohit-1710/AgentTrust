@@ -155,6 +155,43 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Policy console range sliders — Monad-purple thumb on a hairline track. */
+  .policy-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(10, 10, 10, 0.12);
+    outline: none;
+    cursor: pointer;
+  }
+  .policy-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 2px solid #fff;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 0 0 1px var(--accent-strong);
+    transition: transform 120ms var(--ease-out-strong);
+  }
+  .policy-range::-webkit-slider-thumb:hover {
+    transform: scale(1.12);
+  }
+  .policy-range::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 2px solid #fff;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 0 0 1px var(--accent-strong);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -43,7 +43,7 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export function ReputationPanel() {
-  const [agentId, setAgentId] = React.useState("1");
+  const [agentId, setAgentId] = React.useState("1763");
   const [clientsRaw, setClientsRaw] = React.useState<string>(TRUSTED_ATTESTOR);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -64,6 +64,13 @@ export function ReputationPanel() {
       setLoading(false);
     }
   }
+
+  // Pre-load the default agent (1763) on mount so the presenter sees real
+  // on-chain numbers immediately, before touching anything.
+  React.useEffect(() => {
+    void check();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const verdict = result ? trustVerdict(result) : null;
   const Icon = verdict ? toneIcon[verdict.tone] : ShieldQuestion;

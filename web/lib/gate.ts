@@ -33,6 +33,67 @@ export const DEFAULT_SAMPLE_POLICY: SamplePolicy = {
   paused: false,
 };
 
+/** Shape consumed by the interactive policy console (human-readable units). */
+export interface PolicyConsoleConfig {
+  minReputation: number; // average must be >= this
+  perTxCapUsdc: number; // human USDC
+  dailyCapUsdc: number; // human USDC
+  minFeedbackCount: number;
+  paused: boolean;
+}
+
+/**
+ * Pure, synchronous decision used by the interactive policy console. It mirrors
+ * `PolicyVault.gate()` ordering EXACTLY against an already-fetched on-chain
+ * reputation read, so the presenter can slide a threshold and watch the verdict
+ * flip with zero extra RPC round-trips:
+ *   1. killswitch (paused)        -> DENY
+ *   2. amount > per-tx cap        -> DENY
+ *   3. amount > daily cap         -> DENY
+ *   4. count < minFeedbackCount   -> REQUIRE_VALIDATION
+ *   5. average < minReputation    -> DENY
+ *   6. otherwise                  -> ALLOW
+ *
+ * @param rep   reputation read (count + average) from the LIVE ERC-8004 registry.
+ */
+export function evaluatePolicy(
+  cfg: PolicyConsoleConfig,
+  amountUsdc: number,
+  rep: { count: number; average: number | null },
+): GateResult {
+  if (cfg.paused)
+    return { decision: "DENY", reason: "killswitch active", source: "preview" };
+  if (amountUsdc > cfg.perTxCapUsdc)
+    return {
+      decision: "DENY",
+      reason: `exceeds per-tx cap (${amountUsdc} > ${cfg.perTxCapUsdc} USDC)`,
+      source: "preview",
+    };
+  if (amountUsdc > cfg.dailyCapUsdc)
+    return {
+      decision: "DENY",
+      reason: `exceeds daily cap (${amountUsdc} > ${cfg.dailyCapUsdc} USDC)`,
+      source: "preview",
+    };
+  if (rep.count < cfg.minFeedbackCount)
+    return {
+      decision: "REQUIRE_VALIDATION",
+      reason: "payee: insufficient feedback from trusted attestors",
+      source: "preview",
+    };
+  if ((rep.average ?? 0) < cfg.minReputation)
+    return {
+      decision: "DENY",
+      reason: `payee avg ${rep.average ?? 0} below min reputation ${cfg.minReputation}`,
+      source: "preview",
+    };
+  return {
+    decision: "ALLOW",
+    reason: `payee avg ${rep.average ?? 0} ≥ ${cfg.minReputation}, within caps`,
+    source: "preview",
+  };
+}
+
 /**
  * Live gate. If PolicyVault is deployed, calls gate() on-chain. Otherwise
  * computes a clear preview from the live reputation read + a sample policy,

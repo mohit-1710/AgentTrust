@@ -27,8 +27,8 @@ import { Loader2, Gauge } from "lucide-react";
 
 export function GatePanel() {
   const [payer, setPayer] = React.useState<string>(SAMPLE_PAYER);
-  const [agentId, setAgentId] = React.useState("1");
-  const [amount, setAmount] = React.useState("25");
+  const [agentId, setAgentId] = React.useState("1763");
+  const [amount, setAmount] = React.useState("5");
   const [clientsRaw, setClientsRaw] = React.useState<string>(TRUSTED_ATTESTOR);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

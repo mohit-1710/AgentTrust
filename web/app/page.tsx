@@ -1,8 +1,10 @@
+import { AccountBar } from "@/components/account-bar";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
 import { Footer } from "@/components/footer";
 import { SectionHeading } from "@/components/section-heading";
 import { ReputationPanel } from "@/components/reputation-panel";
+import { PolicyConsole } from "@/components/policy-console";
 import { GatePanel } from "@/components/gate-panel";
 import { DemoFlow } from "@/components/demo-flow";
 import { Primer } from "@/components/primer";
@@ -10,6 +12,7 @@ import { Primer } from "@/components/primer";
 export default function Home() {
   return (
     <main className="min-h-screen bg-bg">
+      <AccountBar />
       <Navbar />
       <Hero />
 
@@ -28,10 +31,25 @@ export default function Home() {
         </div>
       </section>
 
+      {/* YOUR POLICY — interactive console, live against on-chain reputation */}
+      <section
+        id="policy"
+        className="border-b border-border bg-bg py-20 scroll-mt-16"
+      >
+        <div className="mx-auto max-w-3xl px-5">
+          <SectionHeading
+            eyebrow="Your control panel"
+            title="Set your agent's policy. The gate re-decides live."
+            subtitle="This is your agent's policy console. Adjust the minimum counterparty reputation and your spending caps, and every change is re-evaluated instantly against the live on-chain ERC-8004 reputation of the agent you're checking."
+          />
+          <PolicyConsole />
+        </div>
+      </section>
+
       {/* SECONDARY — try-it-yourself tools */}
       <section
         id="tools"
-        className="border-b border-border bg-bg py-20 scroll-mt-16"
+        className="border-b border-border bg-bg-neutral py-20 scroll-mt-16"
       >
         <div className="mx-auto max-w-6xl px-5">
           <SectionHeading

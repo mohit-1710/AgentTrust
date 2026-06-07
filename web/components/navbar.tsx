@@ -10,6 +10,7 @@ const DOCS_URL = "https://monadagenttrustdocs-site.vercel.app";
 const NAV: { href: string; label: string; external?: boolean }[] = [
   { href: SITE_URL, label: "Home", external: true },
   { href: "#demo", label: "Live demo" },
+  { href: "#policy", label: "Your policy" },
   { href: "#tools", label: "Try it" },
   { href: "#primer", label: "How it works" },
   { href: DOCS_URL, label: "Docs", external: true },
