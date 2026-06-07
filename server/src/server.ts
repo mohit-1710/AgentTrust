@@ -80,7 +80,7 @@ function send402(req: Request, res: Response, errorMsg?: string) {
   const paymentRequired = buildPaymentRequired(req, errorMsg);
   res
     .status(402)
-    .set("X-PAYMENT-REQUIRED", encodePaymentRequiredHeader(paymentRequired))
+    .set("PAYMENT-REQUIRED", encodePaymentRequiredHeader(paymentRequired))
     .json(paymentRequired);
 }
 
@@ -124,8 +124,8 @@ app.get("/requirements", (req, res) => {
 // ---------------------------------------------------------------------------
 app.get(RESOURCE_PATH, async (req: Request, res: Response) => {
   const paymentHeader =
-    (req.get("X-PAYMENT") as string | undefined) ??
-    (req.get("x-payment") as string | undefined);
+    (req.get("PAYMENT-SIGNATURE") as string | undefined) ??
+    (req.get("X-PAYMENT") as string | undefined);
 
   // No payment yet -> reply 402 with requirements.
   if (!paymentHeader) {
