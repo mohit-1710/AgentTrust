@@ -42,6 +42,15 @@ A **Model Context Protocol (MCP)** server exposes the gate to AI agents directly
 - **App / MCP:** TypeScript + **viem 2.40+**, Next.js dashboard
 - **Token:** native USDC on Monad
 
+### Deployed (Monad testnet · chainId 10143)
+
+| Contract | Address |
+|---|---|
+| **PolicyVault** | [`0xaE8563CC15BF2519ae2793F7F2203389267632A6`](https://testnet.monadexplorer.com/address/0xaE8563CC15BF2519ae2793F7F2203389267632A6) |
+| ERC-8004 Reputation (read) | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
+| ERC-8004 Validation (read) | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` |
+| USDC (testnet) | `0x534b2f3A21130d7a60830c2Df862319e593943A3` |
+
 ## Repo structure
 
 ```
