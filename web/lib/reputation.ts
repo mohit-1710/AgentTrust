@@ -6,7 +6,7 @@ export interface ReputationResult {
   agentId: bigint;
   clients: `0x${string}`[];
   count: number;
-  /** SUM of feedback values across trusted attestors (per ERC-8004 getSummary). */
+  /** Reconstructed sum (average × count) across trusted attestors. */
   total: number;
   decimals: number;
   /** total / count, or null if count == 0. */
@@ -48,14 +48,15 @@ export async function readReputation(
   });
 
   const cnt = Number(count);
-  const total = Number(summaryValue);
+  // The deployed ERC-8004 registry returns summaryValue as the AVERAGE already.
+  const avg = Number(summaryValue);
   return {
     agentId,
     clients,
     count: cnt,
-    total,
+    total: cnt > 0 ? avg * cnt : 0,
     decimals: Number(decimals),
-    average: cnt > 0 ? total / cnt : null,
+    average: cnt > 0 ? avg : null,
   };
 }
 
@@ -67,7 +68,7 @@ export function trustVerdict(
   r: ReputationResult,
   opts: { minAverage?: number; minCount?: number } = {}
 ): { verdict: TrustVerdict; label: string; tone: "good" | "bad" | "warn" } {
-  const minAverage = opts.minAverage ?? 70;
+  const minAverage = opts.minAverage ?? 50;
   const minCount = opts.minCount ?? 1;
 
   if (r.count === 0) {
