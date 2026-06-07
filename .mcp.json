@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "node",
+      "args": ["mcp/dist/server.js"]
+    }
+  }
+}
