@@ -1,0 +1,37 @@
+# --- dependencies ---
+node_modules/
+.pnp.*
+.pnpm-store/
+
+# --- env / secrets (NEVER commit) ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+keys/
+.secrets/
+
+# --- foundry ---
+out/
+cache/
+broadcast/
+lib/forge-std/.git
+
+# --- next.js / vercel / builds ---
+.next/
+.vercel/
+dist/
+build/
+.turbo/
+
+# --- local-only (per project rules: NOT on GitHub) ---
+research/
+docs/
+.claude/
+.agents/
+
+# --- misc ---
+.DS_Store
+*.log
+coverage/
