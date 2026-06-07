@@ -1,43 +1,58 @@
 import { Logo } from "./logo";
-import { REPUTATION_REGISTRY, USDC } from "@/lib/contracts";
+import {
+  REPUTATION_REGISTRY,
+  USDC,
+  POLICY_VAULT_ADDRESS,
+} from "@/lib/contracts";
 import { explorerAddress } from "@/lib/chain";
 import { shortAddr } from "@/lib/utils";
 
+function ContractRow({
+  label,
+  address,
+}: {
+  label: string;
+  address: string | null;
+}) {
+  if (!address) return null;
+  return (
+    <div className="flex items-center justify-between gap-6">
+      <span className="text-ink-dim">{label}</span>
+      <a
+        className="text-monad-700 hover:underline"
+        href={explorerAddress(address)}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {shortAddr(address, 6)}
+      </a>
+    </div>
+  );
+}
+
 export function Footer() {
   return (
-    <footer className="border-t border-border/60 bg-background/60">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-2">
+    <footer className="border-t border-border bg-bg-elev">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-12 md:flex-row md:items-start md:justify-between">
+        <div className="max-w-md space-y-3">
           <Logo />
-          <p className="max-w-md text-sm text-muted-foreground">
-            Non-custodial pre-payment policy gate for AI-agent payments on Monad.
-            Built for Monad Blitz Bangalore.
+          <p className="text-sm leading-relaxed text-ink-dim">
+            The non-custodial trust gate for AI-agent payments on Monad. It
+            reads on-chain ERC-8004 reputation and the payer&apos;s policy, then
+            allows or blocks each USDC payment before it settles.
           </p>
         </div>
-        <div className="space-y-1.5 font-mono text-xs text-muted-foreground">
-          <div>
-            Reputation:{" "}
-            <a
-              className="text-monad-200 hover:underline"
-              href={explorerAddress(REPUTATION_REGISTRY)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {shortAddr(REPUTATION_REGISTRY, 6)}
-            </a>
+        <div className="w-full max-w-xs space-y-2 font-mono text-xs">
+          <div className="mono-label mb-3 text-[10px] text-accent">
+            Deployed on Monad testnet
           </div>
-          <div>
-            USDC:{" "}
-            <a
-              className="text-monad-200 hover:underline"
-              href={explorerAddress(USDC)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {shortAddr(USDC, 6)}
-            </a>
+          <ContractRow label="PolicyVault" address={POLICY_VAULT_ADDRESS} />
+          <ContractRow label="ERC-8004 Reputation" address={REPUTATION_REGISTRY} />
+          <ContractRow label="USDC" address={USDC} />
+          <div className="flex items-center justify-between gap-6 pt-2 text-ink-dim">
+            <span>Network</span>
+            <span>chainId 10143</span>
           </div>
-          <div>chainId 10143 · testnet-rpc.monad.xyz</div>
         </div>
       </div>
     </footer>

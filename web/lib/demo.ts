@@ -13,6 +13,8 @@ export const SAMPLE_PAYER =
 
 export interface DemoScenario {
   key: "scammer" | "trusted";
+  /** Short payee label shown on the card. */
+  payeeLabel: string;
   title: string;
   subtitle: string;
   payeeAgentId: bigint;
@@ -20,27 +22,33 @@ export interface DemoScenario {
   /** The attestor set the payer trusts. */
   clients: `0x${string}`[];
   expected: "DENY" | "ALLOW" | "REQUIRE_VALIDATION";
+  /** One-line explanation of WHY this verdict happens — for narration. */
+  why: string;
 }
 
 export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     key: "scammer",
-    title: "Scammer payee (low reputation)",
+    payeeLabel: "Scammer agent",
+    title: "Paying a scammer",
     subtitle:
-      "Your agent is about to pay an agent your trusted attestors have rated badly.",
+      "Your agent is about to pay an agent your trusted attestors rated badly.",
     payeeAgentId: 1764n,
     amount: "5",
     clients: [TRUSTED_ATTESTOR],
     expected: "DENY",
+    why: "The payee's average ERC-8004 reputation sits below the payer's trust threshold, so the gate blocks the payment before any USDC moves.",
   },
   {
     key: "trusted",
-    title: "Trusted payee (strong reputation)",
+    payeeLabel: "Trusted agent",
+    title: "Paying a trusted agent",
     subtitle:
-      "A payee your trusted attestors have rated highly — the payment clears.",
+      "Same agent, same amount — a payee your attestors rated highly.",
     payeeAgentId: 1763n,
     amount: "5",
     clients: [TRUSTED_ATTESTOR],
     expected: "ALLOW",
+    why: "The payee clears the reputation threshold and the amount is within the payer's per-tx and daily caps, so the gate allows settlement over x402.",
   },
 ];

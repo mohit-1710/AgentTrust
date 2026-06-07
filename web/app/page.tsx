@@ -5,19 +5,39 @@ import { SectionHeading } from "@/components/section-heading";
 import { ReputationPanel } from "@/components/reputation-panel";
 import { GatePanel } from "@/components/gate-panel";
 import { DemoFlow } from "@/components/demo-flow";
+import { Primer } from "@/components/primer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-bg">
       <Navbar />
       <Hero />
 
-      <section id="reputation" className="border-t border-border/40 py-20">
+      {/* CENTERPIECE — the block → allow walkthrough */}
+      <section
+        id="demo"
+        className="relative border-b border-border bg-bg-neutral py-20 scroll-mt-16"
+      >
+        <div className="relative mx-auto max-w-6xl px-5">
+          <SectionHeading
+            eyebrow="The live demo"
+            title="The scammer gets blocked. The trusted agent gets paid."
+            subtitle="A guided two-step walkthrough, read live from PolicyVault on Monad testnet. Same payer, same amount — the only thing that changes is whether the payee's on-chain reputation clears the trust threshold."
+          />
+          <DemoFlow />
+        </div>
+      </section>
+
+      {/* SECONDARY — try-it-yourself tools */}
+      <section
+        id="tools"
+        className="border-b border-border bg-bg py-20 scroll-mt-16"
+      >
         <div className="mx-auto max-w-6xl px-5">
           <SectionHeading
-            eyebrow="Live on testnet"
-            title="Reputation & the gate"
-            subtitle="Read a payee's on-chain ERC-8004 reputation, then watch the policy gate turn that signal into a clear payment decision."
+            eyebrow="Try it yourself"
+            title="Look up reputation, run the gate"
+            subtitle="The same two on-chain reads the demo uses, exposed as tools. Point them at any agent ID and attestor set and watch the verdict update live."
           />
           <div className="grid items-start gap-6 lg:grid-cols-2">
             <ReputationPanel />
@@ -28,15 +48,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="demo" className="relative border-t border-border/40 py-20">
-        <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(50%_50%_at_50%_50%,#000,transparent)]" />
-        <div className="relative mx-auto max-w-6xl px-5">
+      {/* CONTEXT — what the pieces are */}
+      <section id="primer" className="bg-bg-neutral py-20 scroll-mt-16">
+        <div className="mx-auto max-w-6xl px-5">
           <SectionHeading
-            eyebrow="Stage demo"
-            title="The scammer gets blocked. The trusted agent gets paid."
-            subtitle="A guided two-step walkthrough you can run live on stage."
+            eyebrow="How it works"
+            title="Three pieces, one verdict"
+            subtitle="New to this? Here's what each part of AgentTrust does before a payment settles."
           />
-          <DemoFlow />
+          <Primer />
         </div>
       </section>
 

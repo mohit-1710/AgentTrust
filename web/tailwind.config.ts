@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: ["class"],
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -10,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "ui-serif", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: [
           "var(--font-mono)",
           "ui-monospace",
@@ -20,11 +20,31 @@ const config: Config = {
         ],
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // Editorial light system, mirrored from the marketing site.
+        bg: "var(--bg)",
+        "bg-elev": "var(--bg-elev)",
+        "bg-neutral": "var(--bg-neutral)",
+        "bg-dark": "var(--bg-dark)",
+        "bg-dark-card": "var(--bg-dark-card)",
+        ink: "var(--ink)",
+        "ink-dim": "var(--ink-dim)",
+        rule: "var(--border)",
+        "rule-dark": "var(--border-dark)",
+        accent: "var(--accent)",
+        "accent-soft": "var(--accent-soft)",
+        // Tailwind aliases used across the app.
+        background: "var(--bg)",
+        foreground: "var(--ink)",
+        border: "var(--border)",
+        muted: {
+          DEFAULT: "var(--bg-neutral)",
+          foreground: "var(--ink-dim)",
+        },
+        card: {
+          DEFAULT: "var(--bg-elev)",
+          foreground: "var(--ink)",
+        },
+        // Monad purple ramp.
         monad: {
           DEFAULT: "#836EF9",
           50: "#EEEBFF",
@@ -39,34 +59,20 @@ const config: Config = {
           900: "#221C3D",
           ink: "#0E0B1A",
         },
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        allow: "#22C55E",
-        deny: "#EF4444",
-        warn: "#F59E0B",
+        // Verdict tones tuned for a light surface.
+        allow: "var(--success)",
+        deny: "var(--danger)",
+        warn: "var(--warning)",
+      },
+      letterSpacing: {
+        display: "-0.04em",
+        body: "-0.01em",
+        "mono-label": "0.15em",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "10px",
+        md: "8px",
+        sm: "6px",
       },
       keyframes: {
         "fade-up": {
@@ -74,24 +80,23 @@ const config: Config = {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "scan": {
-          "0%": { transform: "translateY(-100%)" },
-          "100%": { transform: "translateY(400%)" },
+          "0%": { transform: "translateY(-120%)" },
+          "100%": { transform: "translateY(520%)" },
         },
-        "pulse-ring": {
-          "0%": { boxShadow: "0 0 0 0 rgba(131,110,249,0.5)" },
-          "70%": { boxShadow: "0 0 0 14px rgba(131,110,249,0)" },
-          "100%": { boxShadow: "0 0 0 0 rgba(131,110,249,0)" },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.35" },
         },
-        "grid-flow": {
-          "0%": { backgroundPosition: "0 0" },
-          "100%": { backgroundPosition: "40px 40px" },
+        "route-pulse": {
+          from: { transform: "translate3d(-110%, 0, 0)" },
+          to: { transform: "translate3d(270%, 0, 0)" },
         },
       },
       animation: {
-        "fade-up": "fade-up 0.5s cubic-bezier(0.16,1,0.3,1) both",
+        "fade-up": "fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both",
         "scan": "scan 2.2s linear infinite",
-        "pulse-ring": "pulse-ring 1.8s cubic-bezier(0.4,0,0.6,1) infinite",
-        "grid-flow": "grid-flow 6s linear infinite",
+        "pulse-soft": "pulse-soft 1.8s ease-in-out infinite",
+        "route-pulse": "route-pulse 2.6s linear infinite",
       },
     },
   },

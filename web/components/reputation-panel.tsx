@@ -26,18 +26,18 @@ import { Loader2, ShieldCheck, ShieldAlert, ShieldQuestion, ExternalLink } from 
 
 const toneIcon = { good: ShieldCheck, bad: ShieldAlert, warn: ShieldQuestion };
 const toneClass = {
-  good: "text-allow",
-  bad: "text-deny",
-  warn: "text-warn",
+  good: "border-allow/30 bg-[rgba(31,122,61,0.06)] text-allow",
+  bad: "border-deny/30 bg-[rgba(193,59,38,0.06)] text-deny",
+  warn: "border-warn/30 bg-[rgba(176,125,18,0.07)] text-warn",
 };
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-background/40 p-4">
-      <div className="text-xs uppercase tracking-wider text-muted-foreground">
-        {label}
+    <div className="panel-soft rounded-md p-4">
+      <div className="mono-label text-[10px] text-ink-dim">{label}</div>
+      <div className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em] text-ink">
+        {value}
       </div>
-      <div className="mt-1 font-mono text-2xl font-semibold">{value}</div>
     </div>
   );
 }
@@ -69,21 +69,21 @@ export function ReputationPanel() {
   const Icon = verdict ? toneIcon[verdict.tone] : ShieldQuestion;
 
   return (
-    <Card className="glow-monad">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-monad-300" />
-            On-chain Reputation
+            <ShieldCheck className="h-5 w-5 text-accent" />
+            Reputation lookup
           </CardTitle>
-          <Badge variant="good" className="font-mono">
-            <span className="h-1.5 w-1.5 rounded-full bg-allow animate-pulse" />
-            LIVE
+          <Badge variant="good">
+            <span className="h-1.5 w-1.5 rounded-full bg-allow animate-pulse-soft" />
+            Live
           </Badge>
         </div>
         <CardDescription>
           Reads ERC-8004{" "}
-          <code className="font-mono text-monad-200">getSummary</code> straight
+          <code className="font-mono text-monad-700">getSummary</code> straight
           from the registry on Monad testnet. The registry requires an explicit
           set of trusted attestors — Sybil-resistant by design.
         </CardDescription>
@@ -122,7 +122,7 @@ export function ReputationPanel() {
         </Button>
 
         {error && (
-          <div className="rounded-lg border border-deny/30 bg-deny/10 px-4 py-3 text-sm text-deny">
+          <div className="rounded-md border border-deny/30 bg-[rgba(193,59,38,0.06)] px-4 py-3 text-sm text-deny">
             {error}
           </div>
         )}
@@ -131,16 +131,16 @@ export function ReputationPanel() {
           <div className="space-y-4 animate-fade-up">
             <div
               className={cn(
-                "flex items-center gap-3 rounded-xl border border-border bg-background/40 p-4",
+                "flex items-center gap-3 rounded-md border p-4",
                 toneClass[verdict.tone]
               )}
             >
               <Icon className="h-7 w-7 shrink-0" />
               <div>
-                <div className="text-base font-semibold">{verdict.verdict}</div>
-                <div className="text-sm text-muted-foreground">
-                  {verdict.label}
+                <div className="font-display text-base font-semibold tracking-[-0.01em] text-ink">
+                  {verdict.verdict}
                 </div>
+                <div className="text-sm text-ink-dim">{verdict.label}</div>
               </div>
             </div>
 
@@ -153,7 +153,7 @@ export function ReputationPanel() {
               />
             </div>
 
-            <div className="rounded-lg border border-border bg-background/30 px-4 py-2 text-xs text-muted-foreground">
+            <div className="rounded-md border border-border bg-bg-neutral px-4 py-2 font-mono text-xs text-ink-dim">
               From {result.clients.length} trusted attestor
               {result.clients.length === 1 ? "" : "s"} · decimals{" "}
               {result.decimals} · registry{" "}
@@ -161,7 +161,7 @@ export function ReputationPanel() {
                 href={explorerAddress(REPUTATION_REGISTRY)}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 font-mono text-monad-200 hover:underline"
+                className="inline-flex items-center gap-1 text-monad-700 hover:underline"
               >
                 {shortAddr(REPUTATION_REGISTRY)}
                 <ExternalLink className="h-3 w-3" />

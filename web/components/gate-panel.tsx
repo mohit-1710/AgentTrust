@@ -61,11 +61,11 @@ export function GatePanel() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Gauge className="h-5 w-5 text-monad-300" />
-            Policy Gate
+            <Gauge className="h-5 w-5 text-accent" />
+            Gate check
           </CardTitle>
-          <Badge variant={POLICY_VAULT_ADDRESS ? "good" : "warn"} className="font-mono">
-            {POLICY_VAULT_ADDRESS ? "PolicyVault on-chain" : "Preview mode"}
+          <Badge variant={POLICY_VAULT_ADDRESS ? "good" : "warn"}>
+            {POLICY_VAULT_ADDRESS ? "PolicyVault · on-chain" : "Preview mode"}
           </Badge>
         </div>
         <CardDescription>
@@ -113,8 +113,8 @@ export function GatePanel() {
         </div>
 
         {!POLICY_VAULT_ADDRESS && (
-          <div className="rounded-lg border border-border bg-background/30 px-4 py-2.5 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Sample policy:</span>{" "}
+          <div className="rounded-md border border-border bg-bg-neutral px-4 py-2.5 font-mono text-xs text-ink-dim">
+            <span className="font-medium text-ink">Sample policy:</span>{" "}
             per-tx ≤ {formatUsdc(p.perTxCap)} USDC · daily ≤{" "}
             {formatUsdc(p.dailyCap)} USDC · min avg reputation ≥{" "}
             {p.minReputation} · min {p.minFeedbackCount} rating
@@ -132,7 +132,7 @@ export function GatePanel() {
         </Button>
 
         {error && (
-          <div className="rounded-lg border border-deny/30 bg-deny/10 px-4 py-3 text-sm text-deny">
+          <div className="rounded-md border border-deny/30 bg-[rgba(193,59,38,0.06)] px-4 py-3 text-sm text-deny">
             {error}
           </div>
         )}
@@ -144,7 +144,7 @@ export function GatePanel() {
               reason={result.reason}
               source={result.source}
             />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm leading-relaxed text-ink-dim">
               {decisionMeta[result.decision].blurb}
             </p>
           </div>
