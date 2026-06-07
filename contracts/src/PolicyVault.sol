@@ -29,6 +29,8 @@ contract PolicyVault {
         // --- velocity state (maintained by recordSpend) ---
         uint256 windowStart; // unix ts marking the start of the current 24h window
         uint256 spentInWindow; // cumulative spent within the current window
+        // --- Sybil-resistant trust set ---
+        address[] acceptedClients; // feedback authors whose ERC-8004 ratings this payer trusts
     }
 
     IReputationRegistry public immutable reputation;
@@ -62,7 +64,8 @@ contract PolicyVault {
         uint256 dailyCap,
         int128 minReputation,
         uint64 minFeedbackCount,
-        bool requireValidation
+        bool requireValidation,
+        address[] calldata acceptedClients
     ) external {
         Policy storage p = policies[msg.sender];
         p.exists = true;
@@ -71,6 +74,7 @@ contract PolicyVault {
         p.minReputation = minReputation;
         p.minFeedbackCount = minFeedbackCount;
         p.requireValidation = requireValidation;
+        p.acceptedClients = acceptedClients;
         emit PolicySet(msg.sender, perTxCap, dailyCap, minReputation, minFeedbackCount, requireValidation);
     }
 
@@ -100,15 +104,19 @@ contract PolicyVault {
         uint256 spent = _windowSpend(p);
         if (spent + amount > p.dailyCap) return (Decision.DENY, "exceeds daily cap");
 
-        address[] memory none = new address[](0);
-
         // Counterparty reputation gate (ERC-8004 Reputation Registry).
-        // getSummary returns a SUM of feedback values plus the entry count, so we
-        // gate on the AVERAGE. Thin feedback history -> ask for an explicit
-        // capability validation instead of a hard deny.
-        (uint64 count, int128 summaryValue,) = reputation.getSummary(payeeAgentId, none, "", "");
+        // The deployed registry REQUIRES an explicit set of feedback authors —
+        // Sybil-resistant by design: the payer chooses whose ratings it trusts.
+        // getSummary returns the SUM of those authors' feedback + the entry count,
+        // so we gate on the AVERAGE. No trusted set / thin history -> require an
+        // explicit capability validation instead of a hard deny.
+        if (p.acceptedClients.length == 0) {
+            return (Decision.REQUIRE_VALIDATION, "no trusted attestors configured");
+        }
+        (uint64 count, int128 summaryValue,) =
+            reputation.getSummary(payeeAgentId, p.acceptedClients, "", "");
         if (count < p.minFeedbackCount) {
-            return (Decision.REQUIRE_VALIDATION, "payee: insufficient feedback history");
+            return (Decision.REQUIRE_VALIDATION, "payee: insufficient feedback from trusted attestors");
         }
         int256 avgValue = int256(summaryValue) / int256(uint256(count));
         if (avgValue < int256(p.minReputation)) {
