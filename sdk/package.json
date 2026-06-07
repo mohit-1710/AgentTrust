@@ -1,0 +1,36 @@
+{
+  "name": "@agenttrust/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lean TypeScript SDK for the AgentTrust pre-payment policy gate on Monad testnet (ERC-8004 reputation + PolicyVault + x402).",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@x402/core": "2.14.0",
+    "@x402/evm": "2.14.0",
+    "@x402/fetch": "2.14.0",
+    "viem": "^2.40"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0"
+  }
+}
