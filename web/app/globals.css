@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.875rem;
+
+    /* Dark Monad theme */
+    --background: 256 40% 5%;
+    --foreground: 250 30% 96%;
+
+    --card: 256 36% 8%;
+    --card-foreground: 250 30% 96%;
+
+    --primary: 252 91% 70%;
+    --primary-foreground: 256 40% 6%;
+
+    --secondary: 256 30% 14%;
+    --secondary-foreground: 250 30% 96%;
+
+    --muted: 256 24% 14%;
+    --muted-foreground: 250 12% 64%;
+
+    --accent: 252 60% 20%;
+    --accent-foreground: 250 30% 96%;
+
+    --border: 256 30% 18%;
+    --input: 256 30% 16%;
+    --ring: 252 91% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image:
+      radial-gradient(60rem 40rem at 80% -10%, rgba(131, 110, 249, 0.16), transparent 60%),
+      radial-gradient(50rem 40rem at 0% 0%, rgba(131, 110, 249, 0.08), transparent 55%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(131, 110, 249, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(131, 110, 249, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .text-gradient {
+    background: linear-gradient(100deg, #fff 10%, #A892FF 55%, #836EF9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(8px);
+  }
+  .glow-monad {
+    box-shadow: 0 0 0 1px rgba(131, 110, 249, 0.25), 0 24px 80px -32px rgba(131, 110, 249, 0.55);
+  }
+}
