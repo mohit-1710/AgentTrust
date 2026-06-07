@@ -29,6 +29,14 @@ build/
 do_not_push/
 .claude/
 .agents/
+CLAUDE.md
+
+# --- playwright / browser artifacts ---
+.playwright-mcp/
+playwright-report/
+test-results/
+playwright/.cache/
+trace.zip
 
 # --- misc ---
 .DS_Store
