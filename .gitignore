@@ -38,6 +38,9 @@ test-results/
 playwright/.cache/
 trace.zip
 
+# --- tooling artifacts ---
+skills-lock.json
+
 # --- misc ---
 .DS_Store
 *.log
