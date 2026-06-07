@@ -12,16 +12,16 @@ export interface MediaCard {
 export const MEDIA_HEADING = "AgentTrust Media";
 
 export const MEDIA_COPY =
-  "Follow proof notes, builder updates, and settlement writeups from the AgentTrust team.";
+  "Follow gate notes, builder updates, and settlement writeups from the AgentTrust team.";
 
 export const MEDIA_CARDS: readonly MediaCard[] = [
   {
     eyebrow: "Trust decisions",
     href: PUBLIC_LINKS.docsArchitecture,
-    imageAlt: "AgentTrust trust decision cover art with policy and feedback notes",
+    imageAlt: "AgentTrust trust decision cover art with policy and reputation notes",
     imageSrc: "/media/media-proof-notes.svg",
-    summary: "Identity, policy, and feedback checks before settlement.",
-    title: "Proof Notes",
+    summary: "Identity, policy, and reputation checks before settlement.",
+    title: "Gate Notes",
   },
   {
     eyebrow: "Builder updates",
@@ -32,11 +32,11 @@ export const MEDIA_CARDS: readonly MediaCard[] = [
     title: "Builder Log",
   },
   {
-    eyebrow: "Atomic settlement",
-    href: PUBLIC_LINKS.docsAtomicSettlement,
-    imageAlt: "Atomic settlement cover showing gate, transfer, and feedback in one route",
+    eyebrow: "x402 settlement",
+    href: PUBLIC_LINKS.docsSettlement,
+    imageAlt: "Settlement cover showing the gate running inline in verify, gate, settle",
     imageSrc: "/media/media-field-notes.svg",
-    summary: "Gate payment, SPL transfer, and feedback composed into one signed transaction.",
+    summary: "The gate runs inline in the x402 verify, gate, settle flow on Monad.",
     title: "Settlement Notes",
   },
 ];

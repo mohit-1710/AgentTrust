@@ -1,14 +1,9 @@
 {
   "title": "Reference",
   "pages": [
-    "devnet-program-ids",
-    "mainnet-program-ids",
-    "byte-offset-reference",
-    "discriminator-constants",
+    "contract-addresses",
     "deny-reason-codes",
-    "capability-namespaces",
-    "quantu-agent-registry",
-    "changelog"
+    "capability-namespaces"
   ],
   "defaultOpen": false
 }

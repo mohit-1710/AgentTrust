@@ -25,7 +25,7 @@ export interface PerformanceHeadline {
 export const PERFORMANCE_SECTION_LABELS = [
   "/ Identity first",
   "/ Policy in path",
-  "/ Feedback recorded",
+  "/ Reputation gated",
 ] as const;
 
 export const PERFORMANCE_HEADLINE: PerformanceHeadline = {
@@ -36,7 +36,7 @@ export const PERFORMANCE_HEADLINE: PerformanceHeadline = {
 };
 
 export const PERFORMANCE_STATEMENT =
-  "AgentTrust keeps identity, policy, and feedback in one Monad-native decision path. The x402 facilitator is one live route, not the boundary of the system.";
+  "AgentTrust keeps identity, policy, and reputation in one Monad-native decision path. The molandak x402 facilitator is one live route, not the boundary of the system.";
 
 export const PERFORMANCE_CTA = {
   label: "Learn About Trust Performance",
@@ -45,19 +45,19 @@ export const PERFORMANCE_CTA = {
 
 export const PERFORMANCE_STATS: readonly PerformanceStat[] = [
   {
-    label: "Trust checks",
+    label: "ERC-8004 registries",
     value: "3",
     count: { from: 0, target: 3 },
   },
   {
-    label: "Settlement path",
-    value: "1 tx",
-    count: { from: 0, target: 1, suffix: " tx" },
+    label: "Gate decision",
+    value: "1 call",
+    count: { from: 0, target: 1, suffix: " call" },
   },
   {
-    label: "Invariants verified",
-    value: "7 / 7",
-    count: { from: 0, target: 7, suffix: " / 7" },
+    label: "Foundry tests",
+    value: "20",
+    count: { from: 0, target: 20 },
   },
   {
     label: "Live route",

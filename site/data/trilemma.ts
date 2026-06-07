@@ -18,14 +18,14 @@ export const TRILEMMA_COPY: TrilemmaCopy = {
   centerLines: ["All before", "settlement."],
   leadLines: [
     "AI-agent payments used to split identity,",
-    "policy, and feedback into separate trust moments.",
+    "policy, and reputation into separate trust moments.",
   ],
   pillars: [
     { label: "Identity", caption: "Counterparty signal" },
-    { label: "Policy", caption: "Gate decision" },
-    { label: "Feedback", caption: "Reputation record" },
+    { label: "Policy", caption: "Caps and velocity" },
+    { label: "Reputation", caption: "ERC-8004 read" },
   ],
-  resolveEmphasis: "atomically",
+  resolveEmphasis: "before settlement",
   resolvePrefix: "AgentTrust composes all three",
   resolveSuffix: "on Monad.",
 };

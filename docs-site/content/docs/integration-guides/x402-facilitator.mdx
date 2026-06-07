@@ -1,110 +1,92 @@
 ---
-title: x402 facilitator (generic)
-description: Add AgentTrust decisions to any x402 facilitator without coupling to one vendor.
+title: x402 server
+description: Put the AgentTrust gate in front of an x402-paid endpoint — verify, gate, settle through Monad's molandak facilitator.
 ---
 
-If you already accept x402 payment requests and want AgentTrust decisions before settlement, this is the guide. Generic shape — facilitator-specific quirks live in the adapter, not in the route layer.
+The AgentTrust x402 server adds a pre-payment gate to the x402 flow. Before a payment settles, it calls `PolicyVault.gate`; only on `Allow` does it settle USDC through Monad's molandak facilitator.
 
-If you're using the molandak x402 facilitator, [start there](/integration-guides/pay-sh-adapter). If you're adding a new facilitator from scratch, [start with the adapter contract](/integration-guides/facilitator-adapters).
+## The flow
 
-## Integration points
+```
+1. client requests a paid resource with no payment proof
+2. server returns 402 with payment requirements
+3. client produces a payment payload
+4. verify  → molandak facilitator validates the payload
+5. gate    → PolicyVault.gate(payer, payeeAgentId, amount)
+                → Allow | Deny | RequireValidation
+6. on Allow:              settle → molandak facilitator moves USDC
+   on Deny:               402 with the deny reason
+   on RequireValidation:  402 asking for a capability attestation
+```
 
-| Step | Facilitator action | AgentTrust call |
-|---|---|---|
-| 1 | receive x402 request or retry proof | `FacilitatorAdapter.parseRequest` |
-| 2 | translate into payer, payee, mint, amount, policy ID | `VerifyContext` |
-| 3 | check policy | `gate_payment` simulation or [`gatePayment()`](/sdk/gate-payment) |
-| 4 | return x402 denial or validation need | `adapter.formatChallenge` |
-| 5 | settle payment | one signed transaction (gate + transfer + feedback) |
-| 6 | emit feedback | `adapter.emitFeedback` |
+The facilitator handles payload validation and USDC settlement. AgentTrust adds only step 5 — the policy gate.
 
-## Minimal Express mount
+## Endpoints and addresses
 
-The published SDK is the easy path:
+| Piece | Value |
+|---|---|
+| Facilitator | `https://x402-facilitator.molandak.org` |
+| USDC | `0x534b2f3A21130d7a60830c2Df862319e593943A3` |
+| PolicyVault | `0x34b3bB1a99377128126201359749FE7614275E37` |
+| RPC | `https://testnet-rpc.monad.xyz` |
+
+## The gate call
+
+The server resolves the payment's `payer`, the payee's ERC-8004 `payeeAgentId`, and the `amount`, then calls the gate. Using the SDK:
 
 ```ts
-import express from "express";
-import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
+import { createPublicClient, http } from "viem";
+import { gate } from "@monad-agenttrust-sdk/sdk";
 
-const app = express();
-app.use(express.json());
+const client = createPublicClient({
+  transport: http("https://testnet-rpc.monad.xyz"),
+});
 
-await mountTrustGate(app, {
-  rpcUrl:             process.env.MONAD_RPC_URL!,
-  facilitatorKeypair: key.fromSecretKey(/* facilitator key */),
-  defaultPolicyId:    1,
-  network:            "Monad-testnet",
-  atomicityEnforced:  true,
+const decision = await gate(client, {
+  policyVault:  "0x34b3bB1a99377128126201359749FE7614275E37",
+  payer,
+  payeeAgentId,
+  amount,
+});
+
+if (decision.kind !== "Allow") {
+  // return 402 with decision.reasonName (Deny)
+  // or decision.capability (RequireValidation)
+  return respond402(decision);
+}
+
+// Allow — settle through the facilitator, then record the spend
+await settleThroughFacilitator(/* … */);
+```
+
+After settlement, the server books the spend so the daily and velocity counters advance:
+
+```ts
+import { recordSpend } from "@monad-agenttrust-sdk/sdk";
+
+await recordSpend(wallet, {
+  policyVault: "0x34b3bB1a99377128126201359749FE7614275E37",
+  payer,
+  amount,
 });
 ```
 
-Routes added: `POST /verify`, `POST /settle`, `POST /dispute`, `GET /receipt/:hash`. Full reference: [SDK → mountTrustGate](/sdk/mount-trustgate).
+`recordSpend` runs only after the transfer actually happens, so a denied or unsettled payment never inflates the counters.
 
-## Verify request shape
+## Responses
 
-```http
-POST /verify
-Content-Type: application/json
-
-{
-  "payerAgentAsset": "<base58 pubkey>",
-  "payeeAgentAsset": "<base58 pubkey>",
-  "amount":          "1000000",
-  "mint":            "0x534b2f3A21130d7a60830c2Df862319e593943A3",
-  "policyId":        1
-}
-```
-
-For the molandak x402 facilitator, the adapter reads this context from `paymentRequirements.extra.agentTrust`, verifies `serviceSignature`, derives `paymentIdHash` from `extra.memo`, and rejects mismatched `payTo` / `payeeRecipient`.
-
-## Denial response
-
-```http
-HTTP/1.1 402 Payment Required
-X-Agent-Trust-Decision: Deny
-X-Payment-Required: denied
-X-Payment-Reason-Code: 6
-X-Payment-Reason-Name: CounterpartyTierBelowMin
-X-Payment-Network: Monad-testnet
-```
-
-Reason codes are stable: 1..15. Full table: [Reference → DenyReason codes](/reference/deny-reason-codes).
-
-## Validation response
-
-```http
-HTTP/1.1 402 Payment Required
-X-Agent-Trust-Decision: RequireValidation
-X-Payment-Required: validation
-X-Capability-Required: 366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976ee3ddc42
-X-Payment-Network: Monad-testnet
-```
-
-The `X-Capability-Required` value is the 32-byte SHA-256 hash of the capability namespace name (e.g., `kyc.tier-1.v1`). Full lifecycle: [Capability namespaces](/integration-guides/capability-namespaces).
-
-## Settlement rule
-
-The facilitator must keep the policy gate, token transfer, and feedback emission in **one** signed Monad transaction. The SDK enforces this via the `atomicityEnforced: true` literal-type guard. Splitting them silently corrupts `VelocityLedger` when a Token-2022 mint's `TransferHook` extension reverts the transfer. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant).
-
-## Sources
-
-| File | Purpose |
-|---|---|
-| [`trustgate/server/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/server/src/x402.ts) | x402 wire envelope helpers |
-| [`trustgate/sdk/src/express.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/express.ts) | Published Express middleware |
-| [`trustgate/server/src/facilitators/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/server/src/facilitators) | Per-facilitator adapter implementations |
+A `Deny` returns a `402` carrying the reason ([DenyReason codes](/reference/deny-reason-codes)). A `RequireValidation` returns a `402` indicating the capability the payee must obtain ([Capability validation](/reference/capability-namespaces)).
 
 ## Read next
 
 <Cards>
-  <Card title="the molandak x402 facilitator adapter" href="/integration-guides/pay-sh-adapter">
-    The canonical implementation, end to end.
-  </Card>
-  <Card title="Facilitator adapters" href="/integration-guides/facilitator-adapters">
-    Five-method contract for new facilitators.
+  <Card title="PolicyVault" href="/programs/policy-vault">
+    The gate the server calls.
   </Card>
   <Card title="DenyReason codes" href="/reference/deny-reason-codes">
-    Complete table of reason codes 1..15 with remediation hints.
+    What a Deny carries.
+  </Card>
+  <Card title="SDK" href="/sdk">
+    gate() and recordSpend().
   </Card>
 </Cards>

@@ -1,0 +1,75 @@
+---
+title: "Inside the PolicyVault gate: what 20 Foundry tests cover"
+description: "How the PolicyVault pre-payment gate decides Allow, Deny, or RequireValidation on Monad, and exactly what the 20 Foundry tests behind it check."
+date: "2026-05-10"
+author: "Mohit"
+---
+
+An AI agent moving stablecoins under a policy you have not checked is a footgun with a network connection. The failure mode that matters is always the same. An `Allow` returned when the policy meant `Deny`. The money is already gone by the time anyone notices. AgentTrust puts a single decision in front of every payment. PolicyVault is one Solidity contract on Monad testnet, and its `gate(payer, payeeAgentId, amount)` function returns exactly one of three answers before any USDC moves. This post walks what the gate checks and what the 20 Foundry tests behind it lock down.
+
+<StatGrid>
+  <Stat number="1" unit="contract" label="PolicyVault, deployed on Monad testnet" />
+  <Stat number="3" unit="decisions" label="Allow, Deny, or RequireValidation" />
+  <Stat number="20" unit="Foundry tests" label="Covering every gate branch" />
+</StatGrid>
+
+## What the gate returns
+
+`gate(payer, payeeAgentId, amount)` is a view into a single decision. It never custodies funds and it never moves value itself. It reads the payer's policy and the payee's on-chain state, then returns one of three results:
+
+- `Allow` — every active check passed. The caller is clear to settle.
+- `Deny` — at least one check failed. The result carries a reason code an integrator can route on.
+- `RequireValidation` — the policy requires a capability attestation the payee has not yet presented.
+
+Nothing else is reachable. The caller decides what to do with the answer; the gate only decides what the answer is.
+
+## The checks it composes
+
+PolicyVault evaluates the payer's policy as a set of independent checks. Each one can deny on its own, and `Allow` is only returned when all active checks pass.
+
+<DataPanel label="What the gate enforces">
+  <DataRow label="Per-tx cap">A single payment may not exceed the per-transaction limit the payer set.</DataRow>
+  <DataRow label="Daily cap">Cumulative spend in the current day window stays at or under the daily limit.</DataRow>
+  <DataRow label="Velocity">A sliding-window counter rejects bursts that exceed the configured rate.</DataRow>
+  <DataRow label="Kill-switch">A multisig kill-switch can pause the payer entirely. Paused means never Allow.</DataRow>
+  <DataRow label="Reputation">The payee's ERC-8004 reputation, averaged over a payer-chosen trusted-attestor set, must clear the threshold.</DataRow>
+  <DataRow label="Validation">When required, the payee must hold a current capability attestation, or the gate returns RequireValidation.</DataRow>
+</DataPanel>
+
+## Why averaging over a trusted-attestor set
+
+A reputation score is only as honest as who is allowed to write it. If anyone could attest, a Sybil ring would mint itself a clean record in an afternoon. PolicyVault sidesteps that. The reputation read is averaged over a set of attestors the payer chooses. An attestation from outside that set does not move the number the gate sees. The payer decides who they trust, and the gate enforces that choice on chain. That is the Sybil-resistance property the reputation check leans on.
+
+<Pillar icon="graph" title="Counterparty reputation" body="Read from the canonical ERC-8004 ReputationRegistry on Monad, averaged over the payer's trusted-attestor set, then compared against the payer's minimum threshold." />
+
+## The three canonical registries it reads
+
+PolicyVault is the only contract we deployed. It does not reinvent identity or reputation. It reads the three canonical ERC-8004 registries already live on Monad.
+
+<DataPanel label="ERC-8004 registries on Monad testnet">
+  <DataRow label="IdentityRegistry">[`0x8004A818BFB912233c491871b3d84c89A494BD9e`](https://testnet.monadexplorer.com/address/0x8004A818BFB912233c491871b3d84c89A494BD9e)</DataRow>
+  <DataRow label="ReputationRegistry">[`0x8004B663056A597Dffe9eCcC1965A193B7388713`](https://testnet.monadexplorer.com/address/0x8004B663056A597Dffe9eCcC1965A193B7388713)</DataRow>
+  <DataRow label="ValidationRegistry">[`0x8004Cb1BF31DAf7788923b405b754f57acEB4272`](https://testnet.monadexplorer.com/address/0x8004Cb1BF31DAf7788923b405b754f57acEB4272)</DataRow>
+</DataPanel>
+
+## What the tests check
+
+The gate ships with 20 Foundry tests. They are written against the same Solidity the contract runs, built and run with the Monad Foundry toolchain. The set covers each check in isolation and the composition of all of them:
+
+- A paused kill-switch never yields `Allow`, regardless of the rest of the policy.
+- A payment over the per-tx cap is denied, and one at the cap boundary is allowed.
+- Daily spend accumulates correctly and denies once the day window is exhausted.
+- The velocity window counts and decays as expected across timestamps.
+- Reputation below the payer's threshold denies, and the average ignores attestors outside the trusted set.
+- A required-but-missing validation returns `RequireValidation`, not `Allow` and not a bare `Deny`.
+- The composed decision returns `Allow` only when every active check passes, and the deny reason maps to the check that failed.
+
+<Quote attribution="AgentTrust testing stance">
+The gate has one job: never return Allow when the policy meant Deny. Every test exists to pin one way that could go wrong.
+</Quote>
+
+## What this is not
+
+<Note>
+These are Foundry tests, not a substitute for an audit. They cover the on-chain decision surface of the PolicyVault contract deployed at [`0x34b3bB1a99377128126201359749FE7614275E37`](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37). They do not cover the off-chain x402 server, the SDK, or the MCP. What they cover is the decision boundary an AI agent's blast radius reduces to once a payment is in flight. For the SDK wiring and the live x402 round-trip, read [/blog/agents-paying-agents-on-monad](/blog/agents-paying-agents-on-monad).
+</Note>

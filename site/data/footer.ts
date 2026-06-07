@@ -18,7 +18,7 @@ export interface FooterSocialLink extends FooterLink {
 
 export const NEWSLETTER_CONTENT = {
   title: "Subscribe to AgentTrust Notes",
-  body: "Proof updates, SDK notes, and payment-risk integration logs.",
+  body: "Gate updates, SDK notes, and payment-risk integration logs.",
   helper: "Monthly field notes for builders shipping agent payments.",
 };
 
@@ -38,15 +38,15 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     links: [
       { href: PUBLIC_LINKS.docs, label: "Documentation" },
       { href: PUBLIC_LINKS.docsQuickstart, label: "Quickstart" },
-      { href: PUBLIC_LINKS.docsFacilitatorAdapters, label: "Route Adapters" },
-      { href: PUBLIC_LINKS.docsPayShAdapter, label: "Live Adapter Example" },
+      { href: PUBLIC_LINKS.docsX402, label: "x402 Facilitator" },
+      { href: PUBLIC_LINKS.docsGatePayment, label: "Gate Payment" },
     ],
   },
   {
-    title: "Proofs",
+    title: "Trust",
     links: [
       { href: "#benchmark", label: "Benchmark" },
-      { href: PUBLIC_LINKS.docsFormalVerification, label: "Kani Checks" },
+      { href: PUBLIC_LINKS.docsPolicyVault, label: "PolicyVault" },
       { href: PUBLIC_LINKS.docsChangelog, label: "Field Notes" },
     ],
   },

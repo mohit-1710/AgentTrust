@@ -24,13 +24,11 @@ const DENY_REASONS: Record<number, string> = {
   6: "CounterpartyTierBelowMin",
   7: "CounterpartyRiskAboveMax",
   8: "CounterpartyConfidenceBelow",
-  9: "AtomStatsWrongOwner",
-  10: "AtomStatsSchemaMismatch",
-  11: "AttestationMissing",
-  12: "AttestationExpired",
-  13: "AttestationRevoked",
-  14: "AttestationAttestorRejected",
-  15: "UnratedTreatmentDeny",
+  9: "AttestationMissing",
+  10: "AttestationExpired",
+  11: "AttestationRevoked",
+  12: "AttestationAttestorRejected",
+  13: "UnratedTreatmentDeny",
 };
 
 void DENY_REASONS;

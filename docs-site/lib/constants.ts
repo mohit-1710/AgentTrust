@@ -15,44 +15,23 @@ export const CONTRACT_ADDRESSES = {
   },
 } as const;
 
-export const KANI_HARNESSES = [
-  'paused_implies_no_allow',
-  'velocity_counter_le_limit',
-  'counterparty_tier_monotone',
-  'validation_expiry_correct',
-  'multisig_threshold_enforced',
-  'gate_payment_strict_correctness',
-  'spending_allow_respects_caps',
-] as const;
-
-export const KANI_TOTAL_SUB_CHECKS = 662;
-
 export const SDK_PACKAGE = '@monad-agenttrust-sdk/sdk';
 export const GITHUB_REPO = 'github.com/mohit-1710/AgentTrust';
 export const LICENSE = 'MIT';
 
-export const POLICY_ORDER = [
+export const POLICY_CHECKS = [
   'KillSwitch',
-  'Spending',
+  'PerTxCap',
+  'DailyCap',
   'Velocity',
-  'CounterpartyTier',
-  'RequireValidation',
+  'CounterpartyReputation',
+  'CapabilityValidation',
 ] as const;
 
 export const DENY_REASON_NAMES = [
   'KillSwitchEngaged',
-  'SpendingPerTxExceeded',
-  'SpendingDailyExceeded',
-  'SpendingWeeklyExceeded',
-  'VelocityWindowExceeded',
-  'CounterpartyTierBelowMin',
-  'CounterpartyRiskAboveMax',
-  'CounterpartyConfidenceBelow',
-  'AtomStatsWrongOwner',
-  'AtomStatsSchemaMismatch',
-  'AttestationMissing',
-  'AttestationExpired',
-  'AttestationRevoked',
-  'AttestationAttestorRejected',
-  'UnratedTreatmentDeny',
+  'PerTxCapExceeded',
+  'DailyCapExceeded',
+  'VelocityExceeded',
+  'ReputationBelowMin',
 ] as const;

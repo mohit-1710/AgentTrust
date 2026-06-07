@@ -13,7 +13,7 @@ export interface EventItem {
 export const EVENTS_HEADING = "Trust work happens onchain - and in review.";
 
 export const EVENTS_COPY =
-  "Follow SDK labs, proof reviews, and settlement sessions for teams routing AI-agent payments through AgentTrust.";
+  "Follow SDK labs, gate reviews, and settlement sessions for teams routing AI-agent payments through AgentTrust.";
 
 export const EVENTS: readonly EventItem[] = [
   {
@@ -27,21 +27,21 @@ export const EVENTS: readonly EventItem[] = [
     location: "Remote",
   },
   {
-    date: "Proofs",
+    date: "Tests",
     description:
-      "Review the invariants that keep policy checks and route state consistent.",
-    event: "Formal verification review",
-    href: PUBLIC_LINKS.docsFormalVerification,
-    imageAlt: "Proof grid with verified check paths",
+      "Walk the 20 Foundry tests that cover caps, velocity, kill-switch, and the reputation threshold.",
+    event: "Foundry test review",
+    href: PUBLIC_LINKS.docsTesting,
+    imageAlt: "Test grid with verified check paths",
     imageSrc: "/media/event-proof-review.svg",
     location: "GitHub",
   },
   {
     date: "Settlement",
     description:
-      "Review how policy, transfer, and feedback stay in one signed settlement path.",
-    event: "Atomic route session",
-    href: PUBLIC_LINKS.docsAtomicSettlement,
+      "Review how the gate runs inline in the x402 verify, gate, settle path before USDC moves.",
+    event: "x402 settlement session",
+    href: PUBLIC_LINKS.docsSettlement,
     imageAlt: "SDK integration cards connected by purple lines",
     imageSrc: "/media/event-sdk-lab.svg",
     location: "Monad builders",

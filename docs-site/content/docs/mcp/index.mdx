@@ -1,108 +1,50 @@
 ---
 title: MCP server
-description: Drop @monad-agenttrust-sdk/sdk into Claude Desktop or Cursor and query the deployed AgentTrust programs in natural language. Twenty-one tools, four resources, three prompts.
+description: Expose AgentTrust's gate and ERC-8004 reputation reads to Claude Code or any MCP client. Four tools, one stdio server.
 ---
 
-[`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) is the Model Context Protocol server for AgentTrust. Stdio binary published on npm; hosted HTTP transport at [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp). Twenty-one tools split into ten read-only, eight write (require a signing key), and three discovery / docs-search.
+The `agenttrust` MCP server lets an agent or assistant call AgentTrust directly: read a payee's ERC-8004 reputation, simulate a gate decision, register an agent, and seed feedback. It speaks the Model Context Protocol over stdio.
 
-The MCP server is a thin façade over [`@monad-agenttrust-sdk/sdk`](/sdk). contract account derivation, IDL loading, and `gate_payment` simulation live in the SDK; the MCP server exposes them with stable Zod schemas to LLM clients.
+Repo: [`github.com/mohit-1710/AgentTrust`](https://github.com/mohit-1710/AgentTrust).
 
-Source: [`mcp/`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp). License: MIT.
+## Tools
 
-## What you get
+| Tool | What it does |
+|---|---|
+| `get_reputation` | Reads the averaged ERC-8004 reputation for an agent over a set of trusted attestors. |
+| `gate_payment` | Calls `PolicyVault.gate` and returns `Allow` / `Deny` / `RequireValidation`. |
+| `register_agent` | Registers an agent in the ERC-8004 `IdentityRegistry`. |
+| `seed_feedback` | Writes feedback into the ERC-8004 `ReputationRegistry` so reputation reads have data. |
 
-| | Count | Where |
-|---|---:|---|
-| Tools | 21 | 10 read · 8 write · 3 discovery |
-| Resources | 4 | testnet program manifest, docs corpus, demo source files |
-| Prompts | 3 | `agenttrust_audit_payment`, `agenttrust_setup_agent`, `agenttrust_explain_failure` |
-| Transports | 2 | stdio (default) · streamable HTTP |
-| Networks | 2 | `Monad-testnet` (default) · `Monad-mainnet` (when deployed) |
+`get_reputation` and `gate_payment` are read-only. `register_agent` and `seed_feedback` send transactions and require a signing key. Full I/O: [Tools](/mcp/tools).
 
-## Quick start — Claude Desktop
-
-```json
-{
-  "mcpServers": {
-    "agenttrust": {
-      "command": "npx",
-      "args": ["-y", "@monad-agenttrust-sdk/sdk"],
-      "env": {
-        "RPC_URL": "https://testnet-rpc.monad.xyz",
-        "NETWORK": "Monad-testnet"
-      }
-    }
-  }
-}
-```
-
-Drop into `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Restart Claude Desktop. Twenty-one tools become available in chat. Full setup including write-tool key, Cursor config, and HTTP transport: [Install](/mcp/install).
-
-## What it looks like in use
-
-Once installed, ask Claude Desktop:
-
-- *"What demo agents are available on AgentTrust?"* → `agenttrust_demo_state` returns three pre-warmed counterparties with asset pubkeys + Explorer URLs.
-- *"Simulate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?"* → `agenttrust_simulate_payment` returns `Deny / SpendingPerTxExceeded` with the decoded reason.
-- *"Pull the policy for agent &lt;asset&gt; ID 1 and tell me the spending caps."* → `agenttrust_get_policy` returns the decoded `PolicyAccount` contract account — every spending cap, velocity threshold, counterparty tier requirement, and required capability hash.
-- *"Why would a payment with reason code 6 fail, and how do I fix it?"* → `agenttrust_explain_decision` returns `CounterpartyTierBelowMin` with remediation hint.
-- *"Search the AgentTrust docs for the validation registry data flow."* → `agenttrust_docs` returns ranked hits with excerpts.
-- *"Walk me through adding a new x402 facilitator adapter."* → `agenttrust_facilitator_walkthrough` returns the canonical guide.
-
-Phase P validated all 10 scenarios with a real LLM client (Claude `sonnet` via the official `claude` CLI) — 7/10 strict pass, 3 false negatives that the LLM recovered from via context-gathering. Full report: [`docs/proofs/phase-p-llm-routing.md`](https://github.com/mohit-1710/AgentTrust/blob/main/docs/proofs/phase-p-llm-routing.md).
-
-## Hosted vs stdio
-
-| Mode | When | Setup |
-|---|---|---|
-| **Stdio** (default) | Claude Desktop, Cursor, any local MCP client | `npx -y @monad-agenttrust-sdk/sdk` — no install, no clone |
-| **Hosted HTTP** | Cloud agents, OpenAI Agents SDK, any `StreamableHTTPServerTransport` client | `https://github.com/mohit-1710/AgentTrust/tree/main/mcp` — Fly.io, always-on, 0 cold starts |
-
-Health check the hosted endpoint:
+## Add it
 
 ```bash
-curl https://github.com/mohit-1710/AgentTrust/tree/main/mcp/healthz
-# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.5","network":"Monad-testnet","toolCount":21,…}
+claude mcp add agenttrust -- npx -y @monad-agenttrust-sdk/sdk
 ```
 
-Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).
+Or wire it manually via `.mcp.json` — see [Install](/mcp/install).
 
-## Architecture
+## In use
 
-```
-mcp/src/
-├── index.ts        — entry point + transport selector
-├── server.ts       — MCP Server with tools/resources/prompts wired up
-├── config.ts       — env parsing
-├── chain.ts        — thin façade over @monad-agenttrust-sdk/sdk
-├── tools/
-│   ├── read/        — 10 read tools
-│   ├── write/       — 8 write tools
-│   └── discovery/   — 3 discovery tools
-├── resources/
-│   ├── docs.ts      — MDX corpus indexer (path-traversal-safe)
-│   └── programs.ts  — testnet program manifest as JSON resource
-└── prompts/
-    ├── audit-payment.ts
-    ├── setup-agent.ts
-    └── explain-failure.ts
-```
+Once added, ask your assistant:
 
-Chain logic — contract account derivation, IDL loading, `gate_payment` simulation — lives in `@monad-agenttrust-sdk/sdk`. The MCP server is a façade. If a helper is missing in the SDK, it lands in the SDK and re-exports through the MCP — never forks chain logic into `mcp/`.
+- *"What's the reputation of agent 123, averaged over these two attestors?"* → `get_reputation`
+- *"Would a 5-USDC payment from this payer to agent 123 pass the gate?"* → `gate_payment`
+- *"Register a new agent for me."* → `register_agent`
+- *"Seed positive feedback for agent 123."* → `seed_feedback`
 
 ## Read next
 
 <Cards>
   <Card title="Install" href="/mcp/install">
-    Claude Desktop, Cursor, hosted HTTP, env vars, write-tool key.
+    .mcp.json, claude mcp add, environment variables, the signing key.
   </Card>
   <Card title="Tools" href="/mcp/tools">
-    All 21 tools — 10 read, 8 write, 3 discovery — with input/output shape.
+    The four tools with inputs and outputs.
   </Card>
-  <Card title="Resources" href="/mcp/resources">
-    Four MCP resource URIs — testnet program manifest, docs corpus mirror.
-  </Card>
-  <Card title="Prompts" href="/mcp/prompts">
-    Three guided workflows — audit a payment, set up an agent, explain a failure.
+  <Card title="SDK" href="/sdk">
+    The same calls as a TypeScript library.
   </Card>
 </Cards>

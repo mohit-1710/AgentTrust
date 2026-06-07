@@ -1,0 +1,105 @@
+---
+title: PolicyVault
+description: The non-custodial pre-payment gate — a single Solidity contract on Monad that turns a payer's policy plus a payee's ERC-8004 reputation into Allow, Deny, or RequireValidation.
+---
+
+`PolicyVault` is the one contract AgentTrust deploys. It is a non-custodial pre-payment gate: it never holds funds and never moves them. Given a payer, a payee agent, and an amount, `gate` returns the decision a caller should act on before settling a payment.
+
+**Testnet:** [`0x34b3bB1a99377128126201359749FE7614275E37`](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37)
+
+Built in Solidity with Monad Foundry. 20 Foundry tests cover the gate logic, spend accounting, the kill-switch, and the reputation read.
+
+## The gate
+
+```solidity
+enum Decision { Allow, Deny, RequireValidation }
+
+function gate(
+    address payer,
+    uint256 payeeAgentId,
+    uint256 amount
+) external view returns (Decision decision, uint8 reason);
+```
+
+`gate` is a `view` call — it computes a decision without mutating state. The x402 server calls it before settlement; the SDK exposes it as `gate()`. The checks run in order and the gate fails fast on the first failing check:
+
+| Order | Check | Denies / acts when |
+|---|---|---|
+| 1 | Kill-switch | The payer's kill-switch is engaged (`Deny`, reason `KillSwitchEngaged`). |
+| 2 | Per-transaction cap | `amount > perTxCap` (`Deny`, reason `PerTxCapExceeded`). |
+| 3 | Daily cap | `spentToday + amount > dailyCap` (`Deny`, reason `DailyCapExceeded`). |
+| 4 | Sliding-window velocity | window spend `+ amount > velocityCap` within `velocityWindow` (`Deny`, reason `VelocityExceeded`). |
+| 5 | Counterparty reputation | averaged ERC-8004 reputation `< minReputation` (`Deny`, reason `ReputationBelowMin`). |
+| 6 | Capability validation | the policy requires a capability the payee lacks an attestation for (`RequireValidation`). |
+
+If every check passes, `gate` returns `Allow`. Full reason list: [DenyReason codes](/reference/deny-reason-codes).
+
+## Reading reputation
+
+The counterparty-reputation check reads the ERC-8004 `ReputationRegistry`:
+
+```solidity
+(uint256 count, uint256 summaryValue, uint8 decimals) =
+    reputationRegistry.getSummary(payeeAgentId, clients, tag1, tag2);
+```
+
+`summaryValue` is the **average** score across the `clients` array. `clients` is the payer's configured set of trusted attestors and must be non-empty — `getSummary` reverts on an empty array. PolicyVault compares `summaryValue` against the policy's `minReputation`. No global score is ever used; the payer decides whose feedback counts.
+
+## Configuration
+
+A payer owns their policy and configures it with these calls:
+
+### `setPolicy`
+
+```solidity
+function setPolicy(
+    uint256 perTxCap,
+    uint256 dailyCap,
+    uint256 velocityWindow,   // seconds
+    uint256 velocityCap,
+    uint256 minReputation,
+    address[] calldata trustedAttestors
+) external;
+```
+
+Sets every threshold for `msg.sender`'s policy in one call. `trustedAttestors` is the `clients` array passed to `getSummary` for the reputation check — it must be non-empty for the reputation check to run.
+
+### `setKillSwitch`
+
+```solidity
+function setKillSwitch(bool engaged) external;
+```
+
+The emergency stop. When engaged, `gate` denies every payment for that payer with `KillSwitchEngaged`. The kill-switch is multisig-controlled — the call enforces the payer's configured signer threshold before flipping the flag.
+
+### `recordSpend`
+
+```solidity
+function recordSpend(address payer, uint256 amount) external;
+```
+
+The one state-mutating call in the spend path. After a payment settles, the x402 server calls `recordSpend` to advance the payer's daily counter and sliding-window velocity ledger. `gate` is a pure read; spend is only ever booked once the transfer actually happens, so a denied or unsettled payment never inflates the counters.
+
+## Why non-custodial matters
+
+`PolicyVault` is a decision layer, not an escrow. It holds no balances, has no withdraw path, and cannot move a user's USDC. The worst a misconfigured policy can do is deny a legitimate payment — never lose funds. Settlement is handled entirely by the x402 facilitator moving USDC directly between the counterparties.
+
+## Source
+
+- Contract: [`PolicyVault.sol`](https://github.com/mohit-1710/AgentTrust)
+- Tests: 20 Foundry tests in the contract's test suite
+- Deployed: [`0x34b3bB1a99377128126201359749FE7614275E37`](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37)
+
+## Read next
+
+<Cards>
+  <Card title="DenyReason codes" href="/reference/deny-reason-codes">
+    Every reason the gate can return on a Deny.
+  </Card>
+  <Card title="SDK → gate()" href="/sdk/gate-payment">
+    Call the gate from TypeScript.
+  </Card>
+  <Card title="Architecture" href="/architecture">
+    How the gate sits between the x402 server and the ERC-8004 registries.
+  </Card>
+</Cards>

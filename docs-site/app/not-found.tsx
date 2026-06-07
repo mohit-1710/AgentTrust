@@ -16,7 +16,7 @@ export default function NotFound(): JSX.Element {
           <span className="not-found-card-eyebrow">Home</span>
           <span className="not-found-card-title">AgentTrust overview</span>
           <span className="not-found-card-body">
-            The non-custodial reputation firewall for AI-agent payments on Monad.
+            A non-custodial pre-payment gate for AI-agent payments on Monad.
           </span>
         </Link>
 
@@ -24,15 +24,15 @@ export default function NotFound(): JSX.Element {
           <span className="not-found-card-eyebrow">Get started</span>
           <span className="not-found-card-title">Quickstart</span>
           <span className="not-found-card-body">
-            Hit the live demo, install the SDK, wire the MCP server.
+            Install the SDK, gate a payment, read a reputation score.
           </span>
         </Link>
 
-        <Link href="/verification/live-evidence" className="not-found-card">
-          <span className="not-found-card-eyebrow">Verification</span>
-          <span className="not-found-card-title">Live evidence</span>
+        <Link href="/programs/policy-vault" className="not-found-card">
+          <span className="not-found-card-eyebrow">Contract</span>
+          <span className="not-found-card-title">PolicyVault</span>
           <span className="not-found-card-body">
-            Seven Kani proofs, testnet smoke traces, every claim with an Explorer URL.
+            The gate contract — gate, setPolicy, setKillSwitch, recordSpend.
           </span>
         </Link>
       </div>

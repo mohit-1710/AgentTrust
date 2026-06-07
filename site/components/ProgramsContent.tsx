@@ -79,7 +79,9 @@ export default function ProgramsContent() {
                 aria-label={`View ${program.name} on Monad Explorer (testnet)`}
                 {...getExternalLinkAttributes(explorer)}
               >
-                <span className={styles.addressLabel}>Program ID</span>
+                <span className={styles.addressLabel}>
+                  {program.kind === "contract" ? "Contract" : "Address"}
+                </span>
                 <span className={styles.addressRow}>
                   <span className={styles.addressValue}>
                     {truncateAddress(program.address)}

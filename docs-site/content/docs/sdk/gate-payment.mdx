@@ -1,107 +1,84 @@
 ---
-title: gatePayment
-description: Read-only policy decision call. Simulates PolicyVault's gate_payment instruction and returns the typed GateDecision union.
+title: gate()
+description: The read-only gate call. Reads PolicyVault.gate and returns the typed decision union — Allow, Deny, or RequireValidation.
 ---
 
-`gatePayment()` is the read-only entry point. It builds an Solidity simulation of `gate_payment`, parses the return-data channel into the TypeScript union, and never sends a transaction.
-
-Use it when your facilitator already owns its x402 routing and only needs the AgentTrust decision. For atomic settlement (gate + transfer + feedback in one tx), use [`mountTrustGate`](/sdk/mount-trustgate) or [`composeAtomicSettleTx`](/sdk/exports-reference).
-
-Source: [`trustgate/sdk/src/client.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/client.ts).
+`gate()` calls `PolicyVault.gate` as a read-only `view` and returns the decision the contract would make. It never sends a transaction and never moves funds. Use it before settling an x402 payment to decide whether to proceed.
 
 ## Signature
 
 ```ts
-import { gatePayment } from "@monad-agenttrust-sdk/sdk/client";
+import { gate } from "@monad-agenttrust-sdk/sdk";
 
-export function gatePayment(req: GatePaymentRequest): Promise<GateDecision>;
+export function gate(
+  client: PublicClient,
+  args: GateArgs,
+): Promise<GateDecision>;
 ```
 
-## `GatePaymentRequest`
+## `GateArgs`
 
 ```ts
-interface GatePaymentRequest {
-  rpcUrl:          string;
-  caller:          key;     // facilitator key (signs simulate-tx)
-  payerAgentAsset: PublicKey;   // payer's Metaplex Core asset (ERC-8004 agent identity)
-  payeeAgentAsset: PublicKey;   // payee's Metaplex Core asset
-  amount:          bigint | number;  // base units (1_000_000n = 1 USDC at 6 decimals)
-  mint:            PublicKey;   // USDC testnet: 0x534b2f3A21130d7a60830c2Df862319e593943A3
-  policyId:        number;      // PolicyAccount.policy_id (u32)
-  programIds?:     ProgramIds;  // defaults to DEFAULT_TESTNET_ADDRESSES
+interface GateArgs {
+  policyVault:  `0x${string}`;   // PolicyVault address
+  payer:        `0x${string}`;   // the paying account
+  payeeAgentId: bigint;          // payee's ERC-8004 agent ID
+  amount:       bigint;          // base units (1_000_000n = 1 USDC at 6 decimals)
 }
 ```
-
-The `caller` key signs the simulation transaction; the result is never committed, so the key is only used to satisfy the simulate-tx fee-payer. Pass any funded testnet key.
 
 ## `GateDecision`
 
 ```ts
 type GateDecision =
   | { kind: "Allow" }
-  | { kind: "Deny";              reasonCode: number; reasonName: string }
-  | { kind: "RequireValidation"; capabilityHash: Uint8Array /* 32 bytes */ };
+  | { kind: "Deny";              reason: number; reasonName: string }
+  | { kind: "RequireValidation"; capability: string };
 ```
 
 | Decision | Next step |
 |---|---|
-| `Allow` | Proceed to settlement (build / sign / submit the atomic tx). |
-| `Deny` | Return 402 to the user with `reasonName`. Surface `reasonCode` for machine consumers. |
-| `RequireValidation` | Route the user to the attestation flow for `capabilityHash`. After the attestor responds, re-call `gatePayment` — the gate now sees the new `ValidationAttestation` and flips to `Allow`. |
+| `Allow` | Every active check passed — settle the payment. |
+| `Deny` | A check failed. Surface `reasonName` to the user; `reason` is the stable numeric code. |
+| `RequireValidation` | The policy requires a capability the payee has no attestation for. Route the user through the validation flow, then re-call `gate()`. |
 
-`reasonCode` is decoupled from Borsh wire-format ordering. Full table: [Reference → DenyReason codes](/reference/deny-reason-codes).
+Reason codes: [DenyReason codes](/reference/deny-reason-codes).
 
 ## Example
 
 ```ts
-import { type Address } from "viem";
-import { gatePayment } from "@monad-agenttrust-sdk/sdk/client";
+import { createPublicClient, http } from "viem";
+import { gate } from "@monad-agenttrust-sdk/sdk";
 
-const facilitatorKey = key.fromSecretKey(new Uint8Array(JSON.parse(process.env.FACILITATOR_KEY!)));
+const client = createPublicClient({
+  transport: http("https://testnet-rpc.monad.xyz"),
+});
 
-const decision = await gatePayment({
-  rpcUrl:          "https://testnet-rpc.monad.xyz",
-  caller:          facilitatorKey,
-  payerAgentAsset: new PublicKey("5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y"),
-  payeeAgentAsset: new PublicKey("5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y"),
-  amount:          1_000_000n,                                                 // 1 USDC
-  mint:            new PublicKey("0x534b2f3A21130d7a60830c2Df862319e593943A3"),
-  policyId:        1,
+const decision = await gate(client, {
+  policyVault:  "0x34b3bB1a99377128126201359749FE7614275E37",
+  payer:        "0xPayer",
+  payeeAgentId: 123n,
+  amount:       1_000_000n,
 });
 
 switch (decision.kind) {
   case "Allow":
-    console.log("gate=Allow — proceed to settle");
+    console.log("gate=Allow — settle");
     break;
   case "Deny":
-    console.log(`gate=Deny ${decision.reasonCode} (${decision.reasonName})`);
+    console.log(`gate=Deny ${decision.reason} (${decision.reasonName})`);
     break;
   case "RequireValidation":
-    const hex = Buffer.from(decision.capabilityHash).toString("hex");
-    console.log(`gate=RequireValidation capability=${hex}`);
+    console.log(`gate=RequireValidation capability=${decision.capability}`);
     break;
 }
 ```
 
-## Implementation note — return-data channel
+## How the decision is computed
 
-PolicyVault's `gate_payment` (lazy variant) returns the decision via Solidity's `set_return_data` so simulation can decode it. The strict variant — used by [`composeAtomicSettleTx`](/sdk/exports-reference) — instead returns `Err` on non-`Allow`, which is what makes the atomic tx revert as a unit.
-
-`gatePayment()` simulates the lazy variant and parses the return-data via `parseGateDecision`. The wire format is documented in [`programs/policy-vault/src/state/decision.rs`](https://github.com/mohit-1710/AgentTrust/blob/main/programs/policy-vault/src/state/decision.rs).
-
-## Errors
-
-| Error | Cause |
-|---|---|
-| `AccountNotFound` | `PolicyAccount` contract account missing for `(payerAgentAsset, policyId)` — call `init_policy` first. |
-| `RPC error: insufficient funds` | `caller` key has zero MON. Fund via `the Monad testnet faucet`. |
-| `AbiNotFound` | Program IDL not yet published on the cluster. Run `forge verify-contract <programId>`. |
-
-For the atomic-settle path (which can also return `AtomicityNotEnforcedError`), see [`composeAtomicSettleTx`](/sdk/exports-reference).
+`gate` runs the policy checks in order and fails fast: kill-switch, per-tx cap, daily cap, sliding-window velocity, counterparty reputation, capability validation. The reputation check reads the ERC-8004 `ReputationRegistry` via `getSummary`, averaging over the payer's trusted-attestor set. Full check order and semantics: [PolicyVault](/programs/policy-vault).
 
 ## Source
 
-- Client: [`trustgate/sdk/src/client.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/client.ts)
-- Simulation: [`trustgate/sdk/src/chain.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/chain.ts) (`simulateGatePayment`, `parseGateDecision`)
-- Types: [`trustgate/sdk/src/types.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/types.ts)
-- Tests: [`trustgate/sdk/test/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/sdk/test)
+- SDK: [`github.com/mohit-1710/AgentTrust`](https://github.com/mohit-1710/AgentTrust)
+- Contract: [`PolicyVault` @ 0x34b3bB…275E37](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37)

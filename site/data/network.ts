@@ -37,7 +37,7 @@ export const NETWORK_LABELS: readonly NetworkLabel[] = [
 ] as const;
 
 export const NETWORK_COPY: readonly NetworkCopySegment[] = [
-  { text: "AgentTrust owns the decision path: who is paid, which rules apply, and what feedback is recorded. " },
+  { text: "AgentTrust owns the decision path: who is paid, which rules apply, and what the gate returns. " },
   { text: "Adapters only translate the route around it.", isDim: true },
 ] as const;
 
@@ -58,8 +58,8 @@ export const NETWORK_SIGNALS: readonly NetworkSignal[] = [
     body: "Limits and route controls sit in the payment path.",
   },
   {
-    eyebrow: "03 / Feedback",
-    title: "Receipt emitted",
-    body: "Every allow or deny decision leaves a readable trail.",
+    eyebrow: "03 / Decision",
+    title: "Allow or deny",
+    body: "The gate returns Allow, Deny, or RequireValidation before USDC settles.",
   },
 ] as const;

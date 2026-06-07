@@ -13,7 +13,7 @@ export const EXPLORE_HEADING = "Explore AgentTrust";
 export const EXPLORE_CARDS: readonly ExploreCard[] = [
   {
     description:
-      "See how identity, policy, and feedback combine before settlement.",
+      "See how identity, policy, and reputation combine before settlement.",
     href: PUBLIC_LINKS.docsArchitecture,
     imageAlt: "",
     imageSrc: "/media/explore-trust-layer.svg",

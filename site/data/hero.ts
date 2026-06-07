@@ -13,7 +13,7 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "Live on Monad testnet · 7 / 7 Kani proofs · 662 sub-checks";
+  "Live on Monad testnet · ERC-8004 reputation gate · 20 Foundry tests";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [

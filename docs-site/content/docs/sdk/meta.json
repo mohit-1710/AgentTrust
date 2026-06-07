@@ -1,5 +1,5 @@
 {
   "title": "SDK",
-  "pages": ["index", "gate-payment", "mount-trustgate", "exports-reference"],
+  "pages": ["index", "gate-payment", "exports-reference"],
   "defaultOpen": true
 }

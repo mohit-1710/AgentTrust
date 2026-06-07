@@ -19,10 +19,10 @@ export const HERO_SDK_COPY = {
   eyebrow: "SDK Quickstart",
   title: "Wire trust checks in minutes.",
   body:
-    "Run the demo, verify a SERVICE-signed challenge, and settle policy, transfer, and feedback together.",
+    "Create a viem-backed client, gate a payment against the payee's on-chain reputation and your policy, then settle the allowed transfer through x402.",
   commandLabel: "Copy SDK install command",
   copiedLabel: "Copied",
-  terminalTitle: "agenttrust-demo",
+  terminalTitle: "agenttrust-gate",
 } as const;
 
 export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
@@ -43,15 +43,19 @@ export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
 export const HERO_TERMINAL_LINES: readonly HeroTerminalLine[] = [
   { prompt: "$", text: HERO_SDK_COMMAND, tone: "default" },
   {
-    text: "pnpm --filter ./examples/pay-sh-demo dev",
+    text: 'import { createAgentTrustClient, gate } from "@monad-agenttrust-sdk/sdk"',
     tone: "muted",
   },
   {
-    text: "curl https://monadagenttrustweb.vercel.app/protected",
+    text: "const client = createAgentTrustClient({ chainId: 10143 })",
     tone: "muted",
   },
-  { text: "adapter         PaySh.parseRequest -> VerifyContext", tone: "success" },
-  { text: "policy          gate_payment returned Allow", tone: "accent" },
-  { text: "challenge       SERVICE signature verified", tone: "success" },
-  { text: "settlement      SPL transfer + emit_feedback, one tx", tone: "accent" },
+  {
+    text: "const decision = await gate(payer, payeeAgentId, amount)",
+    tone: "muted",
+  },
+  { text: "reputation      averaged over trusted attestors", tone: "success" },
+  { text: "policy          caps · velocity · kill-switch", tone: "success" },
+  { text: "decision        ALLOW", tone: "accent" },
+  { text: "settle          x402 USDC via molandak facilitator", tone: "accent" },
 ];

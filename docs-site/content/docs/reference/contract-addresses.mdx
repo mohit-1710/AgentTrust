@@ -1,0 +1,46 @@
+---
+title: Contract addresses
+description: The deployed PolicyVault, the three canonical ERC-8004 registries, and USDC on Monad testnet.
+---
+
+AgentTrust runs on Monad testnet — chainId `10143`, explorer [`testnet.monadexplorer.com`](https://testnet.monadexplorer.com).
+
+AgentTrust deploys exactly one contract, `PolicyVault`. The three ERC-8004 registries and USDC are canonical contracts that already exist on Monad; AgentTrust reads them.
+
+<ProgramIdsTable />
+
+## Addresses
+
+| Contract | Address | Deployed by |
+|---|---|---|
+| `PolicyVault` | `0x34b3bB1a99377128126201359749FE7614275E37` | AgentTrust |
+| `IdentityRegistry` (ERC-8004) | `0x8004A818BFB912233c491871b3d84c89A494BD9e` | canonical (read) |
+| `ReputationRegistry` (ERC-8004) | `0x8004B663056A597Dffe9eCcC1965A193B7388713` | canonical (read) |
+| `ValidationRegistry` (ERC-8004) | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` | canonical (read) |
+| USDC | `0x534b2f3A21130d7a60830c2Df862319e593943A3` | canonical (settlement) |
+
+## Endpoints
+
+| Endpoint | URL |
+|---|---|
+| RPC | `https://testnet-rpc.monad.xyz` |
+| Explorer | `https://testnet.monadexplorer.com` |
+| x402 facilitator (molandak) | `https://x402-facilitator.molandak.org` |
+
+## Verify on chain
+
+```bash
+cast code 0x34b3bB1a99377128126201359749FE7614275E37 \
+  --rpc-url https://testnet-rpc.monad.xyz
+```
+
+## Read next
+
+<Cards>
+  <Card title="PolicyVault" href="/programs/policy-vault">
+    The deployed gate contract.
+  </Card>
+  <Card title="Architecture" href="/architecture">
+    How the addresses wire together.
+  </Card>
+</Cards>

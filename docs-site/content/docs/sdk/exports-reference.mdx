@@ -3,237 +3,82 @@ title: Exports reference
 description: Every public export from @monad-agenttrust-sdk/sdk, grouped by concern.
 ---
 
-The SDK ships three import surfaces. The `/express` and `/client` subpaths are tree-shake-friendly entry points; the root namespace re-exports everything else.
-
-```ts
-import { mountTrustGate }                   from "@monad-agenttrust-sdk/sdk/express";
-import { gatePayment, settle, dispute }     from "@monad-agenttrust-sdk/sdk/client";
-import { /* everything else */ }            from "@monad-agenttrust-sdk/sdk";
-```
-
-Source: [`trustgate/sdk/src/index.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/index.ts).
-
-## Atomicity guard
+The SDK is a thin viem wrapper over `PolicyVault` and the ERC-8004 `ReputationRegistry`. Everything is importable from the package root.
 
 ```ts
 import {
-  AtomicityEnforced,
-  AtomicityNotEnforcedError,
-  assertAtomicityEnforced,
-  composeAtomicSettleTx,
-  deriveStandardAta,
+  gate,
+  getReputation,
+  setPolicy,
+  setKillSwitch,
+  recordSpend,
+  TESTNET_ADDRESSES,
 } from "@monad-agenttrust-sdk/sdk";
 ```
+
+Source: [`github.com/mohit-1710/AgentTrust`](https://github.com/mohit-1710/AgentTrust).
+
+## Reads
 
 | Export | Kind | Purpose |
 |---|---|---|
-| `AtomicityEnforced` | type | `{ atomicityEnforced: true }` literal-type marker |
-| `AtomicityNotEnforcedError` | class | thrown by runtime guard on non-`true` value |
-| `assertAtomicityEnforced(cfg, siteName)` | fn | runtime check; call at top of every settle/dispute entry point |
-| `composeAtomicSettleTx(args)` | async fn | builds a 3-ix `Transaction` (gate strict + transferChecked + emit_feedback) |
-| `deriveStandardAta(owner, mint, tokenProgram?)` | fn | standard ATA helper |
-| `AtomicSettleQuantuAccounts` | type | the ERC-8004 account bundle `composeAtomicSettleTx` threads through `remaining_accounts` |
-| `ComposeAtomicSettleArgs` | type | full arg shape, `extends AtomicityEnforced` |
-| `ComposedAtomicSettle` | type | return shape: `{ tx, instructions, accounts }` |
+| `gate(client, args)` | async fn | Read-only `PolicyVault.gate` — returns the `GateDecision` union. |
+| `getReputation(client, args)` | async fn | Reads `ReputationRegistry.getSummary` — returns `{ count, average, decimals }` averaged over the supplied trusted attestors. |
 
-Source: [`trustgate/sdk/src/atomicity.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/atomicity.ts).
+## Writes
 
-## ERC-20 helpers
+| Export | Kind | Purpose |
+|---|---|---|
+| `setPolicy(wallet, args)` | async fn | Sets the caller's policy: caps, velocity window/cap, `minReputation`, `trustedAttestors`. |
+| `setKillSwitch(wallet, args)` | async fn | Engages or releases the caller's multisig-controlled kill-switch. |
+| `recordSpend(wallet, args)` | async fn | Books a settled payment against the payer's daily counter and velocity ledger. |
 
-```ts
-import {
-  TOKEN_PROGRAM_ID,
-  TOKEN_2022_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  buildTransferCheckedIx,
-  deriveAssociatedTokenAddress,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-`buildTransferCheckedIx` accepts an optional `tokenProgram` to switch between legacy ERC-20 and Token-2022. The atomic-tx invariant applies to both — Token-2022's `TransferHook` extension is the canonical corruption vector that motivates the invariant; legacy ERC-20's `MissingRequiredSignature` revert produces the same atomicity behaviour.
-
-Source: [`trustgate/sdk/src/spl.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/spl.ts).
-
-## On-chain validator factory
-
-```ts
-import {
-  makeValidateOnChainTx,
-  type OnChainTxValidation,
-  type OnChainTxRejection,
-  type ValidateOnChainTxFn,
-  type MakeValidateOnChainTxOptions,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-`makeValidateOnChainTx({ connection, … })` returns a function the facilitator's `/settle` route plugs into the adapter's `validatePaymentProof` slot. Parses a confirmed USDC transfer transaction from RPC, cross-checks amount / mint / recipient / authority against the verify-time `VerifyContext`, and rejects mismatches with typed errors.
-
-Source: [`trustgate/sdk/src/onchain-validator.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/onchain-validator.ts).
-
-## ERC-8004 helpers
-
-```ts
-import {
-  ERC8004_TESTNET_ADDRESSES,
-  ERC8004_MAINNET_ADDRESSES,
-  type QuantuProgramIds,
-  type QuantuFeedbackAccounts,
-  type QuantuFeedbackAccountsArgs,
-  deriveAgentAccountPda,
-  deriveAtomConfigPda,
-  deriveAtomStatsPda,
-  deriveAtomRegistryAuthorityPda,
-  deriveQuantuFeedbackAccounts,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-The `ERC-8004*` helpers derive ERC-8004 contract accounts without depending on the ERC-8004 TypeScript package. Pinned to commit `bfb09ad` per [Reference → Mainnet program IDs](/reference/mainnet-program-ids). `deriveQuantuFeedbackAccounts` returns the full account bundle the `give_feedback` internal call needs in `remaining_accounts` order.
-
-Source: [`trustgate/sdk/src/quantu.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/quantu.ts).
-
-## emit_feedback factory
-
-```ts
-import {
-  makeEmitFeedbackCpi,
-  makePriorEmissionLookup,
-  type EmitFeedbackCpiFn,
-  type EmitFeedbackCpiInput,
-  type EmitFeedbackResult,
-  type MakeEmitFeedbackCpiOptions,
-  type PriorEmissionLookupFn,
-  type PriorEmissionResult,
-  type MakePriorEmissionLookupOptions,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-`makeEmitFeedbackCpi({ connection, … })` returns the function adapters plug into their `emitFeedback` slot. `makePriorEmissionLookup({ connection, … })` returns the `priorEmissionLookup` function — looks up `FeedbackEmissionLog` by `payment_id_hash` so retries return a stable receipt instead of double-emitting.
-
-Source: [`trustgate/sdk/src/emit-feedback.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/emit-feedback.ts).
-
-## ValidationRegistry
-
-```ts
-import {
-  VALIDATION_REGISTRY_DEVNET_ID,
-  deriveCapabilityNamespacePda,
-  deriveAttestorProfilePda,
-  deriveValidationRequestPda,
-  deriveValidationAttestationPda,
-  computeNamespaceHash,
-  computeCapabilityHash,
-  loadValidationRegistry,
-  buildRegisterNamespaceIx,
-  buildRegisterAttestorIx,
-  buildRequestValidationIx,
-  buildRespondToValidationIx,
-  buildRevokeValidationIx,
-  fetchValidationAttestation,
-  fetchValidationRequest,
-  fetchAttestorProfile,
-  fetchCapabilityNamespace,
-  type BuildRegisterNamespaceArgs,
-  type BuildRegisterAttestorArgs,
-  type BuildRequestValidationArgs,
-  type BuildRespondToValidationArgs,
-  type BuildRevokeValidationArgs,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-Full instruction-builder set for the third leg of ERC-8004. `computeCapabilityHash(name)` returns `SHA-256(name)`; `computeNamespaceHash(name)` is an alias kept for clarity. `fetch*` helpers return decoded views of each contract account.
-
-Source: [`trustgate/sdk/src/validation-registry.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/validation-registry.ts).
-
-## contract account derivers + Solidity loaders
-
-```ts
-import {
-  derivePolicyPda,
-  deriveVelocityPda,
-  deriveKillSwitchPda,
-  deriveFeedbackLogPda,
-  deriveTrustGateAuthorityPda,
-  loadPolicyVault,
-  loadTrustGate,
-  makeProvider,
-  simulateGatePayment,
-  parseGateDecision,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-`load*` helpers fetch the IDL from chain by default (`forge idl fetch <programId>`). Pass an explicit `idl` argument to use a bundled snapshot — useful for latency-sensitive paths or freshly redeployed programs before `forge idl upgrade`.
-
-Source: [`trustgate/sdk/src/chain.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/chain.ts).
-
-## x402 headers
-
-```ts
-import {
-  buildHeadersForDecision,
-  denyReasonName,
-  X_PAYMENT_REQUIRED,
-  X_PAYMENT_NETWORK,
-  X_PAYMENT_REASON_CODE,
-  X_PAYMENT_REASON_NAME,
-  X_CAPABILITY_REQUIRED,
-  X_AGENT_TRUST_DECISION,
-} from "@monad-agenttrust-sdk/sdk";
-```
-
-`buildHeadersForDecision(decision, network)` returns the header map for `Allow` / `Deny` / `RequireValidation`. `denyReasonName(code)` maps `1..=15` to the canonical name (e.g., `6` → `CounterpartyTierBelowMin`).
-
-Source: [`trustgate/sdk/src/x402.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/x402.ts).
-
-## Types + constants
-
-```ts
-import {
-  GateDecision,
-  DenyReasonCode,
-  ProgramIds,
-  DEFAULT_TESTNET_ADDRESSES,
-} from "@monad-agenttrust-sdk/sdk";
-```
+## Types
 
 ```ts
 type GateDecision =
   | { kind: "Allow" }
-  | { kind: "Deny";              reasonCode: DenyReasonCode; reasonName: string }
-  | { kind: "RequireValidation"; capabilityHash: Uint8Array };
+  | { kind: "Deny";              reason: number; reasonName: string }
+  | { kind: "RequireValidation"; capability: string };
 
-interface ProgramIds {
-  policyVault:        PublicKey;
-  trustGate:          PublicKey;  // camelCase as of 0.2.0
-  validationRegistry: PublicKey;  // new in 0.2.0
+interface GateArgs {
+  policyVault:  `0x${string}`;
+  payer:        `0x${string}`;
+  payeeAgentId: bigint;
+  amount:       bigint;
+}
+
+interface ReputationArgs {
+  reputationRegistry: `0x${string}`;
+  agentId:            bigint;
+  clients:            `0x${string}`[];  // trusted attestors; non-empty
 }
 ```
 
-`DEFAULT_TESTNET_ADDRESSES` carries the deployed-testnet IDs. Override via `ProgramIds` for mainnet redeploys. Source: [`trustgate/sdk/src/types.ts`](https://github.com/mohit-1710/AgentTrust/blob/main/trustgate/sdk/src/types.ts).
-
-## Express + client subpaths
-
-These have their own dedicated entry points and don't re-export through the root namespace:
+## Constants
 
 ```ts
-// Express middleware (peer dep: express ^4.21)
-import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
+import { TESTNET_ADDRESSES } from "@monad-agenttrust-sdk/sdk";
 
-// Client helpers
-import { gatePayment, settle, dispute } from "@monad-agenttrust-sdk/sdk/client";
+TESTNET_ADDRESSES.policyVault;        // 0x34b3bB1a99377128126201359749FE7614275E37
+TESTNET_ADDRESSES.identityRegistry;   // 0x8004A818BFB912233c491871b3d84c89A494BD9e
+TESTNET_ADDRESSES.reputationRegistry; // 0x8004B663056A597Dffe9eCcC1965A193B7388713
+TESTNET_ADDRESSES.validationRegistry; // 0x8004Cb1BF31DAf7788923b405b754f57acEB4272
+TESTNET_ADDRESSES.usdc;               // 0x534b2f3A21130d7a60830c2Df862319e593943A3
 ```
 
-References: [mountTrustGate](/sdk/mount-trustgate), [gatePayment](/sdk/gate-payment).
+Full address table: [Contract addresses](/reference/contract-addresses).
 
 ## Read next
 
 <Cards>
-  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
-    Three layers of proof + the on-chain Kani strict-correctness binding.
+  <Card title="gate()" href="/sdk/gate-payment">
+    The decision call in detail.
   </Card>
-  <Card title="the molandak x402 facilitator adapter" href="/integration-guides/pay-sh-adapter">
-    Canonical FacilitatorAdapter implementation, end to end.
+  <Card title="PolicyVault" href="/programs/policy-vault">
+    The contract behind every write.
   </Card>
   <Card title="MCP server" href="/mcp">
-    Twenty-one tools that surface every SDK helper to Claude Desktop and Cursor.
+    The same surface, exposed to agents over MCP.
   </Card>
 </Cards>

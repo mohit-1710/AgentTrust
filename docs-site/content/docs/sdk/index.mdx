@@ -1,174 +1,100 @@
 ---
 title: "@monad-agenttrust-sdk/sdk"
-description: TypeScript surface for AgentTrust on Monad — Express middleware, client helpers, atomicity guard, contract account derivers, and the full ValidationRegistry instruction builder set.
+description: The viem-based TypeScript surface for AgentTrust on Monad — gate a payment, read ERC-8004 reputation, configure a policy.
 ---
 
-[`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) is the TypeScript package every facilitator pulls in. Express middleware, client helpers for direct calls, the atomicity guard, contract account derivers + Solidity loaders for all three programs, and instruction builders for ValidationRegistry's full lifecycle.
+[`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) is the TypeScript SDK for AgentTrust. It wraps the `PolicyVault` contract and the ERC-8004 `ReputationRegistry` behind a small set of viem-based helpers. Two calls do most of the work: `gate()` and `getReputation()`.
 
-Source: [`trustgate/sdk/`](https://github.com/mohit-1710/AgentTrust/tree/main/trustgate/sdk). License: MIT.
+Repo: [`github.com/mohit-1710/AgentTrust`](https://github.com/mohit-1710/AgentTrust).
 
 ## Install
 
 ```bash
-pnpm add @monad-agenttrust-sdk/sdk
-# or: npm install @monad-agenttrust-sdk/sdk
-# or: yarn add @monad-agenttrust-sdk/sdk
+npm i @monad-agenttrust-sdk/sdk
+# or: pnpm add @monad-agenttrust-sdk/sdk
 ```
 
-Peer dep: `express ^4.21` (only required if you mount the middleware). Node `>=20`.
+The SDK depends on [viem](https://viem.sh). You pass it a viem `PublicClient` for reads and a `WalletClient` for writes.
 
-## Three import surfaces
+## gate — the read-only decision
 
 ```ts
-import { mountTrustGate }                   from "@monad-agenttrust-sdk/sdk/express";
-import { gatePayment, settle, dispute }     from "@monad-agenttrust-sdk/sdk/client";
-import { composeAtomicSettleTx }            from "@monad-agenttrust-sdk/sdk";
+import { createPublicClient, http } from "viem";
+import { gate } from "@monad-agenttrust-sdk/sdk";
+
+const client = createPublicClient({
+  transport: http("https://testnet-rpc.monad.xyz"),
+});
+
+const decision = await gate(client, {
+  policyVault:  "0x34b3bB1a99377128126201359749FE7614275E37",
+  payer:        "0xPayer",
+  payeeAgentId: 123n,
+  amount:       1_000_000n,   // 1 USDC (6 decimals)
+});
+// decision.kind: "Allow" | "Deny" | "RequireValidation"
 ```
 
-The root namespace re-exports every helper grouped by concern — atomicity guard, contract account derivers, Solidity loaders, ERC-8004 helpers, ValidationRegistry instruction builders, ERC-20 helpers, x402 header constants. Full list: [Exports reference](/sdk/exports-reference).
+Full reference: [gate()](/sdk/gate-payment).
 
-The `/express` and `/client` subpaths are tree-shake-friendly entry points; the root namespace doesn't re-export them so a client-only consumer doesn't pull Express into the bundle.
-
-## Quick start — Express
+## getReputation — averaged ERC-8004 score
 
 ```ts
-import express from "express";
+import { getReputation } from "@monad-agenttrust-sdk/sdk";
+
+const { count, average, decimals } = await getReputation(client, {
+  reputationRegistry: "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+  agentId:            123n,
+  clients:            ["0xTrustedAttestorA", "0xTrustedAttestorB"],
+});
+```
+
+`average` is `getSummary`'s `summaryValue` — the mean score across the `clients` (trusted attestor) array, which must be non-empty.
+
+## Configuration writes
+
+```ts
+import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
+import { setPolicy, setKillSwitch } from "@monad-agenttrust-sdk/sdk";
 
-const app = express();
-app.use(express.json());
-
-await mountTrustGate(app, {
-  rpcUrl:             "https://testnet-rpc.monad.xyz",
-  facilitatorKeypair: key.fromSecretKey(/* facilitator key */),
-  network:            "Monad-testnet",
-  atomicityEnforced:  true,                // literal `true`
+const wallet = createWalletClient({
+  account:   privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`),
+  transport: http("https://testnet-rpc.monad.xyz"),
 });
 
-app.listen(3000);
-```
-
-Mounts four routes:
-
-| Route | Purpose |
-|---|---|
-| `POST /verify` | Read-only `gate_payment` simulation. Returns 200/Allow, 402/Deny + reason headers, or 402/RequireValidation + capability hash. |
-| `GET /receipt/:paymentIdHashHex` | `FeedbackEmissionLog` lookup. Returns `{ exists: false }` until settlement. |
-| `POST /settle` | Atomic settle (`gate_payment_strict + transferChecked + emit_feedback`). |
-| `POST /dispute` | Dispute path (`dispute_payment` ix). |
-
-Full route reference: [mountTrustGate](/sdk/mount-trustgate).
-
-## Quick start — client
-
-```ts
-import { type Address } from "viem";
-import { gatePayment } from "@monad-agenttrust-sdk/sdk/client";
-
-const decision = await gatePayment({
-  rpcUrl:          "https://testnet-rpc.monad.xyz",
-  caller:          facilitatorKeypair,
-  payerAgentAsset: new PublicKey("…"),
-  payeeAgentAsset: new PublicKey("…"),
-  amount:          1_000_000n,
-  mint:            new PublicKey("0x534b2f3A21130d7a60830c2Df862319e593943A3"), // USDC testnet
-  policyId:        1,
+await setPolicy(wallet, {
+  policyVault:      "0x34b3bB1a99377128126201359749FE7614275E37",
+  perTxCap:         5_000_000n,
+  dailyCap:         50_000_000n,
+  velocityWindow:   3_600n,
+  velocityCap:      20_000_000n,
+  minReputation:    70n,
+  trustedAttestors: ["0xTrustedAttestorA"],
 });
 
-switch (decision.kind) {
-  case "Allow":             /* proceed */ break;
-  case "Deny":              console.log(decision.reasonName); break;
-  case "RequireValidation": /* route to attestation flow with decision.capabilityHash */ break;
-}
+await setKillSwitch(wallet, {
+  policyVault: "0x34b3bB1a99377128126201359749FE7614275E37",
+  engaged:     true,
+});
 ```
 
-Full reference: [gatePayment](/sdk/gate-payment).
+These map directly onto the contract calls documented in [PolicyVault](/programs/policy-vault).
 
-## Atomic-tx invariant
+## Addresses
 
-`gate_payment + USDC transfer + emit_feedback` MUST execute as one Monad transaction. Splitting them silently corrupts `VelocityLedger` when a Token-2022 mint's `TransferHook` extension reverts the transfer.
-
-The SDK enforces atomicity at three layers:
-
-```ts
-import {
-  AtomicityEnforced,
-  AtomicityNotEnforcedError,
-  composeAtomicSettleTx,
-} from "@monad-agenttrust-sdk/sdk";
-
-// 1. Compile-time literal-type guard:
-//    `AtomicityEnforced` is `{ atomicityEnforced: true }` (literal `true`).
-//    TS rejects `false`, missing, or `boolean` widening.
-//
-// 2. Runtime guard:
-//    `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any
-//    value that isn't strictly `=== true`. Catches `as any` cast bypasses.
-//
-// 3. Composer structure:
-//    `composeAtomicSettleTx` returns one `Transaction` with exactly three
-//    instructions in canonical order (gate, transfer, feedback).
-```
-
-Plus the on-chain Kani proof `gate_payment_strict_correctness` pins the strict handler's contract — `Ok(())` if and only if the composer returned `Allow`. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant).
-
-## Breaking changes (0.2.0)
-
-`ProgramIds.trustgate` (lowercase) renamed to `ProgramIds.trustGate` (camelCase, matches `policyVault`). New `validationRegistry` field populated by default with the deployed testnet ID `0x8004Cb1BF31DAf7788923b405b754f57acEB4272`.
-
-```ts
-// 0.1.x
-DEFAULT_TESTNET_ADDRESSES.trustgate.toBase58();
-
-// 0.2.0
-DEFAULT_TESTNET_ADDRESSES.trustGate.toBase58();
-DEFAULT_TESTNET_ADDRESSES.validationRegistry.toBase58(); // new
-```
-
-One-line migration: search-and-replace `.trustgate` → `.trustGate` for every `programIds.*` field access. Full changelog: [Reference → Changelog](/reference/changelog).
-
-## On-chain programs (testnet)
-
-<ProgramIdsTable />
-
-`loadPolicyVault` / `loadTrustGate` / `loadValidationRegistry` fetch each IDL from chain by default. Pass an explicit `idl` argument to use a bundled snapshot — useful when avoiding an extra RPC hop in latency-sensitive paths or when running against a freshly redeployed program before `forge idl upgrade` runs.
-
-```bash
-cast interface <programId> --rpc-url https://testnet-rpc.monad.xyz
-```
-
-## Test coverage
-
-| Suite | Count | Where |
-|---|---:|---|
-| Atomicity unit tests | 6 (literal-type guard + runtime + composer structure) | `trustgate/sdk/test/atomicity.test.ts` |
-| contract account derivation tests | 24 | `trustgate/sdk/test/chain.test.ts` |
-| ERC-8004 helpers | 12 | `trustgate/sdk/test/quantu.test.ts` |
-| ValidationRegistry instruction builders | 14 | `trustgate/sdk/test/validation-registry.test.ts` |
-| All SDK unit tests | 56 (+ 16 INTEGRATION-gated testnet round-trips) | `pnpm --filter ./trustgate/sdk run test` |
-
-Run via:
-
-```bash
-cd trustgate/sdk
-pnpm test
-INTEGRATION=1 pnpm test:integration   # testnet round-trip
-```
+All defaults target Monad testnet (chainId `10143`). Override any address per call. Full list: [Contract addresses](/reference/contract-addresses).
 
 ## Read next
 
 <Cards>
-  <Card title="gatePayment" href="/sdk/gate-payment">
-    Read-only policy decision call — type signature, config fields, decision union, errors.
-  </Card>
-  <Card title="mountTrustGate" href="/sdk/mount-trustgate">
-    Express middleware reference — every route, every header, the atomicity guard contract.
+  <Card title="gate()" href="/sdk/gate-payment">
+    The decision call — arguments, the decision union, errors.
   </Card>
   <Card title="Exports reference" href="/sdk/exports-reference">
-    One-screen list of every public export grouped by concern.
+    Every public export at a glance.
   </Card>
-  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
-    Three layers of proof + the on-chain Kani strict-correctness binding.
+  <Card title="PolicyVault" href="/programs/policy-vault">
+    The contract the SDK wraps.
   </Card>
 </Cards>

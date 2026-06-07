@@ -44,20 +44,20 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         items: [
           {
             label: "Trust Layer",
-            description: "Identity, policy, and feedback before settlement.",
+            description: "Identity, policy, and reputation before settlement.",
             href: PUBLIC_LINKS.docsArchitecture,
             icon: "shield",
           },
           {
-            label: "Atomic Settlement",
-            description: "Policy check, USDC transfer, and feedback in one path.",
-            href: PUBLIC_LINKS.docsAtomicSettlement,
+            label: "x402 Settlement",
+            description: "The gate runs inline in verify, gate, settle.",
+            href: PUBLIC_LINKS.docsSettlement,
             icon: "grid",
           },
           {
             label: "Contract Addresses",
-            description: "Monad testnet addresses for every trust gate component.",
-            href: PUBLIC_LINKS.docsProgramIds,
+            description: "Monad testnet addresses for the gate and registries.",
+            href: PUBLIC_LINKS.docsContractAddresses,
             icon: "file",
           },
         ],
@@ -73,8 +73,8 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           },
           {
             label: "Live Route",
-            description: "x402 proves one route without owning the trust model.",
-            href: PUBLIC_LINKS.docsPayShAdapter,
+            description: "The molandak x402 facilitator proves one live route.",
+            href: PUBLIC_LINKS.docsX402Adapter,
             icon: "users",
           },
           {
@@ -102,7 +102,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           },
           {
             label: "Developer Brief",
-            description: "Read exact accounts, checks, and return states.",
+            description: "Read the exact inputs, checks, and return states.",
             href: PUBLIC_LINKS.docsArchitecture,
             icon: "book",
           },
@@ -118,20 +118,20 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         title: "Testnet Surface",
         items: [
           {
-            label: "Policy Program",
-            description: "Thresholds, pausing, and signer controls.",
+            label: "PolicyVault",
+            description: "Caps, velocity, kill-switch, and reputation threshold.",
             href: PUBLIC_LINKS.docsPolicyVault,
             icon: "shield",
           },
           {
-            label: "Feedback Program",
-            description: "Receipt-grade feedback after settlement.",
-            href: PUBLIC_LINKS.docsTrustGate,
+            label: "Reputation",
+            description: "ERC-8004 reputation read over a trusted-attestor set.",
+            href: PUBLIC_LINKS.docsReputation,
             icon: "terminal",
           },
           {
             label: "Registry",
-            description: "Validation expiry and counterparty status.",
+            description: "ERC-8004 validation and counterparty status.",
             href: PUBLIC_LINKS.docsValidationRegistry,
             icon: "grid",
           },
@@ -149,14 +149,14 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         items: [
           {
             label: "Documentation",
-            description: "Implementation notes and account layouts.",
+            description: "Implementation notes and contract reference.",
             href: PUBLIC_LINKS.docs,
             icon: "book",
           },
           {
             label: "Live Adapter Example",
-            description: "Worked route using x402 and AgentTrust.",
-            href: PUBLIC_LINKS.docsPayShAdapter,
+            description: "Worked route using the molandak x402 facilitator.",
+            href: PUBLIC_LINKS.docsX402Adapter,
             icon: "box",
           },
           {
@@ -178,8 +178,8 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           },
           {
             label: "Test Matrix",
-            description: "Program and SDK checks for payment gates.",
-            href: PUBLIC_LINKS.docsGatePayment,
+            description: "20 Foundry tests plus SDK checks for the gate.",
+            href: PUBLIC_LINKS.docsTesting,
             icon: "grid",
           },
           {

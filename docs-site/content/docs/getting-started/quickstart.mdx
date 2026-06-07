@@ -1,123 +1,105 @@
 ---
 title: Quickstart
-description: Hit the hosted testnet build, install the SDK, wire the MCP server. Three paths, no clone, under five minutes.
+description: Install the SDK, gate a payment against PolicyVault, read an ERC-8004 reputation score. Three short steps on Monad testnet.
 ---
 
-Three live paths. Each runs against the hosted testnet endpoints under `*.monadagenttrustsite.vercel.app`. None require a local clone.
+Everything below runs against Monad testnet (chainId `10143`). You need a funded testnet key only for the optional on-chain configuration step — reading reputation and simulating a gate decision are read-only.
 
-## 1. Hit the live demo
-
-The demo at [`monadagenttrustweb.vercel.app`](https://monadagenttrustweb.vercel.app) runs the full the molandak x402 facilitator + AgentTrust flow against deployed testnet programs. With no payment proof, `/protected` returns a real x402 v2 challenge:
+## 1. Install the SDK
 
 ```bash
-curl -i https://monadagenttrustweb.vercel.app/protected
+npm i @monad-agenttrust-sdk/sdk
+# or: pnpm add @monad-agenttrust-sdk/sdk
 ```
 
-The response carries `HTTP/2 402` with a SERVICE-signed `payment-required` envelope (base64). To walk the full Allow → settle → emit_feedback path, install the molandak x402 facilitator and let it pay:
+The SDK is built on [viem](https://viem.sh). It needs the Monad testnet RPC and the deployed `PolicyVault` address (both defaulted for testnet).
 
-```bash
-pay --sandbox curl https://monadagenttrustweb.vercel.app/protected
-```
+## 2. Gate a payment
 
-Three deterministic counterparties drive each decision branch. Fetch their pubkeys from the demo's health endpoint:
-
-```bash
-curl -s https://monadagenttrustweb.vercel.app/health | jq '.counterparties'
-```
-
-| Tier | Header | Decision |
-| --- | --- | --- |
-| 0 | `X-Demo-Payer-Agent: <tier-0 pubkey>` | `402 Deny — CounterpartyTierBelowMin` |
-| 1 | `X-Demo-Payer-Agent: <tier-1 pubkey>` | `402 Deny — CounterpartyTierBelowMin` |
-| 3 | `X-Demo-Payer-Agent: <tier-3 pubkey>` | `200 Allow + X-Payment-Receipt` |
-
-The full atomic-settlement trace (gate, transfer, feedback) for the tier-3 path is captured under [Verification → Testnet smoke](/verification/testnet-smoke).
-
-## 2. Install the SDK
-
-Add [`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) to any Node project:
-
-```bash
-pnpm add @monad-agenttrust-sdk/sdk
-```
-
-Mount the middleware on an Express app:
+`gate()` is a read-only call into `PolicyVault.gate`. It returns the decision the contract would make for a given payer, payee agent, and amount.
 
 ```ts
-import express from "express";
-import { privateKeyToAccount } from "viem/accounts";
-import { mountTrustGate } from "@monad-agenttrust-sdk/sdk/express";
+import { createPublicClient, http } from "viem";
+import { gate } from "@monad-agenttrust-sdk/sdk";
 
-const app = express();
-app.use(express.json());
-
-await mountTrustGate(app, {
-  rpcUrl:             "https://testnet-rpc.monad.xyz",
-  facilitatorKeypair: key.fromSecretKey(/* your facilitator key */),
-  network:            "Monad-testnet",
-  atomicityEnforced:  true,             // literal `true` — TS rejects `false`
+const client = createPublicClient({
+  transport: http("https://testnet-rpc.monad.xyz"),
 });
 
-app.listen(3000);
-```
+const decision = await gate(client, {
+  policyVault:   "0x34b3bB1a99377128126201359749FE7614275E37",
+  payer:         "0xYourPayerAddress",
+  payeeAgentId:  123n,                 // the payee's ERC-8004 agent ID
+  amount:        1_000_000n,           // 1 USDC (6 decimals)
+});
 
-The `atomicityEnforced: true` literal is the SDK's load-bearing guard. The compile-time type rejects callers who omit it, the runtime throws on `as any` bypasses, and the on-chain `gate_payment_strict_correctness` Kani proof binds the strict handler's return value to the composer's `Allow` arm. Full details: [Atomic-tx invariant](/verification/atomic-tx-invariant).
-
-You now have:
-
-- `POST /verify` — read-only `gate_payment` simulation
-- `POST /settle` — one-tx atomic settle (gate + transfer + feedback)
-- `POST /dispute` — dispute path
-- `GET /receipt/:hash` — `FeedbackEmissionLog` lookup by payment hash
-
-## 3. Wire the MCP server
-
-[`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) exposes 21 tools to any Model Context Protocol client. For Claude Desktop, drop this into your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "agenttrust": {
-      "command": "npx",
-      "args": ["-y", "@monad-agenttrust-sdk/sdk"],
-      "env": {
-        "RPC_URL": "https://testnet-rpc.monad.xyz",
-        "NETWORK": "Monad-testnet"
-      }
-    }
-  }
+switch (decision.kind) {
+  case "Allow":             /* settle the payment */ break;
+  case "Deny":              console.log("denied:", decision.reason); break;
+  case "RequireValidation": console.log("needs capability:", decision.capability); break;
 }
 ```
 
-Restart Claude Desktop. Then ask:
+`Allow` means every active check passed. `Deny` carries the failing reason ([DenyReason codes](/reference/deny-reason-codes)). `RequireValidation` means the policy requires a capability attestation the payee does not yet have.
 
-- *"What demo agents are available on AgentTrust?"*
-- *"Simulate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?"*
-- *"Search the AgentTrust docs for the atomic-tx invariant."*
+## 3. Read an ERC-8004 reputation score
 
-A hosted HTTP transport is also live at [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) for clients that speak `StreamableHTTPServerTransport`. Full setup: [MCP → Install](/mcp/install).
+`getReputation()` reads the payee's averaged reputation from the ERC-8004 `ReputationRegistry`. You supply the agent ID and the set of trusted attestors (`clients`) whose feedback you want averaged — the array must be non-empty.
 
-## What's running where
+```ts
+import { getReputation } from "@monad-agenttrust-sdk/sdk";
 
-<ProgramIdsTable />
+const { count, average, decimals } = await getReputation(client, {
+  reputationRegistry: "0x8004B663056A597Dffe9eCcC1965A193B7388713",
+  agentId:            123n,
+  clients:            ["0xTrustedAttestorA", "0xTrustedAttestorB"],
+});
 
-| Surface | URL |
-| --- | --- |
-| Demo | [`monadagenttrustweb.vercel.app`](https://monadagenttrustweb.vercel.app) |
-| Facilitator (`/verify` + `/settle`) | [`api.monadagenttrustsite.vercel.app`](https://api.monadagenttrustsite.vercel.app) |
-| MCP HTTP endpoint | [`github.com/mohit-1710/AgentTrust/tree/main/mcp`](https://github.com/mohit-1710/AgentTrust/tree/main/mcp) |
-| Repo | [`github.com/mohit-1710/AgentTrust`](https://github.com/mohit-1710/AgentTrust) |
+console.log(`avg score ${average} over ${count} feedback entries (${decimals} decimals)`);
+```
 
-## Read next
+There is no global reputation: `average` is computed only over the attestor set you chose to trust. This is the same read `PolicyVault.gate` performs for its counterparty-reputation check.
+
+## Optional — configure a policy on chain
+
+To change what `gate` decides, a payer sets their policy with a funded testnet key:
+
+```ts
+import { createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { setPolicy } from "@monad-agenttrust-sdk/sdk";
+
+const wallet = createWalletClient({
+  account:   privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`),
+  transport: http("https://testnet-rpc.monad.xyz"),
+});
+
+await setPolicy(wallet, {
+  policyVault:        "0x34b3bB1a99377128126201359749FE7614275E37",
+  perTxCap:           5_000_000n,        // 5 USDC
+  dailyCap:           50_000_000n,       // 50 USDC
+  velocityWindow:     3_600n,            // seconds
+  velocityCap:        20_000_000n,       // 20 USDC per window
+  minReputation:      70n,
+  trustedAttestors:   ["0xTrustedAttestorA"],
+});
+```
+
+See [PolicyVault](/programs/policy-vault) for the full set of configuration calls (`setPolicy`, `setKillSwitch`, `recordSpend`).
+
+## Where to next
 
 <Cards>
-  <Card title="Architecture" href="/architecture">
-    How the three programs, the SDK, and the adapter layer compose into one settlement path.
+  <Card title="PolicyVault" href="/programs/policy-vault">
+    The gate contract — every check, every configuration call.
   </Card>
-  <Card title="the molandak x402 facilitator adapter" href="/integration-guides/pay-sh-adapter">
-    The live the molandak x402 facilitator integration end to end — challenge, retry, settle, feedback.
+  <Card title="SDK" href="/sdk">
+    gate(), getReputation(), and the rest of the TypeScript surface.
   </Card>
-  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
-    Why gate + transfer + feedback must execute as one Monad transaction or none.
+  <Card title="MCP server" href="/mcp">
+    Wire the gate and reputation reads into Claude Code or any MCP client.
+  </Card>
+  <Card title="x402 server" href="/integration-guides/x402-facilitator">
+    Put the gate in front of an x402-paid endpoint.
   </Card>
 </Cards>

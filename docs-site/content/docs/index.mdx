@@ -1,81 +1,81 @@
 ---
 title: AgentTrust
-description: The non-custodial reputation firewall for AI-agent payments on Monad — a policy engine plus the ERC-8004 trust stack for x402 facilitators.
+description: A non-custodial pre-payment gate for AI-agent payments on Monad — reads ERC-8004 reputation and a payer's spending policy, then allows or blocks each x402 USDC payment before it settles.
 ---
 
-AgentTrust is the non-custodial reputation firewall for AI-agent payments on Monad. It reads a payee's on-chain ERC-8004 reputation and the payer's spending policy, then allows or blocks each x402 USDC payment before it settles. ERC-8004 runs natively on Monad — agent identity (`IdentityRegistry`), reputation (`ReputationRegistry`), and capability validation (`ValidationRegistry`). AgentTrust adds a policy engine that reads the ERC-8004 reputation tier on-chain, plus a facilitator-side server that emits feedback through the ERC-8004 surface.
+AgentTrust is a non-custodial pre-payment gate for AI-agent payments on Monad. Before a payment settles, it reads the payee agent's on-chain ERC-8004 reputation and the payer's spending policy, then returns one decision: `Allow`, `Deny`, or `RequireValidation`. Nothing in the flow ever takes custody of funds — AgentTrust only decides whether the payment should proceed.
 
-<KaniProofBadge />
+ERC-8004 runs natively on Monad as three canonical registries: agent identity (`IdentityRegistry`), reputation (`ReputationRegistry`), and capability validation (`ValidationRegistry`). AgentTrust deploys one contract on top of them — `PolicyVault` — and ships an x402 server, an MCP server, and a TypeScript SDK that read those registries and enforce the gate.
 
-## Hit it now
-
-Three live paths against the hosted testnet build. No clone, no setup.
+## Try it
 
 ```bash
-# 1. See an x402 challenge from a real facilitator
-curl -i https://monadagenttrustweb.vercel.app/protected
+# Install the SDK
+npm i @monad-agenttrust-sdk/sdk
+```
 
-# 2. Install the SDK
-pnpm add @monad-agenttrust-sdk/sdk
-
-# 3. Wire the MCP server into Claude Desktop / Cursor
-npx -y @monad-agenttrust-sdk/sdk
+```bash
+# Add the MCP server to Claude Code
+claude mcp add agenttrust -- npx -y @monad-agenttrust-sdk/sdk
 ```
 
 ## What's deployed
 
+AgentTrust deploys exactly one contract — `PolicyVault`. The three ERC-8004 registries and USDC already exist on Monad testnet; AgentTrust reads them.
+
 <ProgramIdsTable />
 
 [SDK on npm](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) ·
-[MCP on npm](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk) ·
 [Repo](https://github.com/mohit-1710/AgentTrust) ·
-[Hosted demo](https://monadagenttrustweb.vercel.app) ·
-[Hosted facilitator](https://api.monadagenttrustsite.vercel.app) ·
-[Hosted MCP](https://github.com/mohit-1710/AgentTrust/tree/main/mcp)
+[Monad Explorer (testnet)](https://testnet.monadexplorer.com)
 
-## The three components
+## The pieces
 
-**PolicyVault** is the decision engine. Five orthogonal policy kinds — `KillSwitch`, `Spending`, `Velocity`, `CounterpartyTier`, `RequireValidation` — composed under one `gate_payment` call with fail-fast semantics. The composer returns `Allow`, `Deny(reason)`, or `RequireValidation(capability_hash)`. `CounterpartyTier` reads the ERC-8004 reputation tier from the `ReputationRegistry`, with a schema-version canary that catches drift.
+**PolicyVault** is the decision contract. A single `gate(payer, payeeAgentId, amount)` call enforces a payer-chosen policy: per-transaction cap, daily cap, sliding-window velocity, a multisig kill-switch, a counterparty ERC-8004 reputation threshold (averaged over a payer-chosen set of trusted attestors), and optional capability validation. It returns `Allow`, `Deny`, or `RequireValidation`. Written in Solidity, built with Monad Foundry, covered by 20 Foundry tests.
 
-**x402 server** is the facilitator-side component. One authority per facilitator (`TrustGateAuthority`) signs the call into the ERC-8004 `ReputationRegistry` feedback method. `FeedbackEmissionLog` is the per-payment idempotency receipt — the `init` guard reverts on the second tx with the same `payment_id_hash`, so retries cannot double-emit. The TypeScript SDK, [`@monad-agenttrust-sdk/sdk`](https://www.npmjs.com/package/@monad-agenttrust-sdk/sdk), mounts on any Express app in five lines.
+**x402 server** wires the gate into the x402 payment flow: `verify` → `gate` → `settle`, settling through Monad's molandak facilitator with USDC.
 
-**ValidationRegistry** holds the third ERC-8004 leg. Five methods — `register_namespace`, `register_attestor`, `request_validation`, `respond_to_validation`, `revoke_validation`. The v1 sybil-resistance model is downstream-consumer filtering: PolicyVault stores a per-policy `accepted_attestors[]` array; only attestations from those keys flip the gate to `Allow`. Permissionless registration plus opinionated downstream filtering scales with the number of facilitators.
+**MCP server** exposes the gate and reputation reads to agents and assistants. Four tools: `get_reputation`, `gate_payment`, `register_agent`, `seed_feedback`.
 
-## How they compose
+**SDK** is the TypeScript surface (built on viem). Two calls do the work: `gate()` and `getReputation()`.
+
+## How a payment flows
 
 ```
-x402 facilitator (the molandak x402 facilitator)
-        │
-        ▼  POST /verify | /settle | /dispute
-x402 server ─call─► ReputationRegistry::give_feedback
-   │
-   │ reads
-   ▼
-PolicyVault ─reads─► ReputationRegistry (ERC-8004)   ◀── reputation tier
-   │
-   └─reads─► ValidationAttestation
-              (ValidationRegistry)
+x402 client
+     │  POST /protected  (no payment proof)
+     ▼
+x402 server ──verify──► molandak facilitator
+     │
+     │  gate(payer, payeeAgentId, amount)
+     ▼
+PolicyVault ──reads──► ReputationRegistry (ERC-8004)
+     │                 averaged over the payer's trusted attestor set
+     │
+     ├─ Allow            ──settle──► USDC transfer via facilitator
+     ├─ Deny             ──► 402 with the deny reason
+     └─ RequireValidation ──► 402 asking for a capability attestation
 ```
 
-The full wiring story is on [Architecture](/architecture). Contract account layouts, method signatures, and deny-reason codes live under [Programs](/programs/policy-vault).
+The full wiring is on [Architecture](/architecture). The contract interface lives under [PolicyVault](/programs/policy-vault). Real addresses are on [Contract addresses](/reference/contract-addresses).
 
-## x402 on Monad
+## ERC-8004 reputation, read correctly
 
-The molandak x402 facilitator runs on Monad testnet at `https://x402-facilitator.molandak.org`. AgentTrust ships an x402 integration as the canonical adapter — facilitators share the same five-method `FacilitatorAdapter` contract, so adding another facilitator stays under a hundred lines. Walkthrough: [x402 facilitator adapter](/integration-guides/pay-sh-adapter).
+`PolicyVault` reads counterparty reputation from the ERC-8004 `ReputationRegistry` via `getSummary(agentId, clients[], tag1, tag2)`, which returns `(count, summaryValue, decimals)` where `summaryValue` is the **average** score across the supplied clients. The `clients` array must be non-empty — it is the payer's chosen set of trusted attestors. A policy that trusts no one trusts no reputation; trust is always explicit and payer-controlled.
 
 ## Where to next
 
 <Cards>
   <Card title="Quickstart" href="/getting-started/quickstart">
-    Hit the live demo, install the SDK, wire the MCP server.
+    Install the SDK, gate a payment, read a reputation score.
   </Card>
   <Card title="Architecture" href="/architecture">
-    The wiring diagram, the FacilitatorAdapter pattern, the atomic-tx invariant.
+    The full wiring — PolicyVault, the x402 server, the ERC-8004 reads.
   </Card>
-  <Card title="Live evidence" href="/verification/live-evidence">
-    Seven Kani proofs, testnet smoke traces, the chained-validation 4-sig trace, every claim with an Explorer URL.
+  <Card title="PolicyVault" href="/programs/policy-vault">
+    The gate contract — gate, setPolicy, setKillSwitch, recordSpend.
   </Card>
   <Card title="MCP server" href="/mcp">
-    Twenty-one tools that expose every SDK surface to Claude Desktop and Cursor.
+    Four tools that expose the gate and reputation reads to agents.
   </Card>
 </Cards>
