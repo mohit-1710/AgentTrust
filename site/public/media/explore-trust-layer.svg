@@ -1,0 +1,76 @@
+<svg width="768" height="512" viewBox="0 0 768 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .pulse { animation: pulse 2.6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.55; }
+      50% { opacity: 1; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pulse { animation: none; opacity: 0.85; }
+    }
+  </style>
+
+  <rect width="768" height="512" fill="#18181b"/>
+  <rect x="1" y="1" width="766" height="510" stroke="#27272a" opacity="0.65"/>
+
+  <g opacity="0.28">
+    <path d="M0 64H768M0 128H768M0 192H768M0 256H768M0 320H768M0 384H768M0 448H768" stroke="#27272a"/>
+    <path d="M64 0V512M128 0V512M192 0V512M256 0V512M320 0V512M384 0V512M448 0V512M512 0V512M576 0V512M640 0V512M704 0V512" stroke="#27272a"/>
+  </g>
+
+  <g font-family="monospace" font-size="12" letter-spacing="1.5" fill="#fbfaf9" opacity="0.42">
+    <text x="40" y="110">REQUEST</text>
+    <text x="728" y="110" text-anchor="end">ALLOW / DENY</text>
+    <text x="384" y="470" text-anchor="middle">ONE SIGNED SOLANA TRANSACTION</text>
+  </g>
+
+  <path d="M120 102H156" stroke="#fbfaf9" stroke-width="1.5" opacity="0.32"/>
+  <path d="M152 98L158 102L152 106" stroke="#fbfaf9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.42"/>
+
+  <path d="M612 102H648" stroke="#fbfaf9" stroke-width="1.5" opacity="0.32"/>
+  <path d="M644 98L650 102L644 106" stroke="#fbfaf9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.42"/>
+
+  <rect x="164" y="74" width="440" height="364" rx="14" fill="#0e100f" stroke="#34343a"/>
+
+  <circle class="pulse" cx="192" cy="102" r="5" fill="#6f4cff"/>
+  <g font-family="monospace" fill="#fbfaf9">
+    <text x="212" y="107" font-size="14" font-weight="700" letter-spacing="2">PAY.SH FACILITATOR</text>
+  </g>
+  <text x="586" y="107" font-family="monospace" font-size="11" letter-spacing="1.5" fill="#fbfaf9" opacity="0.42" text-anchor="end">SOLANA · DEVNET</text>
+
+  <path d="M164 130H604" stroke="#27272a"/>
+
+  <g font-family="monospace" fill="#fbfaf9">
+    <text x="192" y="184" font-size="34" font-weight="500" letter-spacing="0.5" opacity="0.3">01</text>
+    <text x="252" y="178" font-size="17" font-weight="700" letter-spacing="1.5">GATE_PAYMENT</text>
+    <text x="252" y="202" font-size="12" letter-spacing="1" opacity="0.52">Policy decision · allow, deny, or require validation</text>
+  </g>
+
+  <path d="M164 232H604" stroke="#27272a"/>
+
+  <g font-family="monospace" fill="#fbfaf9">
+    <text x="192" y="286" font-size="34" font-weight="500" letter-spacing="0.5" opacity="0.3">02</text>
+    <text x="252" y="280" font-size="17" font-weight="700" letter-spacing="1.5">TRANSFER</text>
+    <text x="252" y="304" font-size="12" letter-spacing="1" opacity="0.52">Value moves on Solana, x402 settlement</text>
+  </g>
+
+  <path d="M164 334H604" stroke="#27272a"/>
+
+  <g font-family="monospace" fill="#fbfaf9">
+    <text x="192" y="388" font-size="34" font-weight="500" letter-spacing="0.5" opacity="0.3">03</text>
+    <text x="252" y="382" font-size="17" font-weight="700" letter-spacing="1.5">EMIT_FEEDBACK</text>
+    <text x="252" y="406" font-size="12" letter-spacing="1" opacity="0.52">ERC-8004 record · counterparty reputation update</text>
+  </g>
+
+  <g stroke="#6f4cff" stroke-width="2" opacity="0.7">
+    <path d="M620 182H604"/>
+    <path d="M620 286H604"/>
+    <path d="M620 388H604"/>
+  </g>
+  <g fill="#6f4cff" opacity="0.7">
+    <circle cx="624" cy="182" r="2.5"/>
+    <circle cx="624" cy="286" r="2.5"/>
+    <circle cx="624" cy="388" r="2.5"/>
+  </g>
+  <path d="M624 184V386" stroke="#6f4cff" stroke-width="2" stroke-dasharray="3 5" opacity="0.45"/>
+</svg>

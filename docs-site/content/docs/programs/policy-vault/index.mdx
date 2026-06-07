@@ -1,0 +1,98 @@
+---
+title: PolicyVault
+description: The decision engine — five orthogonal policy kinds composed under one gate_payment instruction with fail-fast semantics.
+---
+
+PolicyVault is the program that turns "should this payment go through?" into a typed `GateDecision`. It reads the payer agent, the payee agent, the policy account, the velocity ledger, the kill switch, the payer's `AtomStats` (ERC-8004), the payee's `AtomStats`, and an optional `ValidationAttestation`, then returns one of three values:
+
+```rust
+pub enum GateDecision {
+    Allow,
+    Deny(DenyReason),
+    RequireValidation([u8; 32]),  // capability_hash
+}
+```
+
+**Testnet:** [`0x34b3bB1a99377128126201359749FE7614275E37`](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37)
+
+## Instructions
+
+| Instruction | Effect |
+|---|---|
+| `init_authority` | Create `PolicyAuthority` contract account with multisig members + threshold |
+| `init_killswitch` | Create `KillSwitchState` contract account (per-agent / per-collection / global) |
+| `init_policy` | Create `PolicyAccount` + `VelocityLedger` for `(agent, policy_id)` |
+| `set_killswitch` | Pause / unpause; multisig-gated against `PolicyAuthority` |
+| `gate_payment` | Lazy decision — returns `Allow` / `Deny(reason)` / `RequireValidation(hash)` |
+| `gate_payment_strict` | Strict variant — returns `Ok(())` iff `Allow`, else `Err`. The SDK's atomic composer uses this. |
+
+The strict variant is the load-bearing one for atomicity. Phase J5 added a Kani proof, `gate_payment_strict_correctness`, that pins `strict_returns_ok_iff_allow` (a biconditional) and `gate_decision_is_one_of_three_disjoint_variants`. A future change that re-routes the `Deny` arm to an `Ok` return fails the proof loud.
+
+## State accounts
+
+| contract account | Seeds | Size | Role |
+|---|---|---:|---|
+| `PolicyAuthority` | `["policy_authority", agent_asset]` | 272 | Multisig members + threshold (1..=7) |
+| `KillSwitchState` | `["killswitch", scope_kind, scope_key]` | 96 | Emergency pause flag + audit trail |
+| `PolicyAccount` | `["policy", agent_asset, policy_id_le]` | 240 | Per-policy config + lazy counters |
+| `VelocityLedger` | `["velocity", agent_asset, policy_id_le]` | 80 | Sliding-window cumulative-spend counter |
+
+Per-program byte layouts live on each policy page (linked below). The full `PolicyAccount` declaration is in [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
+
+## The composer
+
+`gate_payment` is a thin Solidity wrapper around the pure-Rust `compose_decision` function. The wrapper:
+
+1. Snapshots all read accounts into plain Rust structs (`PolicySnapshot`, `VelocityLedgerSnapshot`, `KillSwitchSnapshot`, optional `AtomStatsView` ×2, optional `ValidationAttestationView`).
+2. Calls `compose_decision(input)`.
+3. On `Allow`, applies the returned `SpendingDeltas` and `VelocityDeltas` to `PolicyAccount` and `VelocityLedger` respectively.
+4. On `Deny` or `RequireValidation`, mutates nothing.
+
+Order is fixed and fail-fast:
+
+| # | Policy | Cost | Fails fast on |
+|---:|---|---|---|
+| 1 | [KillSwitch](/programs/policy-vault/kill-switch-policy) | cheapest (one bool) | `paused == true` |
+| 2 | [Spending](/programs/policy-vault/spending-policy) | pure arithmetic | per-tx / daily / weekly limits |
+| 3 | [Velocity](/programs/policy-vault/velocity-policy) | one contract account read | sliding-window cap |
+| 4 | [CounterpartyTier](/programs/policy-vault/counterparty-tier-policy) | two `AtomStats` contract account reads | tier / risk / confidence |
+| 5 | [RequireValidation](/programs/policy-vault/require-validation-policy) | one attestation contract account read | subject / capability / expiry / attestor |
+
+Full composer reference: [Composer](/programs/policy-vault/composer).
+
+## DenyReason codes
+
+`DenyReason` is the enum returned in the `Deny` arm. The Borsh wire format follows declaration order, but clients should consume the stable numeric `code()` instead — it is decoupled from Borsh field order.
+
+| Code | Variant | Originating policy |
+|---:|---|---|
+| 1 | `KillSwitchEngaged` | KillSwitch |
+| 2 | `SpendingPerTxExceeded` | Spending |
+| 3 | `SpendingDailyExceeded` | Spending |
+| 4 | `SpendingWeeklyExceeded` | Spending |
+| 5 | `VelocityWindowExceeded` | Velocity |
+| 6 | `CounterpartyTierBelowMin` | CounterpartyTier |
+| 7 | `CounterpartyRiskAboveMax` | CounterpartyTier |
+| 8 | `CounterpartyConfidenceBelow` | CounterpartyTier |
+| 9 | `AtomStatsWrongOwner` | CounterpartyTier (defensive) |
+| 10 | `AtomStatsSchemaMismatch` | CounterpartyTier (defensive) |
+| 11 | `AttestationMissing` | RequireValidation |
+| 12 | `AttestationExpired` | RequireValidation |
+| 13 | `AttestationRevoked` | RequireValidation |
+| 14 | `AttestationAttestorRejected` | RequireValidation |
+| 15 | `UnratedTreatmentDeny` | CounterpartyTier (Unrated → Deny resolution) |
+
+Full table with remediation hints: [Reference → DenyReason codes](/reference/deny-reason-codes).
+
+## Formal verification
+
+<KaniProofBadge />
+
+Seven Kani harnesses run on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Verification → Kani proofs](/verification/kani-proofs).
+
+## Source
+
+- Program entry: [`programs/policy-vault/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/lib.rs)
+- Composer: [`programs/policy-vault/src/policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
+- DenyReason: [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs)
+- Kani proofs: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs)

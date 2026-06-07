@@ -1,0 +1,14 @@
+{
+  "title": "AgentTrust",
+  "pages": [
+    "index",
+    "getting-started",
+    "architecture",
+    "programs",
+    "sdk",
+    "mcp",
+    "integration-guides",
+    "verification",
+    "reference"
+  ]
+}

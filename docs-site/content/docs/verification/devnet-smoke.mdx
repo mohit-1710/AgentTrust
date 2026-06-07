@@ -1,0 +1,85 @@
+---
+title: Testnet smoke
+description: The the molandak x402 facilitator + AgentTrust atomic-settlement trace on Monad testnet — gate, transfer, emit_feedback in one transaction. Reproducible from a clean checkout.
+---
+
+A real signed USDC transfer flowed through the demo's `/protected` endpoint, completed `gate_payment + transfer + emit_feedback` atomically, and wrote a `FeedbackEmissionLog` contract account on chain. Captured 2026-05-06.
+
+Source script: [`examples/pay-sh-demo/scripts/testnet-smoke.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/scripts/testnet-smoke.ts). Trace JSON: [`examples/pay-sh-demo/testnet-smoke.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/testnet-smoke.json).
+
+## The trace
+
+| Step | Tx |
+|---|---|
+| `emit_feedback` contract account-signed internal call → `agent_registry::give_feedback` → `ReputationRegistry::update_stats` | [`jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag`](https://testnet.monadexplorer.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag) |
+| Signed ERC-20 `transferChecked` (the proof the molandak x402 facilitator's CLI would produce) | [`5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD`](https://testnet.monadexplorer.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD) |
+
+## On-chain artefacts
+
+| Artefact | Address | Notes |
+|---|---|---|
+| `FeedbackEmissionLog` contract account | [`HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3`](https://testnet.monadexplorer.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3) | Owned by trustgate · `score=100` · `is_dispute=0` · slot 460466788 |
+| Tier-3 `agent record` | [`5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y`](https://testnet.monadexplorer.com/address/5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y) | the ERC-8004 payee identity |
+| Tier-3 `reputation record` | [`4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv`](https://testnet.monadexplorer.com/address/4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv) | `tier_immediate=3` after the feedback internal call |
+| Asset (Metaplex Core) | [`C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B`](https://testnet.monadexplorer.com/address/C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B) | ERC-8004 MPL-Core asset |
+| Facilitator authority contract account | [`4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg`](https://testnet.monadexplorer.com/address/4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg) | TrustGate's contract account-signer for the internal call |
+
+## What the trace proves
+
+1. **All three Solidity contracts are executable on testnet.** PolicyVault, TrustGate, and (transitively, since `reputation record` exists for the demo agent) the ERC-8004 agent-registry are reachable from off-chain code.
+2. **The contract account-signed internal call works.** TrustGate's `["trustgate_auth", facilitator]` contract account signed a internal call into the ERC-8004 `give_feedback`. The resulting `reputation record` was bumped — the ERC-8004 reputation surface accepted the feedback.
+3. **Idempotency holds.** The `FeedbackEmissionLog` exists on chain at the predicted contract account seeds `["feedback_log", payment_id_hash]`. A second `emit_feedback` for the same `payment_id_hash` would fail account-already-in-use; retries cannot double-emit.
+4. **The atomic-tx invariant is enforced end to end on testnet.** The SDK's `composeAtomicSettleTx` produces one `Transaction` with three instructions in canonical order; both the gate-mutation and the feedback-emission committed in the same slot.
+
+## Reproduce
+
+From a clean checkout:
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+pnpm install
+
+# 1. publish IDLs (one-time, ~0.03 MON)
+forge verify-contract --chain monad-testnet \
+  --filepath target/idl/trustgate.json 0x8004B663056A597Dffe9eCcC1965A193B7388713
+forge verify-contract --chain monad-testnet \
+  --filepath target/idl/policy_vault.json 0x34b3bB1a99377128126201359749FE7614275E37
+forge verify-contract --chain monad-testnet \
+  --filepath target/idl/validation_registry.json 0x8004Cb1BF31DAf7788923b405b754f57acEB4272
+
+# 2. pre-warm 3 ERC-8004 agents (one-time, ~0.04 MON)
+pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/prewarm-testnet.ts
+
+# 3. run the smoke (~0.03 MON)
+pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/testnet-smoke.ts
+```
+
+The full trace (signatures, contract accounts, slot numbers) lands in `examples/pay-sh-demo/testnet-smoke.json`. Re-running is idempotent — `TrustGateAuthority`, test mint, payer key, and ATAs are reused if present.
+
+## Daily smoke (cron)
+
+[`.github/workflows/daily-testnet-smoke.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/daily-testnet-smoke.yml) runs the same flow on a 24-hour cron. The result is committed back to the repo at [`docs/proofs/smoke-2026-05-06.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/smoke-2026-05-06.md) (template). A failed daily smoke flips a status badge red; a green smoke means testnet, the ERC-8004 programs, and AgentTrust's three programs are all healthy.
+
+## Solidity end-to-end suite
+
+The Solidity TS suite at [`tests/`](https://github.com/agenttrust-labs/agenttrust/tree/main/tests) covers 50 end-to-end cases including the atomic-tx invariant, chained kill-switch atomicity, and full RequireValidation lifecycle. Run via:
+
+```bash
+forge test  --chain monad-testnet
+```
+
+Adversarial-harness coverage: [Adversarial harness](/verification/adversarial-harness).
+
+## Read next
+
+<Cards>
+  <Card title="Chained validation" href="/verification/chained-validation">
+    Four-signature trace through the third ERC-8004 leg.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Why the gate, transfer, and feedback must execute as one Monad tx.
+  </Card>
+  <Card title="Live evidence" href="/verification/live-evidence">
+    Consolidated index across every claim.
+  </Card>
+</Cards>

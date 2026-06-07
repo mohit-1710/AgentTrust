@@ -1,0 +1,31 @@
+---
+title: Verification
+description: Every load-bearing claim in AgentTrust has an independently checkable artifact — a Kani proof, a testnet tx signature, a localnet test, a cron job. This section indexes them.
+---
+
+If you're a judge with five minutes, start with [Live evidence](/verification/live-evidence) — every claim with a clickable Explorer URL.
+
+If you're a developer debugging a specific property, jump straight to the relevant per-claim page below.
+
+## Pages
+
+<Cards>
+  <Card title="Live evidence" href="/verification/live-evidence">
+    Consolidated index — Kani 7/7 + 662 sub-checks, testnet smoke, chained validation, capability namespaces, daily-smoke cron. Every claim with an Explorer URL.
+  </Card>
+  <Card title="Kani proofs" href="/verification/kani-proofs">
+    Seven machine-checked invariants over the pure-Rust composer. Per-harness deep-dive: file path, sub-check count, time, what it proves, what it doesn't.
+  </Card>
+  <Card title="Testnet smoke" href="/verification/testnet-smoke">
+    The the molandak x402 facilitator + AgentTrust atomic-settlement trace on Monad testnet — gate, transfer, emit_feedback internal call, all in one tx, with reproduction commands.
+  </Card>
+  <Card title="Chained validation" href="/verification/chained-validation">
+    The four-signature RequireValidation → respond → Allow trace that proves the third ERC-8004 leg actually closes the loop.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Three layers of proof — compile-time literal-type guard, runtime throw, composer structure — plus the on-chain Kani strict-correctness binding.
+  </Card>
+  <Card title="Adversarial harness" href="/verification/adversarial-harness">
+    Fourteen hostile-scenario assertions in tests/adversarial.spec.ts that exercise the gate against malformed contract accounts, replayed proofs, and corrupted state.
+  </Card>
+</Cards>

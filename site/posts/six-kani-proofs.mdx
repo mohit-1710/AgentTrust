@@ -1,0 +1,78 @@
+---
+title: "Six formally-verified properties that gate AgentTrust payments"
+description: "What 635 sub-checks across six Kani-proven invariants actually guarantee about every gate_payment decision on AgentTrust's PolicyVault."
+date: "2026-05-10"
+author: "Mohit"
+---
+
+An AI agent moving stablecoins under a policy you have not proven safe is a footgun with a network connection. The failure mode that matters is the same on every payment rail. An `Allow` returned when the policy meant `Deny`. The money is already gone by the time anyone notices. Most "safety checks" sitting between an agent and a settlement are integration tests. Tests run on the inputs you remembered to write. Kani runs on every input the type system allows. AgentTrust's PolicyVault ships six invariants, 635 sub-checks total, in about 64 seconds on every PR. That is the unit of trust this post is about.
+
+<StatGrid>
+  <Stat number="6" unit="invariants" label="Each one names a load-bearing property" />
+  <Stat number="635" unit="sub-checks" label="Discharged on every pull request" />
+  <Stat number="~64" unit="seconds" label="Wall time on a single CI runner" />
+</StatGrid>
+
+## What Kani actually does
+
+Kani is a symbolic model checker for Rust. It reads your function, enumerates the state space the function can reach, and either returns a concrete counterexample or proves the property clean. The PolicyVault uses it via [`model-checking/kani`](https://github.com/model-checking/kani). You write a harness that declares the inputs as `kani::any()` and asserts the property at the end. If a single reachable state breaks the assertion, Kani prints the witness with every field value populated. If none does, the property holds for every value the input types admit. That is a stronger claim than any test suite can make.
+
+## The six invariants
+
+| # | Invariant | Sub-checks | Time |
+|---|-----------|-----------:|-----:|
+| 1 | `paused_implies_no_allow` - KillSwitch paused implies never Allow | 126 | 0.20s |
+| 2 | `velocity_counter_le_limit` - Allow preserves cumulative `<=` max | 9 | 0.03s |
+| 3 | `counterparty_tier_monotone` - strict pass implies loose pass | 8 | 0.02s |
+| 4 | `validation_expiry_correct` - expired attestation implies never Allow | 85 | 0.21s |
+| 5 | `multisig_threshold_enforced` - distinct signer count `>=` threshold | 149 | 62.55s |
+| 6 | `gate_payment_strict_correctness` - strict Ok iff Allow plus 3 disjoint variants | 258 | 0.9s |
+
+Together these rows pin one statement. Every `Allow` the gate composer can return passes every binding the active policy declared, and every `Deny` it can return carries a reason code an integrator can route on. Nothing else is reachable. The five policy kinds the composer evaluates are `KillSwitch`, `Spending`, `Velocity`, `CounterpartyTier`, and `RequireValidation`. Each row above either pins a property of one of those kinds or pins the composer that binds them.
+
+## Walking one in detail: `gate_payment_strict_correctness`
+
+Invariant #6 is the headline one. It discharges 258 sub-checks across the strict `Allow` arm and the three disjoint refusal arms. "Strict correctness" means the composer's `Allow` arm is reachable if and only if every active policy kind would individually return `Allow` for the same input. Every `Deny(reason)` carries a reason that maps to exactly one of three disjoint refusal types. A policy violation, a missing validation, or a paused killswitch. No fourth bucket exists, and the proof guarantees the composer cannot invent one. The proof links the composer's return value to the on-chain handler's `RequireKeysEq` constraint, so any future fourth `GateDecision` variant or any re-route of the `Deny` arm to an `Ok` return fails the harness loud. The biconditional is the load-bearing claim. `strict_handler_returns_ok(d)` is true if and only if `d` is `Allow`. That single equivalence is what makes the SDK's atomic settle path safe to bundle. The gate either lets the transfer and feedback emission proceed, or it fails the entire bundled transaction.
+
+The harness lives at `programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`. Its signature is plain Rust.
+
+```rust
+#[kani::proof]
+#[kani::unwind(40)]
+fn strict_returns_ok_iff_allow() {
+    let amount: u64 = kani::any();
+    let now_slot: u64 = kani::any();
+    let unix_ts: i64 = kani::any();
+
+    let input = ComposerInput { /* every field kani::any() */ };
+    let result = compose_decision(input);
+
+    let returns_ok = strict_handler_returns_ok(&result.decision);
+    let is_allow = matches!(result.decision, GateDecision::Allow);
+
+    kani::assert(
+        returns_ok == is_allow,
+        "strict handler returns Ok iff compose_decision returns Allow",
+    );
+}
+```
+
+The companion harness `gate_decision_is_one_of_three_disjoint_variants` asserts the totality and disjointness of `Allow`, `Deny`, and `RequireValidation` in one expression. Add a fourth variant tomorrow and the proof fails before merge. Kani enumerates every reachable assignment of policy state, ledger state, killswitch state, amount, slot, and timestamp, then confirms the assertion on every one. The 258 sub-checks number is Kani's own count of the discrete conditions it discharged.
+
+## How it runs
+
+CI runs all six harnesses on every pull request that touches `programs/policy-vault/src/{policies,proofs,state}/**` or the workspace `Cargo.lock`. The workflow file is [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). One `ubuntu-latest` runner, Kani 0.67.0, about 64 seconds wall time after the cache warms. A failing harness blocks merge. There is no opt-out flag, no manual override, no nightly-only mode. If a PR cannot prove the six properties, it cannot land on `main`. The cache layer keeps the Kani binary and the CBMC sysroot warm across runs, so a typical proof pass costs the time of the model checker itself, not the install dance.
+
+## Why six
+
+Not nine, not three. Each invariant names a load-bearing property of one policy kind, plus the composer correctness that binds them together. `paused_implies_no_allow` is the only property the KillSwitch policy needs to be safe. `velocity_counter_le_limit` is the only one the Velocity policy needs. `counterparty_tier_monotone` is the one the CounterpartyTier policy needs. `validation_expiry_correct` is the one RequireValidation needs. `multisig_threshold_enforced` covers the KillSwitch authority surface. `gate_payment_strict_correctness` proves the composer itself never lies about what its arms mean. Five policy kinds plus one composer equals six.
+
+## What this is not
+
+<Quote attribution="AgentTrust formal verification stance">
+Tests check the inputs you remembered. Kani checks every input the type system allows. The unit of trust shifts.
+</Quote>
+
+<Note>
+Kani proves what you ask it to prove. The six harnesses cover the gate-decision surface of the PolicyVault program deployed at [`0x34b3bB1a99377128126201359749FE7614275E37`](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37). They do not prove the absence of integer overflow elsewhere in the workspace. They do not replace the Solidity TS integration tests that run against live testnet. They do not cover the off-chain facilitator code, the SDK, or the MCP. What they cover is the on-chain decision surface, which is the exact boundary an AI agent's blast radius reduces to once a payment is in flight. For the broader proof set, the adversarial harness, and the testnet smoke runs, read the [Live evidence](https://docs.agenttrust.tech/verification/live-evidence) page.
+</Note>

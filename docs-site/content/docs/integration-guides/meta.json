@@ -1,0 +1,12 @@
+{
+  "title": "Integration guides",
+  "pages": [
+    "pay-sh-adapter",
+    "dexter-adapter",
+    "x402-facilitator",
+    "facilitator-adapters",
+    "capability-namespaces",
+    "custom-attestor"
+  ],
+  "defaultOpen": true
+}

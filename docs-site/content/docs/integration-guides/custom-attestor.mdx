@@ -1,0 +1,176 @@
+---
+title: Custom attestor
+description: Register an AttestorProfile, respond to validation requests, revoke attestations. Full lifecycle with the live four-signature testnet trace.
+---
+
+A custom attestor registers a profile, watches off-chain for validation requests for capabilities it can attest to, signs `respond_to_validation` to write the attestation contract account, and can later revoke any attestation it issued. PolicyVault then reads the resulting contract account at fixed byte offsets.
+
+Source: [`programs/validation-registry/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/validation-registry). Testnet smoke: [`examples/attestor-demo/`](https://github.com/agenttrust-labs/agenttrust/tree/main/examples/attestor-demo).
+
+## Lifecycle
+
+```
+1. register_attestor   → create AttestorProfile contract account
+2. <off-chain>         → discover ValidationRequest events for capabilities you attest to
+3. respond_to_validation → create ValidationAttestation contract account (PolicyVault now reads it)
+4. revoke_validation   → set revoked = true (PolicyVault now denies)
+```
+
+## Step 1 — register the profile
+
+```ts
+import { createWalletClient, http } from "viem";
+import {
+  buildRegisterAttestorIx,
+  loadValidationRegistry,
+  makeProvider,
+  DEFAULT_TESTNET_ADDRESSES,
+} from "@agenttrust-sdk/trustgate";
+
+const attestor = key.fromSecretKey(/* the attestor's signing key */);
+const provider = makeProvider({
+  rpcUrl: "https://testnet-rpc.monad.xyz",
+  wallet: attestor,
+});
+
+const validationRegistry = await loadValidationRegistry(
+  provider,
+  DEFAULT_TESTNET_ADDRESSES.validationRegistry,
+);
+
+const ix = await buildRegisterAttestorIx({
+  program:         validationRegistry,
+  attestor:        attestor.publicKey,
+  displayNameUri:  "https://my-org.example/attestor.json",   // ≤ 100 bytes
+});
+
+const tx = new Transaction().add(ix);
+const sig = await sendAndConfirmTransaction(provider.connection, tx, [attestor]);
+```
+
+Constraints: `display_name_uri.len() <= 100` (`UriTooLong` on overflow). Self-registered (the signer is the attestor). contract account: `["attestor", attestor_pubkey]`. Account size includes counters for total attestations + total revoked, all initialised to zero.
+
+## Step 2 — discover validation requests
+
+`request_validation` emits the `RequestCreated` event. Any off-chain process can subscribe:
+
+```ts
+import { type Address } from "viem";
+
+provider.connection.onLogs(
+  validationRegistry.programId,
+  (logs) => {
+    if (logs.err) return;
+    // Decode logs.logs entries — RequestCreated event has subject_asset,
+    // capability_hash, requester, claim_uri_hash, deadline.
+  },
+  "confirmed",
+);
+```
+
+For production attestors, [Helius webhooks](https://www.helius.dev/docs/webhooks) on the program's events stream is the standard pattern. The contract account itself is just an audit-trail record; attestors don't read it.
+
+## Step 3 — respond with an attestation
+
+After the attestor verifies the off-chain claim (KYC document, audit report, model-card statement, etc.) the attestor signs `respond_to_validation` to write the on-chain attestation:
+
+```ts
+import {
+  buildRespondToValidationIx,
+  computeCapabilityHash,
+} from "@agenttrust-sdk/trustgate";
+
+const subjectAsset       = new PublicKey("…");                    // payee asset
+const capabilityHash     = computeCapabilityHash("kyc.tier-1.v1"); // 32 bytes
+const claimPayloadHash   = sha256(claim_payload_bytes);            // 32 bytes
+const claimUriHash       = sha256(Buffer.from(claim_uri_string)); // 32 bytes
+const expiresAt          = currentSlot + (30n * 24n * 60n * 60n * 2n);  // ~30 days @ 2 slots/sec
+
+const ix = await buildRespondToValidationIx({
+  program:                validationRegistry,
+  payer:                  attestor.publicKey, // attestor pays rent
+  attestor:               attestor.publicKey,
+  subjectAsset,
+  capabilityHash,
+  claimPayloadHash,
+  claimUriHash,
+  expiresAt: Number(expiresAt),
+});
+
+const sig = await sendAndConfirmTransaction(provider.connection, new Transaction().add(ix), [attestor]);
+```
+
+Constraints: `expires_at == 0` (never expires) OR `expires_at > clock.slot` (`ExpiryInPast` otherwise). The `capability_namespace` contract account must already exist (`AccountNotInitialized` if you reference an unregistered capability). The `attestor_profile` contract account must exist (the attestor must have called `register_attestor` first).
+
+contract account: `["attestation", subject_asset, capability_hash, attestor]`. Account size: 290 bytes.
+
+The v1 trust model is "attestor signs the tx" — the Monad tx signature itself authenticates the attestor. The 64-byte `attestor_signature` field on `ValidationAttestation` is reserved for v1.1+ Ed25519 sysvar verification, which adds non-repudiation against future key compromise.
+
+## Step 4 — revoke when needed
+
+```ts
+import { buildRevokeValidationIx } from "@agenttrust-sdk/trustgate";
+
+const revocationReasonHash = sha256(Buffer.from("kyc-document-expired"));
+
+const ix = await buildRevokeValidationIx({
+  program:               validationRegistry,
+  attestor:              attestor.publicKey,
+  subjectAsset,
+  capabilityHash,
+  revocationReasonHash,
+});
+
+await sendAndConfirmTransaction(provider.connection, new Transaction().add(ix), [attestor]);
+```
+
+`revoke_validation` is audit-trail-preserving: it sets `revoked = true`, writes `revoked_at = clock.slot`, and stores the `revocation_reason_hash`. The contract account is not deleted. PolicyVault's `RequireValidation` policy treats `revoked == true` as `Deny(AttestationRevoked)` (DenyReason code 13).
+
+Only the original attestor can revoke an attestation it issued (`UnauthorizedRevoker` otherwise). v1.1+ adds an external-revoke flow with attestor-profile externals counter.
+
+## Live four-signature trace
+
+End-to-end testnet trace, 2026-05-06 — gate denies → request → respond → gate allows:
+
+| Step | Tx |
+|---|---|
+| `gate_payment` (no attestation) → `RequireValidation` | [`3oKW7QugBLJ7…`](https://testnet.monadexplorer.com/tx/3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh) |
+| `request_validation` | [`2KbXYCF67D2f…`](https://testnet.monadexplorer.com/tx/2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF) |
+| `respond_to_validation` (creates attestation) | [`67CzMS9GEt…`](https://testnet.monadexplorer.com/tx/67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp) |
+| `gate_payment` (with attestation) → `Allow` | [`dEXkCEeSn8…`](https://testnet.monadexplorer.com/tx/dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC) |
+
+Resulting `ValidationAttestation` contract account: [`8YKq…xt2q`](https://testnet.monadexplorer.com/address/8YKqxoBaKfQ4VcDNa6dcoMQGevxbRmcr4ENbWcyrJxt2q). Reproduce with `pnpm --filter ./examples/attestor-demo run chained` (~0.012 MON total). Full trace: [Verification → Chained validation](/verification/chained-validation).
+
+## How the gate consumes your attestation
+
+PolicyVault's `RequireValidation` policy reads the `ValidationAttestation` at fixed byte offsets:
+
+| Offset | Width | Field |
+|---:|---:|---|
+| `8` | Pubkey | `subject_asset` |
+| `40` | [u8; 32] | `capability_hash` |
+| `72` | Pubkey | `attestor` |
+| `208` | u64 LE | `expires_at` (0 = never expires) |
+| `216` | bool | `revoked` |
+
+A policy with `accepted_attestors = [your_pubkey, …]` accepts attestations only from your key. Permissionless mode (both `accepted_attestors` slots zero) accepts any attestor's signature for the capability. Full read semantics: [RequireValidation policy](/programs/policy-vault/require-validation-policy).
+
+## Validation against the Kani proof
+
+The `validation_expiry_correct` proof (Kani #4, 85 sub-checks, 0.23 s) pins: an expired attestation cannot produce `Allow` from `require_validation::evaluate`. Even if all other fields match, expiry is the deciding gate.
+
+So if you set `expires_at = currentSlot + 1000` and waited 1000 slots, your attestation goes from `Allow`-capable to `Deny(AttestationExpired)` automatically — no revocation tx required. Plan attestation lifetimes accordingly. Reference: [Verification → Kani proofs](/verification/kani-proofs).
+
+## Read next
+
+<Cards>
+  <Card title="Capability namespaces" href="/integration-guides/capability-namespaces">
+    Register the capability your attestation references.
+  </Card>
+  <Card title="ValidationRegistry" href="/programs/validation-registry">
+    All five instructions, all four contract accounts, byte-precise.
+  </Card>
+  <Card title="Chained validation" href="/verification/chained-validation">
+    The full live four-signature trace with reproduction commands.
+  </Card>
+</Cards>

@@ -1,0 +1,13 @@
+{
+  "title": "Verification",
+  "pages": [
+    "index",
+    "live-evidence",
+    "kani-proofs",
+    "devnet-smoke",
+    "chained-validation",
+    "atomic-tx-invariant",
+    "adversarial-harness"
+  ],
+  "defaultOpen": true
+}

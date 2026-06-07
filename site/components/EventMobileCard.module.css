@@ -1,0 +1,47 @@
+.card {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+
+.link {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  color: inherit;
+}
+
+.content {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.date {
+  margin: 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.location {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.description {
+  margin: 0;
+  color: rgba(10, 10, 10, 0.54);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}

@@ -1,0 +1,107 @@
+---
+title: gatePayment
+description: Read-only policy decision call. Simulates PolicyVault's gate_payment instruction and returns the typed GateDecision union.
+---
+
+`gatePayment()` is the read-only entry point. It builds an Solidity simulation of `gate_payment`, parses the return-data channel into the TypeScript union, and never sends a transaction.
+
+Use it when your facilitator already owns its x402 routing and only needs the AgentTrust decision. For atomic settlement (gate + transfer + feedback in one tx), use [`mountTrustGate`](/sdk/mount-trustgate) or [`composeAtomicSettleTx`](/sdk/exports-reference).
+
+Source: [`trustgate/sdk/src/client.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/client.ts).
+
+## Signature
+
+```ts
+import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+
+export function gatePayment(req: GatePaymentRequest): Promise<GateDecision>;
+```
+
+## `GatePaymentRequest`
+
+```ts
+interface GatePaymentRequest {
+  rpcUrl:          string;
+  caller:          key;     // facilitator key (signs simulate-tx)
+  payerAgentAsset: PublicKey;   // payer's Metaplex Core asset (ERC-8004 agent identity)
+  payeeAgentAsset: PublicKey;   // payee's Metaplex Core asset
+  amount:          bigint | number;  // base units (1_000_000n = 1 USDC at 6 decimals)
+  mint:            PublicKey;   // USDC testnet: 0x534b2f3A21130d7a60830c2Df862319e593943A3
+  policyId:        number;      // PolicyAccount.policy_id (u32)
+  programIds?:     ProgramIds;  // defaults to DEFAULT_TESTNET_ADDRESSES
+}
+```
+
+The `caller` key signs the simulation transaction; the result is never committed, so the key is only used to satisfy the simulate-tx fee-payer. Pass any funded testnet key.
+
+## `GateDecision`
+
+```ts
+type GateDecision =
+  | { kind: "Allow" }
+  | { kind: "Deny";              reasonCode: number; reasonName: string }
+  | { kind: "RequireValidation"; capabilityHash: Uint8Array /* 32 bytes */ };
+```
+
+| Decision | Next step |
+|---|---|
+| `Allow` | Proceed to settlement (build / sign / submit the atomic tx). |
+| `Deny` | Return 402 to the user with `reasonName`. Surface `reasonCode` for machine consumers. |
+| `RequireValidation` | Route the user to the attestation flow for `capabilityHash`. After the attestor responds, re-call `gatePayment` — the gate now sees the new `ValidationAttestation` and flips to `Allow`. |
+
+`reasonCode` is decoupled from Borsh wire-format ordering. Full table: [Reference → DenyReason codes](/reference/deny-reason-codes).
+
+## Example
+
+```ts
+import { type Address } from "viem";
+import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+
+const facilitatorKey = key.fromSecretKey(new Uint8Array(JSON.parse(process.env.FACILITATOR_KEY!)));
+
+const decision = await gatePayment({
+  rpcUrl:          "https://testnet-rpc.monad.xyz",
+  caller:          facilitatorKey,
+  payerAgentAsset: new PublicKey("5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y"),
+  payeeAgentAsset: new PublicKey("5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y"),
+  amount:          1_000_000n,                                                 // 1 USDC
+  mint:            new PublicKey("0x534b2f3A21130d7a60830c2Df862319e593943A3"),
+  policyId:        1,
+});
+
+switch (decision.kind) {
+  case "Allow":
+    console.log("gate=Allow — proceed to settle");
+    break;
+  case "Deny":
+    console.log(`gate=Deny ${decision.reasonCode} (${decision.reasonName})`);
+    break;
+  case "RequireValidation":
+    const hex = Buffer.from(decision.capabilityHash).toString("hex");
+    console.log(`gate=RequireValidation capability=${hex}`);
+    break;
+}
+```
+
+## Implementation note — return-data channel
+
+PolicyVault's `gate_payment` (lazy variant) returns the decision via Solidity's `set_return_data` so simulation can decode it. The strict variant — used by [`composeAtomicSettleTx`](/sdk/exports-reference) — instead returns `Err` on non-`Allow`, which is what makes the atomic tx revert as a unit.
+
+`gatePayment()` simulates the lazy variant and parses the return-data via `parseGateDecision`. The wire format is documented in [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs).
+
+## Errors
+
+| Error | Cause |
+|---|---|
+| `AccountNotFound` | `PolicyAccount` contract account missing for `(payerAgentAsset, policyId)` — call `init_policy` first. |
+| `RPC error: insufficient funds` | `caller` key has zero MON. Fund via `the Monad testnet faucet`. |
+| `AbiNotFound` | Program IDL not yet published on the cluster. Run `forge verify-contract <programId>`. |
+
+For the atomic-settle path (which can also return `AtomicityNotEnforcedError`), see [`composeAtomicSettleTx`](/sdk/exports-reference).
+
+## Source
+
+- Client: [`trustgate/sdk/src/client.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/client.ts)
+- Simulation: [`trustgate/sdk/src/chain.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/chain.ts) (`simulateGatePayment`, `parseGateDecision`)
+- Types: [`trustgate/sdk/src/types.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/types.ts)
+- Tests: [`trustgate/sdk/test/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/sdk/test)

@@ -1,0 +1,109 @@
+---
+title: Byte-offset reference
+description: Fixed offsets used by AgentTrust's manual byte-offset readers — ERC-8004 AtomStats and AgentTrust ValidationAttestation.
+---
+
+PolicyVault reads two foreign contract accounts through byte-precise parsers rather than Borsh deserialization. Schema-version canaries fail loud rather than silently misread fields if the upstream layout changes.
+
+Sources: [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs), [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
+
+## ERC-8004 `AtomStats` (561 bytes)
+
+Pinned to commit `bfb09ad`. Account-data-relative offsets — the 8-byte Borsh discriminator at `0..8` is verified via owner check, not by re-parsing.
+
+| Offset | Width | Field | Notes |
+|---:|---:|---|---|
+| `549` | u8 | `risk_score` | 0..=255 — lower is better |
+| `551` | u8 | `tier_immediate` | 0..=4 — v1 demo default; what `CounterpartyTier` reads in `GATE_MODE_IMMEDIATE` |
+| `555` | u8 | `tier_confirmed` | 0..=4 — post-vesting; production policies prefer this via `GATE_MODE_CONFIRMED` |
+| `557` | u16 LE | `confidence` | 0..=10000 (basis points) |
+| `560` | u8 | `schema_version` | **canary** — must equal 1; mismatch → `Deny(AtomStatsSchemaMismatch)` |
+
+Constants:
+
+| Symbol | Value |
+|---|---:|
+| `ATOM_STATS_SIZE` | 561 |
+| `ATOM_TIER_MAX` | 4 |
+| `ATOM_STATS_SCHEMA_VERSION_EXPECTED` | 1 |
+| `ATOM_ENGINE_ID` (testnet) | `AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF` |
+| `ATOM_ENGINE_ID` (mainnet) | `AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb` |
+
+A tier byte above `ATOM_TIER_MAX` with `schema_version == 1` implies tampering or an undeclared spec change — the parser fails with `AtomStatsSchemaMismatch` rather than silently clamp.
+
+## AgentTrust `ValidationAttestation` (290 bytes)
+
+Account-data-relative offsets. Field declaration order is **load-bearing** — reordering fields silently breaks PolicyVault's reads.
+
+| Offset | Width | Field | Notes |
+|---:|---:|---|---|
+| `8` | Pubkey | `subject_asset` | The payee this attestation is about |
+| `40` | [u8; 32] | `capability_hash` | SHA-256 of the namespace name |
+| `72` | Pubkey | `attestor` | The key that signed `respond_to_validation` |
+| `104` | [u8; 32] | `claim_payload_hash` | not read by v1 policy |
+| `136` | [u8; 64] | `attestor_signature` | reserved for v1.1+ Ed25519 sysvar verify |
+| `200` | u64 LE | `issued_at` | not read by v1 policy |
+| `208` | u64 LE | `expires_at` | 0 = never expires |
+| `216` | bool | `revoked` | `revoked == true` → `Deny(AttestationRevoked)` |
+| `217` | u64 LE | `revoked_at` | not read by v1 policy |
+| `225` | [u8; 32] | `revocation_reason_hash` | not read by v1 policy |
+| `257` | [u8; 32] | `claim_uri_hash` | not read by v1 policy |
+| `289` | u8 | `bump` | not read by v1 policy |
+
+Constants:
+
+| Symbol | Value |
+|---|---:|
+| `VALIDATION_ATTESTATION_SIZE` | 290 |
+| `VA_SUBJECT_ASSET_OFFSET` | 8 |
+| `VA_CAPABILITY_HASH_OFFSET` | 40 |
+| `VA_ATTESTOR_OFFSET` | 72 |
+| `VA_EXPIRES_AT_OFFSET` | 208 |
+| `VA_REVOKED_OFFSET` | 216 |
+| `VALIDATION_REGISTRY_ID` (testnet) | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` |
+
+## AgentTrust `PolicyAccount` (240 bytes — own program)
+
+PolicyVault's own state. Field offsets matter for the playbook contract; readers (the composer, the SDK's `parseGateDecision`) use the Solidity-generated decoder rather than byte offsets, but the layout is documented for downstream tooling.
+
+| Offset | Width | Field |
+|---:|---:|---|
+| `8` | Pubkey | `payer_agent_asset` |
+| `40` | u32 | `policy_id` |
+| `44` | u8 | `bump` |
+| `48` | u8 | `enabled_kinds_bitmask` |
+| `49` | u8 | `gate_mode` |
+| `50` | u64 | `spending_per_tx_max` |
+| `58` | u64 | `spending_daily_max` |
+| `66` | u64 | `spending_weekly_max` |
+| `74` | u64 | `spending_today_used` |
+| `82` | u64 | `spending_week_used` |
+| `90` | u64 | `spending_today_anchor` |
+| `98` | u64 | `spending_week_anchor` |
+| `106` | u64 | `velocity_window_secs` |
+| `114` | u64 | `velocity_max_in_window` |
+| `122` | u64 | `velocity_tier0_decay_factor` |
+| `130` | u8 | `min_counterparty_tier` |
+| `131` | u8 | `max_risk_score` |
+| `132` | u16 | `min_confidence` |
+| `134` | u8 | `default_unrated_treatment` |
+| `135` | [u8; 32] | `required_capability_hash` |
+| `167` | [Pubkey; 2] | `accepted_attestors` |
+| `231` | u8 | `scope_kind` |
+| `232` | [u8; 8] | `_reserved` |
+
+Source: [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
+
+## Read next
+
+<Cards>
+  <Card title="Discriminator constants" href="/reference/discriminator-constants">
+    ERC-8004 give_feedback discriminator + AgentTrust contract account seed prefixes.
+  </Card>
+  <Card title="CounterpartyTier policy" href="/programs/policy-vault/counterparty-tier-policy">
+    What the AtomStats reader feeds into.
+  </Card>
+  <Card title="RequireValidation policy" href="/programs/policy-vault/require-validation-policy">
+    What the ValidationAttestation reader feeds into.
+  </Card>
+</Cards>

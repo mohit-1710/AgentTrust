@@ -1,0 +1,85 @@
+---
+title: Mainnet contract addresses
+description: AgentTrust's mainnet deployment posture and the ERC-8004 registries PolicyVault reads from on Monad.
+---
+
+AgentTrust's contracts are deployed on Monad **testnet** for v1 (the Blitz 2026 build). Mainnet deployment is post-hackathon. PolicyVault reads the ERC-8004 registries on-chain.
+
+## ERC-8004 registries
+
+On Monad testnet the ERC-8004 registries are pinned at:
+
+| Contract | Testnet address |
+|---|---|
+| `IdentityRegistry` | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
+| `ReputationRegistry` | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
+| `ValidationRegistry` | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` |
+
+ERC-8004 is a public standard. AgentTrust reads these registries directly; the addresses above are the canonical testnet deployment.
+
+## TypeScript constants
+
+```ts
+import { ERC8004_ADDRESSES } from "@agenttrust-sdk/trustgate";
+
+ERC8004_ADDRESSES.identityRegistry;   // Address
+ERC8004_ADDRESSES.reputationRegistry; // Address
+ERC8004_ADDRESSES.validationRegistry; // Address
+```
+
+Source: [`trustgate/sdk/src/erc8004.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/erc8004.ts).
+
+## AgentTrust mainnet posture
+
+The AgentTrust contracts target a mainnet redeploy as a post-hackathon deliverable. The SDK's address config already accepts mainnet overrides — the SDK is mainnet-ready; the contracts aren't deployed there yet.
+
+Override the contract addresses for a mainnet redeploy:
+
+```ts
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+await mountTrustGate(app, {
+  rpcUrl:             "https://rpc.monad.xyz",
+  facilitatorKey:     /* … */,
+  addresses: {
+    policyVault:        "<your mainnet PolicyVault>",
+    trustGate:          "<your mainnet x402 server>",
+    validationRegistry: "<your mainnet ValidationRegistry>",
+  },
+  network:            "monad-mainnet",
+  atomicityEnforced:  true,
+});
+```
+
+The contract bytecode is the same across networks; only the deploy target changes.
+
+## Verifying a deployment
+
+```bash
+cast code 0x8004A818BFB912233c491871b3d84c89A494BD9e --rpc-url https://testnet-rpc.monad.xyz
+cast code 0x8004B663056A597Dffe9eCcC1965A193B7388713 --rpc-url https://testnet-rpc.monad.xyz
+```
+
+## Local fork testing
+
+For local testing, fork Monad testnet so the ERC-8004 registries are available without live RPC dependencies:
+
+```bash
+anvil --fork-url https://testnet-rpc.monad.xyz
+```
+
+`forge test --fork-url https://testnet-rpc.monad.xyz` then exercises the full flow against real ERC-8004 state.
+
+## Read next
+
+<Cards>
+  <Card title="Testnet contract addresses" href="/reference/devnet-program-ids">
+    Deployed AgentTrust + ERC-8004 addresses on testnet.
+  </Card>
+  <Card title="ERC-8004 agent registry" href="/reference/quantu-agent-registry">
+    The registry surface PolicyVault + the x402 server consume.
+  </Card>
+  <Card title="Byte-offset reference" href="/reference/byte-offset-reference">
+    The reputation reads PolicyVault performs.
+  </Card>
+</Cards>

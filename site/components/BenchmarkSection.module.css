@@ -1,0 +1,135 @@
+.section {
+  width: 100%;
+  scroll-margin-top: 116px;
+  background: var(--bg);
+}
+
+.shell {
+  max-width: 1920px;
+  padding: 0 20px;
+  margin: 0 auto;
+}
+
+.spacer {
+  height: 48px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.statement {
+  position: relative;
+  display: grid;
+  min-height: 424px;
+  overflow: hidden;
+  place-items: center;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.heading {
+  max-width: 13.5ch;
+  margin: 0;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: clamp(2.6rem, 3.45vw, 4rem);
+  font-weight: 560;
+  line-height: 1;
+  color: var(--ink);
+  text-align: center;
+  letter-spacing: -0.05em;
+  will-change: transform;
+}
+
+.headingMask {
+  display: block;
+  overflow: clip;
+}
+
+.headingLine {
+  display: block;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: var(--ink);
+  border-style: solid;
+  transform-origin: center;
+  will-change: opacity, transform;
+}
+
+.top-left {
+  top: 109px;
+  left: 19%;
+  border-width: 2px 0 0 2px;
+}
+
+.top-right {
+  top: 109px;
+  right: 19%;
+  border-width: 2px 2px 0 0;
+}
+
+.bottom-left {
+  bottom: 109px;
+  left: 19%;
+  border-width: 0 0 2px 2px;
+}
+
+.bottom-right {
+  right: 19%;
+  bottom: 109px;
+  border-width: 0 2px 2px 0;
+}
+
+@media (min-width: 940px) {
+  .section {
+    scroll-margin-top: 56px;
+  }
+
+  .shell {
+    padding: 0 40px;
+  }
+
+  .spacer {
+    height: 80px;
+  }
+}
+
+@media (max-width: 639px) {
+  .shell {
+    padding: 0 20px;
+  }
+
+  .statement {
+    min-height: 320px;
+  }
+
+  .heading {
+    font-size: clamp(2.15rem, 9.7vw, 2.4rem);
+    letter-spacing: -0.055em;
+  }
+
+  .top-left,
+  .top-right {
+    top: 94px;
+  }
+
+  .bottom-left,
+  .bottom-right {
+    bottom: 94px;
+  }
+
+  .top-left,
+  .bottom-left {
+    left: 4%;
+  }
+
+  .top-right,
+  .bottom-right {
+    right: 4%;
+  }
+}

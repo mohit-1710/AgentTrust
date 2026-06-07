@@ -1,0 +1,96 @@
+---
+title: "AI agents are about to start paying each other on Monad"
+description: "Agent-to-agent commerce is here and today's stack has no on-chain trust layer. AgentTrust ships that layer on Monad with three Solidity contracts."
+date: "2026-05-18"
+author: "Mohit"
+---
+
+An AI agent calls another agent's API. It pays $0.42 in USDC. The payment goes through. The recipient is on a sanctions list the calling agent never knew about. The transaction settles. The dollar is gone. No identity check. No reputation read. No capability gate. That is the gap. Today's agent stack has no on-chain trust layer.
+
+<Quote attribution="AgentTrust thesis, May 18 2026">
+Agents are about to start paying each other. Your trust stack should be on chain.
+</Quote>
+
+## The trillion-dollar trust gap
+
+Stripe moves close to a trillion dollars a year between humans. KYC checks, fraud teams, ML scoring, chargeback flows, regulatory filings. None of that scaffolding exists for agents. The hosted-MCP wave from Anthropic, OpenAI, and every framework around them ships a signer to the operator. That is a security model dressed up as DX. The operator owns every contract record every user creates and the user has no recourse if the operator's signer is compromised or rotated without notice.
+
+Agent payments are different from human payments in one structural way. There is no human in the loop to escalate to. A confused human can pause and call their bank. A confused agent fires the transaction and moves on to the next prompt. The decision has to be settled before the bytes leave the host. Async review does not work when the agent has already paid and the API has already returned the gated resource.
+
+Prompt-time guardrails do not survive contact with adversarial input. A jailbreak, a tool-poisoning attack, a context that smuggles a payment instruction past the system prompt, an MCP server that returns a malicious description on its second call. All of these route around the agent's reasoning surface. The chain is the only surface where the rules cannot be argued with. A policy that lives in a contract record, signed by an authority you control, cannot be talked out of refusing a payment.
+
+<DataPanel label="What today's stack ships">
+  <DataRow label="Identity">None on-chain. Prompt context only.</DataRow>
+  <DataRow label="Reputation">None on-chain. Per-tool tier counters at best.</DataRow>
+  <DataRow label="Capability">None on-chain. Whatever the receiver advertises.</DataRow>
+  <DataRow label="Decision">The prompt was convincing.</DataRow>
+</DataPanel>
+
+## What a trust layer needs
+
+Three orthogonal axes. Identity is who is signing. Reputation is what they have done before and how it went. Capability is whether they are authorized to receive this specific kind of payment. These are the three legs of ERC-8004, the emerging trust standard for autonomous agents.
+
+Identity and Reputation live natively on Monad as ERC-8004 contracts. The `IdentityRegistry` and `ReputationRegistry` ship the first two legs as composable Solidity contracts with stable addresses. The third leg, `ValidationRegistry`, completes the standard. AgentTrust binds all three into the payment path with a typed SDK, a hosted MCP, and Kani-verified gate properties.
+
+The three legs are independent. An agent can have a strong identity and zero reputation. A long reputation history and a fresh capability claim. The trust layer composes them at gate time, not at registration time. A payment is gated by the policy the agent's authority signed, against the counterparty's live on-chain state, in one atomic instruction. The composer reads from all three registries in the same transaction that moves value, so the decision and the settlement share a slot and a signature.
+
+Composing means PolicyVault evaluates the five active policy kinds against the counterparty's identity, the counterparty's reputation tier, and any active validation attestations. If every active policy returns Allow, the gate returns Allow. If any active policy returns Deny, the gate returns Deny with a reason code an integrator can route on. The three-disjoint-variants property is one of the seven Kani-proven invariants.
+
+<PillarGrid>
+  <Pillar icon="signature" title="Identity" body="Who is signing this transaction. Resolved against the ERC-8004 IdentityRegistry before value moves." />
+  <Pillar icon="graph" title="Reputation" body="What the counterparty has done before, what tier the chain assigns them, how confident the score is. Read from the ERC-8004 ReputationRegistry." />
+  <Pillar icon="key" title="Capability" body="Whether the recipient is authorized for this specific kind of payment. Held in the third ERC-8004 leg, ValidationRegistry." />
+</PillarGrid>
+
+## Why Monad
+
+Two reasons. First, ERC-8004 lives natively on Monad. Identity, reputation, and validation are standard contracts, so composing identity plus policy plus feedback into one atomic transaction is straightforward. AgentTrust ships exactly that. A single `init_policy` call configures a fresh wallet to a fully functional agent identity in one signature. Read [/blog/bootstrap-an-agent-in-one-tx](/blog/bootstrap-an-agent-in-one-tx) for the byte-level trace.
+
+Second, the x402 facilitator from molandak runs on Monad testnet. AgentTrust ships an x402 adapter. The settlement rail and the trust layer arrive together. Anyone building agent payments on Monad can mount the SDK in five lines, point it at the facilitator, and gate every `/verify` call against an on-chain policy the agent's authority signed.
+
+The combination is what makes the bet specific. Monad runs ERC-8004 natively and has a live x402 rail through the molandak facilitator. AgentTrust binds the chain-level trust primitives to the rail that moves stablecoins. The result is a single signed transaction that gates, settles, and emits feedback. No off-chain coordinator. No multi-step retry script. No operator-owned signer.
+
+<StatGrid>
+  <Stat number="7 / 7" unit="kani" label="Formally-verified gate properties, 662 sub-checks per PR" />
+  <Stat number="1" unit="atomic tx" label="Identity, policy, kill-switch, and ledger in one signature" />
+  <Stat number="x402" unit="adapter" label="The molandak x402 facilitator on Monad testnet" />
+</StatGrid>
+
+## What's live today
+
+PolicyVault plus the ERC-8004 registries deployed on Monad testnet. PolicyVault is the decision engine, with five composable policy kinds. KillSwitch, Spending, Velocity, CounterpartyTier, RequireValidation. The x402 server is the facilitator-side component with the atomic-settle path that bundles gate, transfer, and feedback emission into one transaction. ValidationRegistry holds the third ERC-8004 leg as an on-chain attestation surface with per-policy `accepted_attestors[]` filters.
+
+The SDK is on npm. The MCP server is on npm and live at `mcp.agenttrust.tech`. The hosted MCP is read-only by design. Thirteen tools, no shared signer. Your key stays on your machine and you own every contract record you create. The full surface comparison lives at [/quickstart#two-mcp-surfaces](/quickstart#two-mcp-surfaces). Seven Kani-verified properties gate every payment decision. Read [/blog/six-kani-proofs](/blog/six-kani-proofs) for what the proofs actually cover.
+
+The demo runs a live x402 round-trip on Monad testnet. A test client agent calls a gated endpoint, the facilitator hits `/verify` against the AgentTrust gate, the gate evaluates the policy, returns the decision, and the round-trip lands a settled transaction on Explorer. The whole loop runs in under three seconds at 402 Payment Required to 200 OK. The code is open and the contract addresses are public, so any reader can verify the trace from their own machine.
+
+<DataPanel label="What ships today">
+  <DataRow label="SDK">[`@agenttrust-sdk/trustgate` on npm](https://www.npmjs.com/package/@agenttrust-sdk/trustgate)</DataRow>
+  <DataRow label="MCP">[`@agenttrust-sdk/mcp` on npm](https://www.npmjs.com/package/@agenttrust-sdk/mcp), live at [mcp.agenttrust.tech](https://mcp.agenttrust.tech)</DataRow>
+  <DataRow label="Contracts">Monad testnet, [agenttrust-labs/agenttrust on GitHub](https://github.com/agenttrust-labs/agenttrust)</DataRow>
+  <DataRow label="Demo">Live x402 round-trip at [demo.agenttrust.tech](https://demo.agenttrust.tech)</DataRow>
+  <DataRow label="Proofs">Seven Kani-verified invariants, [run on every PR](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml)</DataRow>
+  <DataRow label="License">MIT</DataRow>
+</DataPanel>
+
+The contracts compose. Read [/architecture](/architecture) for the full diagram of how the x402 server, PolicyVault, and the ERC-8004 registries route a single `gate_and_settle` call.
+
+## What's next
+
+Mainnet deploy is queued. More facilitator adapters land next, alongside whatever x402 entrant ships after them. The shape of each adapter is small. About 150 lines, one config object, one `/verify` shim that maps the facilitator's payload onto the gate input. A wallet relay for hosted writes is on the v1.x roadmap so cloud agents can sign without ceding identity to the operator.
+
+ValidationRegistry coverage expands next. KYC, AML, and capability claims that integrators downstream-filter via per-policy `accepted_attestors[]` arrays. The registry is open. Anyone can register as an attestor. Integrators choose which attestors they trust per policy, and the gate enforces the choice on chain.
+
+<Quote attribution="Mohit, AgentTrust">
+Agent payments are arriving on Monad. The trust stack has to be on chain. I am shipping it.
+</Quote>
+
+Install the MCP and try it.
+
+- [GitHub](https://github.com/agenttrust-labs/agenttrust)
+- [Docs](https://docs.agenttrust.tech)
+- [Hosted MCP](https://mcp.agenttrust.tech)
+
+```bash
+npx -y @agenttrust-sdk/mcp@latest
+```

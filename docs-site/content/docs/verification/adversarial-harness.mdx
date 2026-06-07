@@ -1,0 +1,88 @@
+---
+title: Adversarial harness
+description: Fourteen hostile-scenario assertions that exercise the gate against malformed contract accounts, replayed proofs, and corrupted state.
+---
+
+The adversarial harness sits alongside the Solidity end-to-end suite. While the e2e tests cover the happy + edge paths a normal integration would hit, the adversarial harness exercises the failure modes a hostile caller would try.
+
+Source: [`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts). Run via `forge test  --chain anvil`.
+
+## The fourteen scenarios
+
+Each scenario constructs a hostile input and asserts the program rejects it with a typed error rather than producing an `Allow` or silently mutating state.
+
+| # | Scenario | Expected behaviour |
+|---:|---|---|
+| 1 | Forged `AtomStats` — wrong owner program | `Deny(AtomStatsWrongOwner)` (code 9) |
+| 2 | Forged `AtomStats` — schema-version canary mismatch | `Deny(AtomStatsSchemaMismatch)` (code 10) |
+| 3 | Forged `AtomStats` — tier byte > `ATOM_TIER_MAX = 4` | `Deny(AtomStatsSchemaMismatch)` (code 10) |
+| 4 | Forged `AtomStats` — undersized buffer | `Deny(AtomStatsSchemaMismatch)` (code 10) |
+| 5 | Replayed `payment_id_hash` | `account-already-in-use` on `FeedbackEmissionLog` init; whole tx reverts |
+| 6 | Self-pay attempt — facilitator signing as both payer and payee | `Deny` from facilitator-signer-mismatch check |
+| 7 | Wrong attestor — attestation issued by a key not in `accepted_attestors[]` | `Deny(AttestationAttestorRejected)` (code 14) |
+| 8 | Stale attestation — `expires_at <= now_slot` (and != 0) | `Deny(AttestationExpired)` (code 12) |
+| 9 | Revoked attestation — `revoked == true` | `Deny(AttestationRevoked)` (code 13) |
+| 10 | Wrong subject — attestation's `subject_asset` doesn't match the payee | `Deny(AttestationMissing)` (code 11) |
+| 11 | Wrong capability — attestation's `capability_hash` doesn't match `required_capability_hash` | `Deny(AttestationMissing)` (code 11) |
+| 12 | Multisig threshold bypass attempt — fewer distinct signers than `threshold` | `ThresholdNotMet` (Solidity error) |
+| 13 | Multisig duplicate-signer attempt — same key signing twice | counted as one (pubkey-dedup); `ThresholdNotMet` if remaining distinct count is below threshold |
+| 14 | Velocity counter manipulation — `now_slot < window_start_slot` (clock-skew or replay) | `saturating_sub` clamps elapsed to 0; window NOT expired; cumulative correctly preserved |
+
+## What the harness covers that Kani doesn't
+
+Kani's bounded model checker proves the pure-Rust composer's safety invariants over symbolic state. The adversarial harness covers the on-chain Solidity wrapper that Kani doesn't:
+
+- account-validation checks (owner mismatch, size mismatch, schema-version canary)
+- the `init`-only `FeedbackEmissionLog` + replay mechanism (Solidity's `account-already-in-use` semantics)
+- the Solidity-handler's signer constraints (facilitator self-pay, attestor key validation)
+- end-to-end on-chain tx behaviour the bounded composer can't see (idempotency, atomic revert)
+
+The two together cover both the in-program decision logic (Kani) and the surrounding Solidity wrapper (adversarial harness). Either alone leaves gaps.
+
+## Why localnet, not testnet
+
+Adversarial scenarios sometimes require constructing accounts the real ERC-8004 programs would never produce (forged `AtomStats` with bad schema versions, forged `ValidationAttestation` contract accounts with wrong owner). On localnet, the test fixture writes those raw bytes directly. On testnet, the only way to construct such an account is to compromise the real program — which we obviously can't do in CI.
+
+Localnet also produces deterministic timing for slot-based assertions (clock-skew test #14). Testnet cluster-time variance would make that test flaky.
+
+## Reproduce
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+pnpm install
+forge build
+forge test --chain anvil  \
+  --grep "adversarial"
+```
+
+Expected: 14 / 14 passing in ~30 s.
+
+## Where it complements other layers
+
+- **PolicyVault unit tests (113 cases).** Cover normal paths through every policy module.
+- **Solidity TS e2e suite (50 cases).** Cover the Solidity wrapper happy paths against real (or cloned) ERC-8004 state.
+- **Kani proofs (7 / 662 sub-checks).** Cover the pure-Rust composer's safety invariants over symbolic state.
+- **Adversarial harness (14 cases).** Cover the failure modes a hostile caller would try.
+- **MCP protocol conformance (21 cases).** Cover the MCP wire protocol shape.
+- **Adapter contract conformance (per-adapter test suites).** Cover the `FacilitatorAdapter` contract.
+
+The combination — 113 + 50 + 662 sub-checks + 14 + 21 + per-adapter — is what underwrites the v1 safety claim.
+
+## Source
+
+- Test file: [`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts)
+- Helper fixtures: [`tests/helpers/`](https://github.com/agenttrust-labs/agenttrust/tree/main/tests/helpers)
+
+## Read next
+
+<Cards>
+  <Card title="Kani proofs" href="/verification/kani-proofs">
+    The other side of the invariant proof — pure-Rust over symbolic state.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    The biggest scenario the harness covers — split-tx state corruption.
+  </Card>
+  <Card title="DenyReason codes" href="/reference/deny-reason-codes">
+    The 15 reason codes the harness asserts against.
+  </Card>
+</Cards>

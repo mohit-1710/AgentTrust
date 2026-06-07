@@ -1,0 +1,72 @@
+---
+title: KillSwitch policy
+description: First in the composer — a multisig-controlled emergency pause that blocks any Allow when paused.
+---
+
+KillSwitch is the cheapest policy and runs first. When the agent's `KillSwitchState.paused == true`, the composer returns `Deny(KillSwitchEngaged)` immediately — no other policy or foreign-contract account read costs are paid.
+
+Source: [`programs/policy-vault/src/policies/killswitch.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/killswitch.rs).
+
+## State
+
+```rust
+#[account]
+pub struct KillSwitchState {
+    pub scope_kind: u8,        // off  8 — Global / PerCollection / PerAgent
+    pub bump: u8,              // off  9
+    pub paused: bool,          // off 10 — the bit
+    pub _pad0: u8,             // off 11
+    pub _pad1: [u8; 4],        // off 12..16
+    pub scope_key: [u8; 32],   // off 16..48 — zeros for Global
+    pub paused_at_slot: u64,   // off 48..56
+    pub unpaused_at_slot: u64, // off 56..64
+    pub paused_by: Pubkey,     // off 64..96
+}
+```
+
+contract account seeds: `["killswitch", &[scope_kind], scope_key]`. Three scope kinds — global, per-collection, per-agent — all share the same struct.
+
+## Mutation — `set_killswitch`
+
+The pause flag flips through the `set_killswitch` instruction, which is multisig-gated against the agent's `PolicyAuthority`. The Solidity handler checks:
+
+```rust
+let distinct = authority.count_distinct_signing_members(&signer_keys);
+require!(
+    distinct >= authority.threshold,
+    PolicyVaultError::ThresholdNotMet,
+);
+```
+
+`count_distinct_signing_members` is pubkey-based: a single signer signing twice counts as one. Even if `PolicyAuthority.members` somehow contained duplicates (the `init_authority` constraint rejects this, but defense in depth), the count cannot exceed `min(member_count, signer_keys.len())`. That is the load-bearing property of `multisig_threshold_enforced` (Kani #5, 149 sub-checks, 77.17 s).
+
+`PolicyAuthority` carries up to 7 members + a `threshold` (default 2). Source: [`programs/policy-vault/src/state/policy_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_authority.rs).
+
+## Pure decision function
+
+```rust
+pub fn evaluate(state: KillSwitchSnapshot) -> Option<DenyReason> {
+    if state.paused {
+        Some(DenyReason::KillSwitchEngaged)
+    } else {
+        None
+    }
+}
+```
+
+`Some(KillSwitchEngaged)` short-circuits the composer to `GateDecision::Deny(KillSwitchEngaged)` (DenyReason code `1`).
+
+## Formal verification
+
+`paused_implies_no_allow` (Kani #1, 126 sub-checks, 0.25 s) — if the agent's KillSwitch is `paused == true` AND `KIND_KILLSWITCH` is set in the policy bitmask, `compose_decision` cannot return `Allow` for any values of the other policy fields, ledger, or input parameters. The load-bearing safety invariant of the gate.
+
+If a future change re-orders or skips KillSwitch evaluation, this proof fails loud. Reference: [Verification → Kani proofs](/verification/kani-proofs).
+
+## Source
+
+- Policy module: [`policies/killswitch.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/killswitch.rs)
+- State: [`state/kill_switch_state.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/kill_switch_state.rs)
+- Mutation: [`instructions/set_killswitch.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/set_killswitch.rs)
+- Authority: [`state/policy_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_authority.rs)
+- Kani proof: [`proofs/inv_paused_implies_no_allow.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs)
+- Multisig Kani proof: [`proofs/inv_multisig_threshold_enforced.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_multisig_threshold_enforced.rs)

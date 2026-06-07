@@ -1,0 +1,110 @@
+---
+title: x402 facilitator (generic)
+description: Add AgentTrust decisions to any x402 facilitator without coupling to one vendor.
+---
+
+If you already accept x402 payment requests and want AgentTrust decisions before settlement, this is the guide. Generic shape — facilitator-specific quirks live in the adapter, not in the route layer.
+
+If you're using the molandak x402 facilitator, [start there](/integration-guides/pay-sh-adapter). If you're adding a new facilitator from scratch, [start with the adapter contract](/integration-guides/facilitator-adapters).
+
+## Integration points
+
+| Step | Facilitator action | AgentTrust call |
+|---|---|---|
+| 1 | receive x402 request or retry proof | `FacilitatorAdapter.parseRequest` |
+| 2 | translate into payer, payee, mint, amount, policy ID | `VerifyContext` |
+| 3 | check policy | `gate_payment` simulation or [`gatePayment()`](/sdk/gate-payment) |
+| 4 | return x402 denial or validation need | `adapter.formatChallenge` |
+| 5 | settle payment | one signed transaction (gate + transfer + feedback) |
+| 6 | emit feedback | `adapter.emitFeedback` |
+
+## Minimal Express mount
+
+The published SDK is the easy path:
+
+```ts
+import express from "express";
+import { privateKeyToAccount } from "viem/accounts";
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+const app = express();
+app.use(express.json());
+
+await mountTrustGate(app, {
+  rpcUrl:             process.env.MONAD_RPC_URL!,
+  facilitatorKeypair: key.fromSecretKey(/* facilitator key */),
+  defaultPolicyId:    1,
+  network:            "Monad-testnet",
+  atomicityEnforced:  true,
+});
+```
+
+Routes added: `POST /verify`, `POST /settle`, `POST /dispute`, `GET /receipt/:hash`. Full reference: [SDK → mountTrustGate](/sdk/mount-trustgate).
+
+## Verify request shape
+
+```http
+POST /verify
+Content-Type: application/json
+
+{
+  "payerAgentAsset": "<base58 pubkey>",
+  "payeeAgentAsset": "<base58 pubkey>",
+  "amount":          "1000000",
+  "mint":            "0x534b2f3A21130d7a60830c2Df862319e593943A3",
+  "policyId":        1
+}
+```
+
+For the molandak x402 facilitator, the adapter reads this context from `paymentRequirements.extra.agentTrust`, verifies `serviceSignature`, derives `paymentIdHash` from `extra.memo`, and rejects mismatched `payTo` / `payeeRecipient`.
+
+## Denial response
+
+```http
+HTTP/1.1 402 Payment Required
+X-Agent-Trust-Decision: Deny
+X-Payment-Required: denied
+X-Payment-Reason-Code: 6
+X-Payment-Reason-Name: CounterpartyTierBelowMin
+X-Payment-Network: Monad-testnet
+```
+
+Reason codes are stable: 1..15. Full table: [Reference → DenyReason codes](/reference/deny-reason-codes).
+
+## Validation response
+
+```http
+HTTP/1.1 402 Payment Required
+X-Agent-Trust-Decision: RequireValidation
+X-Payment-Required: validation
+X-Capability-Required: 366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976ee3ddc42
+X-Payment-Network: Monad-testnet
+```
+
+The `X-Capability-Required` value is the 32-byte SHA-256 hash of the capability namespace name (e.g., `kyc.tier-1.v1`). Full lifecycle: [Capability namespaces](/integration-guides/capability-namespaces).
+
+## Settlement rule
+
+The facilitator must keep the policy gate, token transfer, and feedback emission in **one** signed Monad transaction. The SDK enforces this via the `atomicityEnforced: true` literal-type guard. Splitting them silently corrupts `VelocityLedger` when a Token-2022 mint's `TransferHook` extension reverts the transfer. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant).
+
+## Sources
+
+| File | Purpose |
+|---|---|
+| [`trustgate/server/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/server/src/x402.ts) | x402 wire envelope helpers |
+| [`trustgate/sdk/src/express.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/express.ts) | Published Express middleware |
+| [`trustgate/server/src/facilitators/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators) | Per-facilitator adapter implementations |
+
+## Read next
+
+<Cards>
+  <Card title="the molandak x402 facilitator adapter" href="/integration-guides/pay-sh-adapter">
+    The canonical implementation, end to end.
+  </Card>
+  <Card title="Facilitator adapters" href="/integration-guides/facilitator-adapters">
+    Five-method contract for new facilitators.
+  </Card>
+  <Card title="DenyReason codes" href="/reference/deny-reason-codes">
+    Complete table of reason codes 1..15 with remediation hints.
+  </Card>
+</Cards>

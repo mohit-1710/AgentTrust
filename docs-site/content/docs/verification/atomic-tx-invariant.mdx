@@ -1,0 +1,141 @@
+---
+title: Atomic-tx invariant
+description: gate_payment + transfer + emit_feedback execute as one Monad transaction or none. Three SDK layers + the on-chain Kani forge + localnet runtime proof.
+---
+
+The load-bearing safety property of the SDK:
+
+> `gate_payment` + ERC-20 `transferChecked` + `emit_feedback` MUST execute as one Monad transaction. Splitting them silently corrupts state when a Token-2022 mint's `TransferHook` extension reverts the transfer.
+
+Background writeup: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/transfer-hook-atomicity.md). The proof is structured as five layers; all five must hold.
+
+## The corruption vector
+
+`gate_payment_strict` mutates state on `Allow`:
+
+- `PolicyAccount.spending_today_used`, `spending_today_anchor`, `spending_week_used`, `spending_week_anchor`
+- `VelocityLedger.cumulative_amount`, `last_commit_slot`, `window_start_slot`
+
+If a downstream USDC transfer reverts after that mutation — and the two instructions are in *different* Monad transactions — the gate's state is durable while no money has moved. Subsequent `gate_payment` calls read the inflated counters and may `Deny` a legitimate payment. In the inverse, counters can drift such that velocity caps appear hit when nothing real has happened.
+
+A Token-2022 `TransferHook` extension is the canonical instance of this fault model. The hook program runs synchronously inside the ERC-20 `transferChecked` execution; if it returns `Err`, the transfer aborts. The specifics — compliance check, allowlist denial, freeze on suspicious counterparty — are domain-specific. From the runtime's perspective, a `TransferHook` revert is indistinguishable from any other inner-ix revert (NonTransferable mint, DefaultAccountState=Frozen, MissingRequiredSignature, out-of-funds). The atomicity guarantee is mint-extension-agnostic.
+
+## Five layers of proof
+
+| Layer | What it proves | Evidence |
+|---|---|---|
+| A.1 — compile-time guard | `AtomicityEnforced` is a literal `true` marker. TS rejects `false`, missing, and `boolean` widening at compile time. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 31-33 + [`test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("AtomicityEnforced literal-type guard")` |
+| A.2 — runtime guard | `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` casts. | [`trustgate/sdk/src/atomicity.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/atomicity.ts) lines 51-58 + 6-case test suite |
+| A.3 — composer structure | `composeAtomicSettleTx` returns ONE `Transaction` with EXACTLY 3 instructions in canonical order — gate (PolicyVault) + `transferChecked` (Token / Token-2022) + `emit_feedback` (TrustGate). | [`trustgate/sdk/test/atomicity.test.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/test/atomicity.test.ts) `describe("composeAtomicSettleTx")` (5 cases including Token-2022 program-id propagation) |
+| B — single-tx atomic revert | When the bundled tx contains a failing inner ix, Monad reverts the entire bundle; `gate_payment_strict`'s state mutation rolls back. PolicyAccount + VelocityLedger stay clean. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("B. single-tx atomic revert")` |
+| C — split-tx corruption (anti-pattern) | If a caller splits the bundle into two txs, gate_payment_strict commits in tx1, the failing transfer reverts in tx2, and VelocityLedger is left dirty (counted a payment that never moved). This is the corruption vector A + B prevent. | [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) `describe("C. split-tx anti-pattern corrupts state")` |
+| On-chain forge | `gate_payment_strict_correctness` (Kani #6, 258 sub-checks) — strict handler returns `Ok(())` if and only if the lazy composer returns `Allow`. | [`programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs) |
+
+## A — SDK type + runtime guards
+
+```ts
+export interface AtomicityEnforced {
+  readonly atomicityEnforced: true;     // literal true, not boolean
+}
+
+export class AtomicityNotEnforcedError extends Error {
+  constructor(siteName: string) {
+    super(`[${siteName}] atomicityEnforced=true is required …`);
+    this.name = "AtomicityNotEnforcedError";
+  }
+}
+
+export function assertAtomicityEnforced(
+  cfg: { atomicityEnforced?: unknown },
+  siteName: string,
+): void {
+  if ((cfg as any).atomicityEnforced !== true) {
+    throw new AtomicityNotEnforcedError(siteName);
+  }
+}
+```
+
+Compile-time: `composeAtomicSettleTx({ …, atomicityEnforced: false })` is a TS error. Runtime: `composeAtomicSettleTx({ …, atomicityEnforced: 1 } as any)` throws `AtomicityNotEnforcedError("composeAtomicSettleTx")`. Both layers required: skipping either re-opens the corruption vector.
+
+## A.3 — Composer structure
+
+`composeAtomicSettleTx` returns:
+
+```ts
+interface ComposedAtomicSettle {
+  readonly tx: Transaction;
+  readonly instructions: ReadonlyArray<TransactionInstruction>;  // exactly 3
+  readonly accounts: { … };
+}
+```
+
+The three instructions, in order:
+
+1. `gate_payment_strict` — `Err` on `Deny` / `RequireValidation`. Reverts the whole bundle if the gate denies.
+2. ERC-20 `transferChecked` (legacy Token or Token-2022 — `tokenProgram` arg switches).
+3. `emit_feedback` — contract account-signed internal call into ERC-8004 via TrustGate.
+
+Five test cases pin this contract — including a Token-2022 program-id propagation case that ensures the ERC-20 ix uses `TOKEN_2022_PROGRAM_ID` when the caller passes it.
+
+## B+C — Localnet runtime proofs
+
+The Solidity TS test [`tests/atomic-tx-invariant.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/atomic-tx-invariant.spec.ts) splits into two `describe` blocks:
+
+- **`B. single-tx atomic revert`.** Builds the bundled tx with an intentionally-failing System.transfer (source key never signs → guaranteed `MissingRequiredSignature`) and asserts the entire bundle reverts; PolicyAccount + VelocityLedger remain in their pre-tx state.
+- **`C. split-tx anti-pattern corrupts state`.** Splits the same flow into two transactions. Tx 1 commits the gate's velocity update. Tx 2 reverts on the failing transfer. The ledger now reflects a payment that never moved — the corruption vector that B prevents.
+
+### Why System.transfer instead of TransferHook
+
+The localnet tests deliberately use a System.transfer with a never-signed source as the failing inner instruction. This:
+
+1. Exercises the same Monad atomicity semantics a `TransferHook` revert would — the runtime aborts the bundle, all child mutations roll back.
+2. Requires no Token-2022 mint setup or custom hook program on the localnet validator, keeping the test focused on the property under proof rather than mint-init plumbing.
+3. Documents the corruption vector at the layer where it actually matters: any failing inner ix corrupts split-tx state. `TransferHook` is one specific failure mode, not the property itself.
+
+The Token-2022 angle is fully covered at the SDK layer in `composeAtomicSettleTx` test cases.
+
+## On-chain Kani forge
+
+The strict handler's contract is pinned by Kani `gate_payment_strict_correctness`:
+
+- `strict_returns_ok_iff_allow` — `Ok(())` ⇔ `Allow`. 131 sub-checks.
+- `gate_decision_is_one_of_three_disjoint_variants` — three arms pairwise disjoint; a fourth variant cannot silently slip past. 127 sub-checks.
+
+Combined: 258 sub-checks, ~0.9 s. Sub-check 0 failed. If a future change re-routes the `Deny` arm to an `Ok` return, both proofs fail loud.
+
+The on-chain forge + the SDK guards together close the corruption vector at three layers: compile, runtime, and on-chain.
+
+## Reproduce
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+pnpm install
+
+# A — SDK layers
+cd trustgate/sdk
+pnpm test                      # 6 atomicity-specific cases + 50 others
+
+# B + C — localnet
+cd ../..
+forge build
+forge test --chain anvil 
+
+# On-chain forge (Kani)
+cd programs/policy-vault
+cargo kani --harness strict_returns_ok_iff_allow
+cargo kani --harness gate_decision_is_one_of_three_disjoint_variants
+```
+
+## Read next
+
+<Cards>
+  <Card title="Kani proofs" href="/verification/kani-proofs">
+    Per-harness deep-dive on all 7 invariants.
+  </Card>
+  <Card title="Composer" href="/programs/policy-vault/composer">
+    The pure-Rust orchestration the strict handler wraps.
+  </Card>
+  <Card title="mountTrustGate" href="/sdk/mount-trustgate">
+    Where the SDK consumer plugs into the atomicity guard.
+  </Card>
+</Cards>

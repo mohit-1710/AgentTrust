@@ -1,0 +1,149 @@
+.panel {
+  display: flex;
+  width: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+}
+
+.copy {
+  display: flex;
+  max-width: 30rem;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  max-width: 18ch;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 4.5rem);
+  font-weight: 500;
+  line-height: 0.96;
+  color: var(--ink);
+  letter-spacing: -0.04em;
+}
+
+.body {
+  max-width: 31ch;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(10, 10, 10, 0.48);
+}
+
+.form {
+  display: flex;
+  max-width: 38rem;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  line-height: 1;
+  color: rgba(10, 10, 10, 0.48);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.controlRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input {
+  width: 100%;
+  height: 40px;
+  padding: 8px 14px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  outline: none;
+}
+
+.input::placeholder {
+  color: rgba(10, 10, 10, 0.38);
+}
+
+.input[aria-invalid="true"] {
+  border-color: rgba(193, 59, 38, 0.72);
+}
+
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  min-height: 40px;
+  padding: 8px 16px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  background: radial-gradient(50% 50%, rgba(250, 250, 250, 0.33) 0, rgba(115, 115, 115, 0.04) 100%), #fbfaf9;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgb(255, 255, 255), inset 0 -1px 0 rgb(255, 255, 255), 0 0 0 1px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 150ms var(--ease-out-strong);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.helper,
+.error,
+.success {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.helper { color: rgba(10, 10, 10, 0.44); }
+
+.error { color: var(--danger); }
+
+.success { color: var(--success); }
+
+@media (min-width: 640px) {
+  .controlRow {
+    flex-direction: row;
+  }
+
+  .button {
+    flex: 0 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    width: 34rem;
+    padding: 32px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+}
+
+@media (hover: hover) {
+  .button:hover {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0), inset 0 1px 0 rgb(255, 255, 255), inset 0 -1px 0 rgb(255, 255, 255), 0 0 0 1px rgba(0, 0, 0, 0);
+  }
+}

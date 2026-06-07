@@ -1,0 +1,174 @@
+---
+title: Architecture
+description: How the three Solidity contracts, the SDK, and the facilitator-adapter layer compose into one settlement path.
+---
+
+AgentTrust is three Solidity contracts plus a TypeScript surface that mounts them on any x402 facilitator. This page is the wiring. Byte-precise contract account layouts, instruction signatures, and deny-reason codes live under [Programs](/programs/policy-vault).
+
+## Composition diagram
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│  x402 Facilitator (the molandak x402 facilitator ★ default · Dexter · atxp · MCPay)          │
+│                                                                       │
+│   import { mountTrustGate } from "@agenttrust-sdk/trustgate/express"  │
+│   await mountTrustGate(app, { atomicityEnforced: true, … })           │
+│                                                                       │
+│  ★ the molandak x402 facilitator = molandak x402 facilitator (May 5, 2026)  │
+└───────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼  POST /verify | /settle | /dispute
+       ┌──────────────────────────────────────────────────────────┐
+       │  TrustGate (Solidity contract)                              │
+       │  ├─ init_authority (per-facilitator contract account)                 │
+       │  ├─ emit_feedback  ── contract account-signed internal call ──┐                 │
+       │  └─ dispute_payment                    │                 │
+       └─────────────────┬──────────────────────┼─────────────────┘
+                         │                      │
+                         │ internal call                  │ internal call
+                         ▼                      ▼
+       ┌─────────────────────────────┐  ┌──────────────────────────────┐
+       │  PolicyVault                │  │  ERC-8004 agent-registry-8004  │
+       │  ├─ gate_payment composer   │  │  ├─ give_feedback            │
+       │  │   (fail-fast 5 policies) │  │  └─ atom-engine::AtomStats   │
+       │  ├─ KillSwitch • Spending   │  │     (tier @ byte 551)        │
+       │  ├─ Velocity • Counterparty │  │                              │
+       │  └─ RequireValidation       │  │  Pinned commit: bfb09ad      │
+       │                             │  │  Read via byte-offset parser │
+       │  reads ValidationAttestation│  │     (zero Cargo dep)         │
+       └─────────────────┬───────────┘  └──────────────────────────────┘
+                         │
+                         ▼
+       ┌──────────────────────────────────────────┐
+       │  ValidationRegistry                      │
+       │  ├─ register_namespace / _attestor       │
+       │  ├─ request / respond / revoke           │
+       │  └─ ValidationAttestation contract account            │
+       │     (read by PolicyVault parser)         │
+       └──────────────────────────────────────────┘
+```
+
+A single `composeAtomicSettleTx()` call in the SDK builds one Monad transaction with three instructions in canonical order: `gate_payment_strict` → ERC-20 `transferChecked` → `emit_feedback`. The transaction either commits all three or none — never two of three. That is the load-bearing safety property the SDK enforces at three layers.
+
+## The three programs
+
+### PolicyVault — the decision engine
+
+Five orthogonal policy kinds compose under one `gate_payment` instruction with fail-fast semantics:
+
+| Order | Policy | What it checks |
+|---|---|---|
+| 1 | `KillSwitch` | per-agent paused flag — multisig-controlled emergency stop |
+| 2 | `Spending` | per-tx, daily (UTC midnight), weekly (ISO Monday) limits |
+| 3 | `Velocity` | sliding-window cumulative spend, payer-tier-decayed limits |
+| 4 | `CounterpartyTier` | payee `AtomStats.trust_tier` (byte 551), risk score, confidence |
+| 5 | `RequireValidation` | gates against a `ValidationAttestation` contract account (capability proof) |
+
+The composer returns `Allow`, `Deny(reason)`, or `RequireValidation(capability_hash)`. State changes — daily / weekly counters, velocity ledger — apply only on `Allow`. `Deny` and `RequireValidation` mutate nothing.
+
+A strict variant — `gate_payment_strict` — converts non-`Allow` into `Err`. That is the variant the SDK's atomic composer uses: any `Deny` on the gate fails the entire bundled transaction. The Phase J5 Kani proof `gate_payment_strict_correctness` pins the biconditional — strict returns `Ok(())` if and only if the lazy composer returns `Allow` — so a future change cannot silently re-route the `Deny` arm to an `Ok` return.
+
+Byte-precise reference: [PolicyVault](/programs/policy-vault). Composer: [Composer](/programs/policy-vault/composer).
+
+### TrustGate — the facilitator-side program
+
+Two contract accounts, three instructions:
+
+| contract account | Seeds | Role |
+|---|---|---|
+| `TrustGateAuthority` | `["trustgate_auth", facilitator]` | Per-facilitator contract account signer for the internal call |
+| `FeedbackEmissionLog` | `["feedback_log", payment_id_hash]` | Init-only idempotency receipt |
+
+`emit_feedback` contract account-signs a internal call into the ERC-8004 `agent-registry-8004::give_feedback`. The `FeedbackEmissionLog` is created via Solidity's `init` constraint — a second tx with the same `payment_id_hash` fails account-already-in-use, so retries cannot double-emit. `dispute_payment` writes a negative-score variant for disputed payments.
+
+Byte-precise reference: [TrustGate](/programs/trustgate). SDK reference: [SDK → mountTrustGate](/sdk/mount-trustgate).
+
+### ValidationRegistry — the third ERC-8004 leg
+
+Five instructions over four contract accounts:
+
+| Instruction | Effect |
+|---|---|
+| `register_namespace` | permissionless; caller computes `SHA256(name_utf8)` |
+| `register_attestor` | self-registration with display URI |
+| `request_validation` | open a request for `(subject, capability)` |
+| `respond_to_validation` | attestor writes the attestation contract account |
+| `revoke_validation` | original attestor sets `revoked = true` |
+
+The v1 sybil-resistance model is downstream-consumer filtering: PolicyVault stores a per-policy `accepted_attestors[]` array (length 2). Only attestations from those keys flip `RequireValidation` to `Allow`. Permissionless registration plus opinionated downstream filtering trades global gatekeeping for local trust — the only model that scales with the number of facilitators.
+
+Byte-precise reference: [ValidationRegistry](/programs/validation-registry). v1 capability namespaces seeded on testnet: [Reference → Capability namespaces](/reference/capability-namespaces).
+
+## The FacilitatorAdapter pattern
+
+Every x402 facilitator carries the same payment intent but differs in headers, body shape, proof payload, retry behavior, and settlement metadata. The adapter layer isolates those differences in five methods:
+
+| Method | Responsibility |
+|---|---|
+| `parseRequest(req)` | translate the facilitator's request into `VerifyContext` |
+| `formatChallenge(decision, ctx)` | render `Allow` / `Deny` / `RequireValidation` in that facilitator's wire format |
+| `formatSettlement(ctx)` | produce settlement metadata or an unsigned transaction skeleton |
+| `validatePaymentProof(proof, ctx)` | verify proof shape and cross-check the verify-time context |
+| `emitFeedback(ctx, settlement)` | call the feedback internal call idempotently |
+
+Routes (`/verify`, `/settle`, `/dispute`), the policy gate, and the registry reads do not branch on facilitator name. the molandak x402 facilitator is the canonical implementation in [`trustgate/server/src/facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh); Dexter, atxp, and MCPay share the same interface. Adding a fifth facilitator stays under a hundred lines.
+
+Walkthrough: [the molandak x402 facilitator adapter](/integration-guides/pay-sh-adapter). Build your own: [Facilitator adapters](/integration-guides/facilitator-adapters).
+
+## The atomic-tx invariant
+
+`gate_payment_strict` mutates state on `Allow`:
+
+- `PolicyAccount.spending_today_used`, `spending_today_anchor`
+- `PolicyAccount.spending_week_used`, `spending_week_anchor`
+- `VelocityLedger.cumulative_amount`, `last_commit_slot`
+
+If the USDC transfer reverts after that mutation — and the two instructions are in *different* Monad transactions — the gate's state is durable while no value moved. Subsequent `gate_payment` calls read the inflated counters and may deny a legitimate payment, or velocity caps appear hit when nothing real has happened.
+
+The corruption vector is most cleanly triggered by a Token-2022 mint with a `TransferHook` extension that reverts on a compliance check, but it is mint-extension-agnostic: any failing inner instruction in a split flow corrupts state the same way.
+
+The SDK closes the corruption vector at three layers:
+
+1. **Compile-time literal-type guard.** `AtomicityEnforced` is the literal type `{ atomicityEnforced: true }`. TypeScript rejects callers passing `false` or omitting the field. No runtime cost.
+2. **Runtime guard.** `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any value that isn't strictly `=== true`. Catches `as any` cast bypasses.
+3. **Composer structure.** `composeAtomicSettleTx` returns one `Transaction` with exactly three instructions in canonical order (gate, transfer, feedback). Any other shape is a programming error.
+
+Plus the on-chain Kani proof `gate_payment_strict_correctness` pins the strict handler's contract end-to-end: `Ok(())` if and only if the composer returned `Allow`. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant). Background: [`docs/proofs/transfer-hook-atomicity.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/transfer-hook-atomicity.md).
+
+## ERC-8004 wiring
+
+ERC-8004 Labs published two of the three ERC-8004 legs on Monad:
+
+- `agent-registry-8004` — agent identity plus the reputation surface (the `give_feedback` instruction). Each agent gets a Metaplex Core asset plus a Borsh-typed `AgentAccount` contract account.
+- `atom-engine` — confidence-weighted reputation aggregation. The `AtomStats` contract account stores `tier_immediate` and `tier_confirmed` as single bytes.
+
+The third leg — capability validation — was scaffolded in `8004-Monad` v0.4 then archived in v0.5.0 pending a redesign. AgentTrust's `ValidationRegistry` productizes it. The semantics align with the ERC-8004 V variant: who attests to a capability the payer's policy requires (KYC tier, audit attestation, jurisdictional compliance, model-card provenance, payment-network membership).
+
+PolicyVault reads from both ERC-8004 legs:
+
+| Field | Source contract account | Offset | Width |
+|---|---|---|---|
+| trust tier (immediate) | `AtomStats` | byte 551 | u8 |
+| trust tier (confirmed) | `AtomStats` | byte 555 | u8 |
+| risk score | `AtomStats` | byte 549 | u8 |
+| confidence | `AtomStats` | byte 557 | u16 LE |
+| schema version canary | `AtomStats` | byte 560 | u8 (must equal 1) |
+
+A schema bump on the ERC-8004 side fails the canary check loud rather than silently misreading fields. Full byte-offset reference: [Reference → Byte offsets](/reference/byte-offset-reference).
+
+## Read next
+
+<Cards>
+  <Card title="PolicyVault composer" href="/programs/policy-vault/composer">
+    The pure-Rust orchestration that ties the five policy kinds together.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Three layers of proof that gate + transfer + feedback execute as one tx or none.
+  </Card>
+  <Card title="Live evidence" href="/verification/live-evidence">
+    Seven Kani proofs, testnet smoke traces, the chained-validation 4-sig trace.
+  </Card>
+  <Card title="the molandak x402 facilitator adapter" href="/integration-guides/pay-sh-adapter">
+    The canonical FacilitatorAdapter implementation, end to end.
+  </Card>
+</Cards>

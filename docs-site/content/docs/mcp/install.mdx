@@ -1,0 +1,216 @@
+---
+title: Install
+description: Wire @agenttrust-sdk/mcp into Claude Desktop, Cursor, or any MCP-capable client — stdio or hosted HTTP.
+---
+
+Three install paths: Claude Desktop (one command), Cursor, or any generic stdio MCP client. Plus the always-on hosted HTTP endpoint at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) for cloud agents.
+
+## Claude Desktop (recommended)
+
+Add to your config — `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "env": {
+        "RPC_URL": "https://testnet-rpc.monad.xyz",
+        "NETWORK": "Monad-testnet"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Twenty-one tools are now available in chat. No clone, no local build.
+
+### Local clone (for development)
+
+If you want to iterate on the MCP server's source, swap the `command`/`args`:
+
+```json
+"command": "node",
+"args": ["/absolute/path/to/agenttrust/mcp/dist/index.js"]
+```
+
+Or run the helper that wires the local path automatically:
+
+```bash
+mcp/scripts/install-claude-desktop.sh
+```
+
+The script edits the Claude Desktop config in place. It backs up the prior config to `claude_desktop_config.json.bak.<timestamp>` so you can revert.
+
+## Cursor
+
+Cursor's MCP config lives at `~/.cursor/mcp.json` (or per-workspace `.cursor/mcp.json`). Same shape as Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"]
+    }
+  }
+}
+```
+
+## Generic stdio MCP client
+
+The package ships a binary entry point. Once installed:
+
+```bash
+pnpm add @agenttrust-sdk/mcp
+node ./node_modules/@agenttrust-sdk/mcp/dist/index.js   # stdio transport, default
+```
+
+The server speaks MCP over stdin/stdout. Any compliant MCP client attaches by spawning this command.
+
+## Hosted HTTP endpoint
+
+The public hosted MCP HTTP endpoint is **already live**:
+
+```
+https://mcp.agenttrust.tech
+```
+
+Health check:
+
+```bash
+curl https://mcp.agenttrust.tech/healthz
+# → {"ok":true,"service":"agenttrust-mcp","version":"0.4.5","network":"Monad-testnet","toolCount":21,…}
+```
+
+Hosted on Fly.io (Singapore region, shared-cpu-1x@256MB, always-on with auto-resume on idle). Use this URL in any MCP client that speaks `StreamableHTTPServerTransport` — no local install required. Full hosted-endpoint reference: [Hosted endpoint](/mcp/hosted-endpoint).
+
+To run your own HTTP transport locally:
+
+```bash
+MCP_TRANSPORT=http MCP_HTTP_PORT=8765 node ./mcp/dist/index.js
+```
+
+Behind any reverse proxy (Caddy, nginx, Vercel, Fly.io) this surfaces as a public hosted endpoint.
+
+## Write tools — adding a key
+
+The eight write tools (`agenttrust_init_authority`, `agenttrust_init_policy`, `agenttrust_set_killswitch`, `agenttrust_register_namespace`, `agenttrust_register_attestor`, `agenttrust_request_validation`, `agenttrust_respond_to_validation`, `agenttrust_emit_feedback`) require a signing key. The MCP server resolves a signer through a four-step chain (first match wins):
+
+1. `PRIVATE_KEY` — base58-encoded 64-byte secret key
+2. `KEY_PATH` — absolute path to a JSON-array secret-key file (Foundry native format)
+3. `an EVM keystore` — Foundry's default key location, picked up automatically
+4. `MONAD_KEY_PATH` — alt path env some tooling sets
+
+If you already use `an EVM keystore` locally, no env is needed. To set an explicit signer in the Claude Desktop config, add `PRIVATE_KEY` to the `env` block:
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "env": {
+        "RPC_URL":     "https://testnet-rpc.monad.xyz",
+        "NETWORK":     "Monad-testnet",
+        "PRIVATE_KEY": "<base58-encoded 64-byte secret key>"
+      }
+    }
+  }
+}
+```
+
+Without any usable signer, write tools surface a clear `auth_required` envelope. Read and discovery tools never need one.
+
+### The `auth_required` envelope
+
+Write tools that fail the signer check return a structured envelope, not a raw chain error. The hint copy is branched by transport:
+
+```json
+// Local install (stdio): tell the developer how to wire a key
+{
+  "errorCode": "auth_required",
+  "message":   "Signer required (needed by `agenttrust_init_policy`).",
+  "hint":      "Set PRIVATE_KEY (base58-encoded 64-byte secret), KEY_PATH, or `Monad config get` to point at a funded key, then restart the MCP server.",
+  "cause":     "This tool requires a signer. Set one of: PRIVATE_KEY, KEY_PATH, or `Monad config get`."
+}
+
+// Hosted (HTTP): point the caller at the local-install path
+{
+  "errorCode": "auth_required",
+  "message":   "Signer required (needed by `agenttrust_init_policy`).",
+  "hint":      "This is the hosted read-only endpoint. To use write tools, install MCP locally: npx -y @agenttrust-sdk/mcp@latest. Hosted MCP signs nothing on your behalf by design — your key stays on your machine.",
+  "cause":     "This tool requires a signer. Set one of: PRIVATE_KEY, KEY_PATH, or `Monad config get`."
+}
+```
+
+The hosted endpoint at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) is **read-only by design** and ships no signer. A shared signer would mean every user's on-chain identity is owned by the operator; that's a security model, not a UX shortcut. For write tools, install the MCP locally with your own key. See [/quickstart](/quickstart#two-mcp-surfaces) for the surface comparison table.
+
+Convert a Foundry key to base58:
+
+```bash
+an EVM keystore recover --output-format json -k an EVM keystore | jq -r '.privateKey' \
+  | python3 -c "import sys, base58, json; print(base58.b58encode(bytes(json.loads(sys.stdin.read()))).decode())"
+```
+
+Or use the `bs58` CLI:
+
+```bash
+cat an EVM keystore | jq -r '.[0:64]' | npx bs58 encode
+```
+
+## Environment variables
+
+| Var | Default | Effect |
+|---|---|---|
+| `RPC_URL` | testnet RPC | Monad RPC endpoint |
+| `NETWORK` | `Monad-testnet` | `Monad-testnet` or `Monad-mainnet`. Drives ERC-8004 program IDs. |
+| `PRIVATE_KEY` | unset | Base58-encoded 64-byte secret key. First step in the signer-resolution chain. |
+| `KEY_PATH` | unset | Path to a JSON-array secret-key file (Foundry native format). Second step in the signer-resolution chain. |
+| `MONAD_KEY_PATH` | unset | Alt path env some tooling sets. Fourth step in the signer-resolution chain. |
+| `MCP_TRANSPORT` | `stdio` | `stdio` or `http` |
+| `MCP_HTTP_PORT` | `8765` | Port for HTTP transport |
+| `POLICY_VAULT_PROGRAM_ID` | testnet ID | Override `policy_vault` program ID |
+| `TRUSTGATE_PROGRAM_ID` | testnet ID | Override `trustgate` program ID |
+| `VALIDATION_REGISTRY_PROGRAM_ID` | testnet ID | Override `validation_registry` program ID |
+| `MCP_DEFAULT_FACILITATOR` | unset | Default facilitator name in tool replies |
+| `MCP_DOCS_DIR` | repo `docs-site/content/docs` | Override the docs corpus root (tests) |
+| `PAY_SH_DEMO_STATE_FILE` | bundled demo state | Override the demo state file |
+
+## Build + test from source
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+pnpm install
+pnpm --filter ./trustgate/sdk run build   # MCP depends on the SDK build output
+pnpm --filter ./mcp run build
+pnpm --filter ./mcp test                  # 76 unit tests, no chain access
+INTEGRATION=1 pnpm --filter ./mcp test:integration   # testnet round-trip
+```
+
+## IDL fetch (verify on-chain truth)
+
+All three Solidity IDLs are published on testnet:
+
+```bash
+cast interface 0x34b3bB1a99377128126201359749FE7614275E37 --rpc-url https://testnet-rpc.monad.xyz  # policy_vault
+cast interface 0x8004B663056A597Dffe9eCcC1965A193B7388713 --rpc-url https://testnet-rpc.monad.xyz  # trustgate
+cast interface 0x8004Cb1BF31DAf7788923b405b754f57acEB4272 --rpc-url https://testnet-rpc.monad.xyz  # validation_registry
+```
+
+The MCP server bundles snapshots at `mcp/src/idl/*.json` as a defensive fallback (saves an RPC round-trip on cold start; keeps the server bootable in offline / air-gapped harnesses). Latest evidence snapshot: [`docs/proofs/idl-on-chain.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/idl-on-chain.json).
+
+## Read next
+
+<Cards>
+  <Card title="Tools" href="/mcp/tools">
+    Twenty-one tools with input/output shape.
+  </Card>
+  <Card title="Hosted endpoint" href="/mcp/hosted-endpoint">
+    HTTP transport semantics, sessions, healthz schema.
+  </Card>
+  <Card title="Prompts" href="/mcp/prompts">
+    Three guided workflows for LLM clients.
+  </Card>
+</Cards>

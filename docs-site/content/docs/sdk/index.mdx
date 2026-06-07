@@ -1,0 +1,174 @@
+---
+title: "@agenttrust-sdk/trustgate"
+description: TypeScript surface for AgentTrust on Monad — Express middleware, client helpers, atomicity guard, contract account derivers, and the full ValidationRegistry instruction builder set.
+---
+
+[`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) is the TypeScript package every facilitator pulls in. Express middleware, client helpers for direct calls, the atomicity guard, contract account derivers + Solidity loaders for all three programs, and instruction builders for ValidationRegistry's full lifecycle.
+
+Source: [`trustgate/sdk/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/sdk). License: MIT.
+
+## Install
+
+```bash
+pnpm add @agenttrust-sdk/trustgate
+# or: npm install @agenttrust-sdk/trustgate
+# or: yarn add @agenttrust-sdk/trustgate
+```
+
+Peer dep: `express ^4.21` (only required if you mount the middleware). Node `>=20`.
+
+## Three import surfaces
+
+```ts
+import { mountTrustGate }                   from "@agenttrust-sdk/trustgate/express";
+import { gatePayment, settle, dispute }     from "@agenttrust-sdk/trustgate/client";
+import { composeAtomicSettleTx }            from "@agenttrust-sdk/trustgate";
+```
+
+The root namespace re-exports every helper grouped by concern — atomicity guard, contract account derivers, Solidity loaders, ERC-8004 helpers, ValidationRegistry instruction builders, ERC-20 helpers, x402 header constants. Full list: [Exports reference](/sdk/exports-reference).
+
+The `/express` and `/client` subpaths are tree-shake-friendly entry points; the root namespace doesn't re-export them so a client-only consumer doesn't pull Express into the bundle.
+
+## Quick start — Express
+
+```ts
+import express from "express";
+import { privateKeyToAccount } from "viem/accounts";
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+const app = express();
+app.use(express.json());
+
+await mountTrustGate(app, {
+  rpcUrl:             "https://testnet-rpc.monad.xyz",
+  facilitatorKeypair: key.fromSecretKey(/* facilitator key */),
+  network:            "Monad-testnet",
+  atomicityEnforced:  true,                // literal `true`
+});
+
+app.listen(3000);
+```
+
+Mounts four routes:
+
+| Route | Purpose |
+|---|---|
+| `POST /verify` | Read-only `gate_payment` simulation. Returns 200/Allow, 402/Deny + reason headers, or 402/RequireValidation + capability hash. |
+| `GET /receipt/:paymentIdHashHex` | `FeedbackEmissionLog` lookup. Returns `{ exists: false }` until settlement. |
+| `POST /settle` | Atomic settle (`gate_payment_strict + transferChecked + emit_feedback`). |
+| `POST /dispute` | Dispute path (`dispute_payment` ix). |
+
+Full route reference: [mountTrustGate](/sdk/mount-trustgate).
+
+## Quick start — client
+
+```ts
+import { type Address } from "viem";
+import { gatePayment } from "@agenttrust-sdk/trustgate/client";
+
+const decision = await gatePayment({
+  rpcUrl:          "https://testnet-rpc.monad.xyz",
+  caller:          facilitatorKeypair,
+  payerAgentAsset: new PublicKey("…"),
+  payeeAgentAsset: new PublicKey("…"),
+  amount:          1_000_000n,
+  mint:            new PublicKey("0x534b2f3A21130d7a60830c2Df862319e593943A3"), // USDC testnet
+  policyId:        1,
+});
+
+switch (decision.kind) {
+  case "Allow":             /* proceed */ break;
+  case "Deny":              console.log(decision.reasonName); break;
+  case "RequireValidation": /* route to attestation flow with decision.capabilityHash */ break;
+}
+```
+
+Full reference: [gatePayment](/sdk/gate-payment).
+
+## Atomic-tx invariant
+
+`gate_payment + USDC transfer + emit_feedback` MUST execute as one Monad transaction. Splitting them silently corrupts `VelocityLedger` when a Token-2022 mint's `TransferHook` extension reverts the transfer.
+
+The SDK enforces atomicity at three layers:
+
+```ts
+import {
+  AtomicityEnforced,
+  AtomicityNotEnforcedError,
+  composeAtomicSettleTx,
+} from "@agenttrust-sdk/trustgate";
+
+// 1. Compile-time literal-type guard:
+//    `AtomicityEnforced` is `{ atomicityEnforced: true }` (literal `true`).
+//    TS rejects `false`, missing, or `boolean` widening.
+//
+// 2. Runtime guard:
+//    `assertAtomicityEnforced` throws `AtomicityNotEnforcedError` for any
+//    value that isn't strictly `=== true`. Catches `as any` cast bypasses.
+//
+// 3. Composer structure:
+//    `composeAtomicSettleTx` returns one `Transaction` with exactly three
+//    instructions in canonical order (gate, transfer, feedback).
+```
+
+Plus the on-chain Kani proof `gate_payment_strict_correctness` pins the strict handler's contract — `Ok(())` if and only if the composer returned `Allow`. Full proof: [Verification → Atomic-tx invariant](/verification/atomic-tx-invariant).
+
+## Breaking changes (0.2.0)
+
+`ProgramIds.trustgate` (lowercase) renamed to `ProgramIds.trustGate` (camelCase, matches `policyVault`). New `validationRegistry` field populated by default with the deployed testnet ID `0x8004Cb1BF31DAf7788923b405b754f57acEB4272`.
+
+```ts
+// 0.1.x
+DEFAULT_TESTNET_ADDRESSES.trustgate.toBase58();
+
+// 0.2.0
+DEFAULT_TESTNET_ADDRESSES.trustGate.toBase58();
+DEFAULT_TESTNET_ADDRESSES.validationRegistry.toBase58(); // new
+```
+
+One-line migration: search-and-replace `.trustgate` → `.trustGate` for every `programIds.*` field access. Full changelog: [Reference → Changelog](/reference/changelog).
+
+## On-chain programs (testnet)
+
+<ProgramIdsTable />
+
+`loadPolicyVault` / `loadTrustGate` / `loadValidationRegistry` fetch each IDL from chain by default. Pass an explicit `idl` argument to use a bundled snapshot — useful when avoiding an extra RPC hop in latency-sensitive paths or when running against a freshly redeployed program before `forge idl upgrade` runs.
+
+```bash
+cast interface <programId> --rpc-url https://testnet-rpc.monad.xyz
+```
+
+## Test coverage
+
+| Suite | Count | Where |
+|---|---:|---|
+| Atomicity unit tests | 6 (literal-type guard + runtime + composer structure) | `trustgate/sdk/test/atomicity.test.ts` |
+| contract account derivation tests | 24 | `trustgate/sdk/test/chain.test.ts` |
+| ERC-8004 helpers | 12 | `trustgate/sdk/test/quantu.test.ts` |
+| ValidationRegistry instruction builders | 14 | `trustgate/sdk/test/validation-registry.test.ts` |
+| All SDK unit tests | 56 (+ 16 INTEGRATION-gated testnet round-trips) | `pnpm --filter ./trustgate/sdk run test` |
+
+Run via:
+
+```bash
+cd trustgate/sdk
+pnpm test
+INTEGRATION=1 pnpm test:integration   # testnet round-trip
+```
+
+## Read next
+
+<Cards>
+  <Card title="gatePayment" href="/sdk/gate-payment">
+    Read-only policy decision call — type signature, config fields, decision union, errors.
+  </Card>
+  <Card title="mountTrustGate" href="/sdk/mount-trustgate">
+    Express middleware reference — every route, every header, the atomicity guard contract.
+  </Card>
+  <Card title="Exports reference" href="/sdk/exports-reference">
+    One-screen list of every public export grouped by concern.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Three layers of proof + the on-chain Kani strict-correctness binding.
+  </Card>
+</Cards>

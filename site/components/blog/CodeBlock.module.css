@@ -1,0 +1,50 @@
+.shell {
+  position: relative;
+  margin: 28px 0;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.langLabel {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  pointer-events: none;
+}
+
+.scroll {
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.scroll :global(pre.shiki) {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 22px;
+  color: #fafafa;
+}
+
+.scroll :global(pre.shiki code) {
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.scroll :global(pre.shiki .line) {
+  display: block;
+  min-height: 22px;
+}

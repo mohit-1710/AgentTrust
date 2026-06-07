@@ -1,0 +1,101 @@
+.glyph {
+  width: min(92vw, 1120px);
+  height: min(86dvh, 900px);
+  overflow: visible;
+}
+
+.faintEdge,
+.accentEdge,
+.webLine {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.faintEdge {
+  stroke: rgba(10, 10, 10, 0.3);
+  stroke-width: 2;
+}
+
+.accentEdge {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.webLine {
+  stroke: rgba(10, 10, 10, 0.14);
+  stroke-dasharray: 16 18;
+  stroke-width: 1.4;
+  animation: trilemmaWebDrift 9s linear infinite;
+}
+
+.webLine:nth-of-type(odd) {
+  animation-direction: reverse;
+  animation-duration: 11s;
+}
+
+.coreDot {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 16px rgba(111, 76, 255, 0.28));
+}
+
+.node {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.nodeRing {
+  fill: var(--bg-neutral);
+  stroke: rgba(10, 10, 10, 0.2);
+  stroke-width: 1;
+}
+
+.nodeCore {
+  fill: var(--ink);
+}
+
+.nodeLabel,
+.nodeCaption {
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  fill: rgba(10, 10, 10, 0.64);
+}
+
+.nodeLabel {
+  font-size: 20px;
+  letter-spacing: 2.2px;
+}
+
+.nodeCaption {
+  font-size: 14px;
+  letter-spacing: 1.4px;
+  fill: rgba(10, 10, 10, 0.42);
+}
+
+@keyframes trilemmaWebDrift {
+  to {
+    stroke-dashoffset: -68;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .webLine {
+    animation: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .glyph {
+    width: min(112vw, 520px);
+    height: min(66dvh, 560px);
+  }
+
+  .nodeLabel {
+    font-size: 18px;
+  }
+
+  .nodeCaption {
+    font-size: 12px;
+  }
+}

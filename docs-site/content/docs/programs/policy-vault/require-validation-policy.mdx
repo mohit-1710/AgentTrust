@@ -1,0 +1,83 @@
+---
+title: RequireValidation policy
+description: Gate against a ValidationAttestation contract account — capability hash, expiry, revocation, and per-policy attestor whitelist.
+---
+
+RequireValidation is the fifth and last policy. Reads one `ValidationAttestation` contract account from AgentTrust's `validation-registry` program, then checks subject, capability, revocation, expiry, and an optional per-policy attestor whitelist.
+
+Source: [`programs/policy-vault/src/policies/require_validation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs). Parser: [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
+
+## Reads from `ValidationAttestation`
+
+| Offset | Width | Field |
+|---:|---:|---|
+| `8`   | Pubkey | `subject_asset` |
+| `40`  | [u8; 32] | `capability_hash` |
+| `72`  | Pubkey | `attestor` |
+| `208` | u64 LE | `expires_at` (0 = never expires) |
+| `216` | bool | `revoked` |
+
+Account size: `VALIDATION_ATTESTATION_SIZE = 290`. The remaining bytes (signed message hash, claim URI hash, claim payload hash, issued_at, revocation reason hash, bump) are not read by the policy in v1 — they live on the contract account for audit-trail integrity but the parser only loads what the gate decides on.
+
+ValidationRegistry pinned program ID (testnet): [`0x8004Cb1BF31DAf7788923b405b754f57acEB4272`](https://testnet.monadexplorer.com/address/0x8004Cb1BF31DAf7788923b405b754f57acEB4272).
+
+## Policy state (subset of `PolicyAccount`)
+
+```rust
+pub required_capability_hash: [u8; 32],   // off 135..167 — zeros = policy not enabled
+pub accepted_attestors: [Pubkey; 2],      // off 167..231 — both zeros = permissionless
+```
+
+The `required_capability_hash` is the SHA-256 of a UTF-8 capability name (e.g., `kyc.tier-1.v1` → `366c075140aa…ddc42`). When zero, the policy is effectively a pass-through. When set, every payment to this `(agent, policy_id)` requires an attestation matching that hash.
+
+`accepted_attestors` is a 2-slot whitelist. Both zeros = permissionless (any registered attestor's signature flips the gate to `Allow`). Otherwise only attestations from those keys count.
+
+## Decision
+
+```
+1. required_capability_hash == 0      → Allow (policy not configured)
+2. attestation == None                → RequireValidation(required_capability_hash)
+3. view.subject_asset != payee_asset  → Deny(AttestationMissing)             code 11
+4. view.capability_hash != required   → Deny(AttestationMissing)             code 11
+5. view.revoked                        → Deny(AttestationRevoked)            code 13
+6. view.expires_at != 0 AND
+   view.expires_at <= now_slot         → Deny(AttestationExpired)            code 12
+7. !permissionless AND attestor not in whitelist
+                                       → Deny(AttestationAttestorRejected)   code 14
+8. else                                → Allow
+```
+
+`expires_at == 0` is the "never expires" sentinel. `expires_at == now_slot` is treated as expired (the playbook bound: `expires_at > now` ⇒ not expired; equality fails).
+
+When the attestation account is uninitialised (no rent or empty data), the policy returns `RequiresAttestation(capability_hash)` and the composer surfaces `GateDecision::RequireValidation(hash)` to the facilitator. The facilitator routes the user through the off-chain attestation flow → `request_validation` → attestor responds → `respond_to_validation` writes the contract account → re-submit payment → gate now reads the new attestation and returns `Allow`. End-to-end testnet trace: [Verification → Chained validation](/verification/chained-validation).
+
+## Three-way outcome
+
+```rust
+pub enum RequireValidationOutcome {
+    Allow,
+    Deny(DenyReason),
+    RequiresAttestation([u8; 32]),  // composer maps to RequireValidation
+}
+```
+
+This is the only policy that returns a non-`Allow`/`Deny` shape. The composer's job is to bubble `RequiresAttestation(hash)` up as `GateDecision::RequireValidation(hash)` so the facilitator's `formatChallenge` can include the capability hash in the x402 response headers (`X-Capability-Required`).
+
+## Per-policy attestor filtering
+
+The v1 sybil-resistance model is "permissionless registration plus opinionated downstream filtering". Anyone can register as an attestor or a capability namespace. PolicyVault decides per-policy which attestors it trusts via `accepted_attestors[]`. A policy that gates against `audit.smart-contract.v1` might only accept attestations from Halborn or OtterSec; a policy that gates against `kyc.tier-1.v1` might accept any registered KYC attestor.
+
+The trade-off is local trust over global gatekeeping — the only model that scales with the number of facilitators. Ten canonical v1 namespaces are already seeded on testnet: [Reference → Capability namespaces](/reference/capability-namespaces).
+
+## Formal verification
+
+- `validation_expiry_correct` (Kani #4, 85 sub-checks, 0.23 s) — an expired attestation (`expires_at != 0 AND expires_at <= now_slot`) cannot produce `Allow` from `require_validation::evaluate`. Subject + capability + revocation are forced equal so expiry is the deciding gate. Closes the obvious time-of-check / time-of-use stale-attestation hole.
+
+In-module tests cover the zero-hash pass-through, missing-attestation `RequiresAttestation`, wrong-subject and wrong-capability denials, revocation, expiry boundaries (`expires_at == now`, `expires_at == 0`, `expires_at > now`), and whitelist with both 1-slot and 2-slot configurations.
+
+## Source
+
+- Policy module: [`policies/require_validation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs)
+- ValidationAttestation parser: [`ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
+- Kani proof: [`proofs/inv_validation_expiry_correct.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs)
+- ValidationRegistry program: [ValidationRegistry](/programs/validation-registry)

@@ -1,0 +1,102 @@
+---
+title: "How does an agent bootstrap onto Monad in one transaction?"
+description: "Walk a fresh wallet from zero to a fully on-chain ERC-8004 identity, AgentTrust policy, and velocity ledger in one signed Monad testnet transaction."
+date: "2026-05-14"
+author: "Mohit"
+---
+
+Bootstrapping an on-chain identity for an AI agent usually takes three or four signed transactions. You register the identity, mint the asset, init the authority, init the policy, and then you babysit a script that knows how to recover when one of those steps already exists. AgentTrust collapses the whole flow. One prompt to Claude. One signed transaction. Seven on-chain steps. Idempotent on retry.
+
+<StatGrid>
+  <Stat number="7" unit="steps" label="One signed testnet transaction" />
+  <Stat number="6" unit="contract records" label="Created on-chain in the same tx" />
+  <Stat number="~0.03" unit="MON" label="Rent plus fees on testnet" />
+</StatGrid>
+
+## What the call looks like
+
+The MCP tool that does the work is `agenttrust_init_policy`. From a fresh wallet, in plain English to Claude Code or Claude Desktop:
+
+```text
+Use agenttrust_init_policy to bootstrap a brand-new agent for me.
+Omit agent_asset so the tool generates a fresh identity.
+Set policy_id to 1, enable Spending only (bitmask 2), and cap
+per-transaction spend at 1 USDC.
+```
+
+The tool generates an ephemeral asset key, prepends every missing prerequisite, and lands the policy. The envelope it returns is structured. Every contract record, every Explorer URL, the effective spending caps after default-fill, the list of self-healed steps:
+
+```json
+{
+  "txHash": "0x9f3c…2a1b",
+  "explorerTxUrl": "https://testnet.monadexplorer.com/tx/0x9f3c…2a1b",
+  "agentAddress": "0x7Be4…cF12",
+  "agentAddressExplorer": "https://testnet.monadexplorer.com/address/0x7Be4…cF12",
+  "policyAccount": "0x…",
+  "policyExplorer": "...",
+  "velocityLedger": "0x…",
+  "effectiveSpending": {
+    "perTxMax": "1000000",
+    "dailyMax": "1000000",
+    "weeklyMax": "1000000"
+  },
+  "selfHealed": true,
+  "healedSteps": [
+    "register_agent_via_call",
+    "init_authority",
+    "init_killswitch"
+  ]
+}
+```
+
+The wallet signs the bootstrap tx. The ephemeral asset key authorizes the identity registration once, then is dropped. No later call in the AgentTrust or ERC-8004 surface needs the asset to sign again.
+
+## The seven steps
+
+Open the `explorerTxUrl` and you see seven calls in order. Each one is a real step in the same atomic transaction. The ordering is canonical. It will not change between releases.
+
+1. `RegisterAgentViaCall`. The x402 server is the entry point. It orchestrates the ERC-8004 onboarding so the caller never has to learn the registry method names or contract addresses. The internal call dispatch happens inside the AgentTrust contract boundary.
+2. `RegisterWithOptions`. The ERC-8004 `IdentityRegistry` creates the agent record and prepares for identity issuance. The ephemeral asset key authorizes this call exactly once.
+3. `IssueIdentity`. The identity is issued under the address the x402 server generated a moment ago. The record and the registry now point at the same address, so any later reader can resolve the agent back to its identity.
+4. `InitializeStats`. The ERC-8004 `ReputationRegistry` creates the reputation record. This is the trust-tier record the `CounterpartyTier` policy reads at gate time. Tier starts at zero. Feedback from settled payments accrues into it.
+5. `InitAuthority`. AgentTrust's `PolicyAuthority` record lands with a single member (your signer) and threshold one. This is the seed of the multi-sig surface that v1.1 will expand. For now the wallet that paid for the bootstrap is the sole authority.
+6. `InitKillswitch`. The AgentTrust `KillSwitchState` record lands. Without this prepend, the agent's first `simulate_payment` would revert on the missing record. The 0.4.4 release added this step to the self-heal cascade. Before that, the bootstrap was six steps and the seventh was a footgun.
+7. `InitPolicy`. The `PolicyAccount` plus the `VelocityLedger` for the `(agent, policy_id)` pair. The actual point of the call. The spending caps you set in the prompt land here. The velocity ledger starts empty and will be appended to by every `gate_payment` Allow.
+
+Six records created, one identity issued, one internal call fired through the x402 server into the ERC-8004 registries, all under one wallet signature. The total cost on testnet is roughly 0.03 MON of gas.
+
+## Why this matters: idempotency
+
+Re-run the same call against the same wallet and the envelope comes back with `healedSteps: []`. Every `init` on the Solidity side reverts fast when the record already exists. The tool's pre-flight checks each upstream record and skips the prepend when it is already there. The wallet always converges to the same on-chain state regardless of where it started.
+
+Cold-start your serverless function and replay the call. Nothing breaks. Nothing duplicates. Spin up a second agent host pointed at the same key, race the two against each other, and the slower one comes back with an empty `healedSteps` array. That's the property a bootstrap path needs. Operators in retry loops should not have to write dedup logic around an SDK entry point. Cap defaults follow the same principle. Set one spending cap and the unspecified peers default to the max of what you specified, not to zero. Zero is a hostile always-deny because v1 policies are immutable post-init. The runtime picks the value that keeps the explicit cap binding and leaves the others permissive.
+
+## The two MCP surfaces
+
+<Note>
+This flow only runs on the local install of `@agenttrust-sdk/mcp`. The hosted MCP at `mcp.agenttrust.tech` is read-only by design. Thirteen tools, no shared signer. A shared signer would mean every user's on-chain identity is owned by the operator, which is a security model, not a UX shortcut. Write tools live in the local install so your key stays on your machine and you own every contract record you create. The full comparison lives at [/quickstart#two-mcp-surfaces](/quickstart#two-mcp-surfaces).
+</Note>
+
+## What you do with it
+
+The agent is now a real ERC-8004 identity. It has a policy that bounds its spending. It has a velocity ledger that the next `gate_payment` call will write to. It has a reputation record that any counterparty can read to decide whether to accept payment from it.
+
+That makes it eligible to pay and be paid through any x402 facilitator that consumes AgentTrust gates. The molandak x402 facilitator on Monad testnet has an AgentTrust adapter. The same `init_policy` envelope you just looked at unlocks the full `/verify` plus `/settle` round-trip through the facilitator. One signature got you from a funded wallet to a fully functional agent identity. The next step is the SDK. Mount the Express middleware, point it at the policy you just created, and the facilitator does the rest. Read [/sdk](/sdk) for the wiring.
+
+The testnet contract addresses are public. Verify the trace yourself. Beat B of the demo-video recording lands this exact transaction on Monad testnet.
+
+<DataPanel label="Monad testnet contract addresses">
+  <DataRow label="PolicyVault">[`0x34b3bB1a99377128126201359749FE7614275E37`](https://testnet.monadexplorer.com/address/0x34b3bB1a99377128126201359749FE7614275E37)</DataRow>
+  <DataRow label="IdentityRegistry">[`0x8004A818BFB912233c491871b3d84c89A494BD9e`](https://testnet.monadexplorer.com/address/0x8004A818BFB912233c491871b3d84c89A494BD9e)</DataRow>
+  <DataRow label="ReputationRegistry">[`0x8004B663056A597Dffe9eCcC1965A193B7388713`](https://testnet.monadexplorer.com/address/0x8004B663056A597Dffe9eCcC1965A193B7388713)</DataRow>
+  <DataRow label="ValidationRegistry">[`0x8004Cb1BF31DAf7788923b405b754f57acEB4272`](https://testnet.monadexplorer.com/address/0x8004Cb1BF31DAf7788923b405b754f57acEB4272)</DataRow>
+  <DataRow label="USDC">[`0x534b2f3A21130d7a60830c2Df862319e593943A3`](https://testnet.monadexplorer.com/address/0x534b2f3A21130d7a60830c2Df862319e593943A3)</DataRow>
+</DataPanel>
+
+Install the MCP and try it.
+
+```bash
+npx -y @agenttrust-sdk/mcp@latest
+```
+
+One prompt to Claude. One signature. Seven steps. Read [/architecture](/architecture) when you want to know how the x402 server routes the internal call under the hood.

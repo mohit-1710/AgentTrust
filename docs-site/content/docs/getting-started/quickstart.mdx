@@ -1,0 +1,123 @@
+---
+title: Quickstart
+description: Hit the hosted testnet build, install the SDK, wire the MCP server. Three paths, no clone, under five minutes.
+---
+
+Three live paths. Each runs against the hosted testnet endpoints under `*.agenttrust.tech`. None require a local clone.
+
+## 1. Hit the live demo
+
+The demo at [`demo.agenttrust.tech`](https://demo.agenttrust.tech) runs the full the molandak x402 facilitator + AgentTrust flow against deployed testnet programs. With no payment proof, `/protected` returns a real x402 v2 challenge:
+
+```bash
+curl -i https://demo.agenttrust.tech/protected
+```
+
+The response carries `HTTP/2 402` with a SERVICE-signed `payment-required` envelope (base64). To walk the full Allow → settle → emit_feedback path, install the molandak x402 facilitator and let it pay:
+
+```bash
+pay --sandbox curl https://demo.agenttrust.tech/protected
+```
+
+Three deterministic counterparties drive each decision branch. Fetch their pubkeys from the demo's health endpoint:
+
+```bash
+curl -s https://demo.agenttrust.tech/health | jq '.counterparties'
+```
+
+| Tier | Header | Decision |
+| --- | --- | --- |
+| 0 | `X-Demo-Payer-Agent: <tier-0 pubkey>` | `402 Deny — CounterpartyTierBelowMin` |
+| 1 | `X-Demo-Payer-Agent: <tier-1 pubkey>` | `402 Deny — CounterpartyTierBelowMin` |
+| 3 | `X-Demo-Payer-Agent: <tier-3 pubkey>` | `200 Allow + X-Payment-Receipt` |
+
+The full atomic-settlement trace (gate, transfer, feedback) for the tier-3 path is captured under [Verification → Testnet smoke](/verification/testnet-smoke).
+
+## 2. Install the SDK
+
+Add [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) to any Node project:
+
+```bash
+pnpm add @agenttrust-sdk/trustgate
+```
+
+Mount the middleware on an Express app:
+
+```ts
+import express from "express";
+import { privateKeyToAccount } from "viem/accounts";
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+
+const app = express();
+app.use(express.json());
+
+await mountTrustGate(app, {
+  rpcUrl:             "https://testnet-rpc.monad.xyz",
+  facilitatorKeypair: key.fromSecretKey(/* your facilitator key */),
+  network:            "Monad-testnet",
+  atomicityEnforced:  true,             // literal `true` — TS rejects `false`
+});
+
+app.listen(3000);
+```
+
+The `atomicityEnforced: true` literal is the SDK's load-bearing guard. The compile-time type rejects callers who omit it, the runtime throws on `as any` bypasses, and the on-chain `gate_payment_strict_correctness` Kani proof binds the strict handler's return value to the composer's `Allow` arm. Full details: [Atomic-tx invariant](/verification/atomic-tx-invariant).
+
+You now have:
+
+- `POST /verify` — read-only `gate_payment` simulation
+- `POST /settle` — one-tx atomic settle (gate + transfer + feedback)
+- `POST /dispute` — dispute path
+- `GET /receipt/:hash` — `FeedbackEmissionLog` lookup by payment hash
+
+## 3. Wire the MCP server
+
+[`@agenttrust-sdk/mcp`](https://www.npmjs.com/package/@agenttrust-sdk/mcp) exposes 21 tools to any Model Context Protocol client. For Claude Desktop, drop this into your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "env": {
+        "RPC_URL": "https://testnet-rpc.monad.xyz",
+        "NETWORK": "Monad-testnet"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Then ask:
+
+- *"What demo agents are available on AgentTrust?"*
+- *"Simulate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?"*
+- *"Search the AgentTrust docs for the atomic-tx invariant."*
+
+A hosted HTTP transport is also live at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) for clients that speak `StreamableHTTPServerTransport`. Full setup: [MCP → Install](/mcp/install).
+
+## What's running where
+
+<ProgramIdsTable />
+
+| Surface | URL |
+| --- | --- |
+| Demo | [`demo.agenttrust.tech`](https://demo.agenttrust.tech) |
+| Facilitator (`/verify` + `/settle`) | [`api.agenttrust.tech`](https://api.agenttrust.tech) |
+| MCP HTTP endpoint | [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) |
+| Repo | [`github.com/agenttrust-labs/agenttrust`](https://github.com/agenttrust-labs/agenttrust) |
+
+## Read next
+
+<Cards>
+  <Card title="Architecture" href="/architecture">
+    How the three programs, the SDK, and the adapter layer compose into one settlement path.
+  </Card>
+  <Card title="the molandak x402 facilitator adapter" href="/integration-guides/pay-sh-adapter">
+    The live the molandak x402 facilitator integration end to end — challenge, retry, settle, feedback.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Why gate + transfer + feedback must execute as one Monad transaction or none.
+  </Card>
+</Cards>

@@ -1,0 +1,110 @@
+---
+title: Quickstart
+description: AgentTrust in 60 seconds. Install the MCP server into Claude Desktop, create a policy, run a gate-decision simulation. No clone, no Solidity build.
+---
+
+Sixty seconds, three steps, one MCP server. By the end you have a real `PolicyAccount` contract account on testnet and a decoded `gate_payment` decision in your chat client. No clone, no Solidity build, no local validator.
+
+## 1. Install the MCP server into Claude Desktop
+
+Drop this block into `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, or `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
+
+```json
+{
+  "mcpServers": {
+    "agenttrust": {
+      "command": "npx",
+      "args": ["-y", "@agenttrust-sdk/mcp"],
+      "env": {
+        "RPC_URL": "https://testnet-rpc.monad.xyz",
+        "CHAIN_ID": "10143",
+        "NETWORK": "monad-testnet"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Twenty-one tools are now wired in. Ten read-only tools work immediately on testnet with zero credentials. The eight write tools resolve a signer through the chain `PRIVATE_KEY` then `KEY_PATH` then `MONAD_KEY_PATH` and use the first one that parses. If you already have a funded EVM key configured, it is picked up automatically and no extra env var is needed.
+
+## 2. Create a policy
+
+Ask Claude Desktop, in plain English:
+
+> Use agenttrust_init_policy to create policy 1 for my agent. Enable Spending (bitmask 2) with a per-transaction max of 1 USDC.
+
+`agenttrust_init_policy` is the single bootstrap call. On a fresh wallet — omit `agent_asset` and the tool generates a fresh identity for you — it self-heals three missing accounts in the same atomic transaction before initialising the policy:
+
+1. A fresh agent identity is registered with ERC-8004 and returned to you as `agentAddress` in the tool output. Your wallet pays for it and signs the bootstrap tx, but never ends up being the agent identity itself — the ERC-8004 `IdentityRegistry` issues a brand-new agent address internally, ephemeral, used exactly once to authorize the `register_with_options` call and then discarded. The fresh `agent record` plus `reputation record` are chained through the x402 server's `register_agent_via_call`, without your wallet ever learning the ERC-8004 method names.
+2. The AgentTrust `PolicyAuthority`, via `init_authority` (single member = your signer, threshold = 1).
+3. The AgentTrust `KillSwitchState`, via `init_killswitch`. Without this prepend a fresh agent's first `simulate_payment` would revert on the missing record.
+
+Then the policy itself plus a `VelocityLedger`. Four on-chain account creations and the new policy, one signed transaction. You never see Solidity error 3012 and you never run a bootstrap script. Spending caps also default sanely: when at least one cap is set, unspecified peer caps default to the max of the specified caps rather than zero, so v1 policies (immutable post-init) cannot accidentally hard-deny every payment.
+
+```text
+Output:
+  txSignature:        4n8…ZxR
+  explorerTxUrl:      https://testnet.monadexplorer.com/tx/4n8…ZxR
+  agentAsset:         8Hv…q2P
+  agentAssetExplorer: https://testnet.monadexplorer.com/address/8Hv…q2P
+  policyPda:          9aF…tNm
+  policyExplorer:     https://testnet.monadexplorer.com/address/9aF…tNm
+  velocityPda:        sTw…YZD
+  velocityExplorer:   https://testnet.monadexplorer.com/address/sTw…YZD
+  effectiveSpending:  { perTxMax: "1000000", dailyMax: "1000000", weeklyMax: "1000000" }
+  selfHealed:         true
+  healedSteps:        ["register_agent_via_cpi", "init_authority", "init_killswitch"]
+```
+
+Open the `explorerTxUrl` to see all four account creations and the policy init in one tx. Second-run of the same tool on the same wallet returns `healedSteps: []` — the self-heal is idempotent because the ERC-8004 `register_with_options`, the AgentTrust `init_authority`, and `init_killswitch` all fail at their `init` constraints once the contract accounts exist, and the tool's pre-flight check skips the prepend.
+
+## 3. Run a gate-decision simulation
+
+Now ask:
+
+> Use agenttrust_simulate_payment to gate a 5-USDC payment from my agent to the tier-0 demo agent against policy 1. What does the gate decide?
+
+`agenttrust_simulate_payment` is read-only. It calls the on-chain `gate_payment` instruction in simulate mode and decodes the `GateDecision` return value — `Allow`, `Deny` with a stable reason code (1 through 15), or `RequireValidation` with the 32-byte capability hash. The same call path the Express service's `POST /verify` route uses for the real x402 v2 challenge.
+
+Claude resolves "my agent" against your signer wallet — the same pubkey that was bootstrapped in step 2. The tier-0 demo payee comes from `agenttrust_demo_state`, which exposes three pre-seeded counterparties (tier 0, 1, 3) the simulator can reach without any extra setup.
+
+```text
+Output:
+  kind:       "Deny"
+  reasonCode: 5
+  reasonName: "SpendingPerTxExceeded"
+```
+
+The gate denied the payment because 5 USDC exceeds the 1 USDC per-tx cap you set in step 2 on policy 1. Drop the amount to 0.5 USDC and ask again. The decision flips to `Allow`. You have just exercised the full PolicyVault decision path on testnet from a chat prompt — against the policy you created two prompts ago.
+
+## Two MCP surfaces
+
+AgentTrust ships two MCP surfaces. They serve different purposes — pick the one that matches what you're doing:
+
+| Surface | Tools | Signs with | Use for |
+|---|---|---|---|
+| Local install — `npx -y @agenttrust-sdk/mcp@latest` | 21 (10 read + 8 write + 3 discovery) | Your key (layered chain: `PRIVATE_KEY` → `KEY_PATH` → `an EVM keystore`) | Building with AgentTrust. Creating policies, attesting capabilities, emitting feedback. Your key stays on your machine; you own every contract account you create. |
+| Hosted — `mcp.agenttrust.tech` | 13 (10 read + 3 discovery) | Nothing — no shared signer by design | Discovery, inspection, reputation lookups, docs search, demo state browsing. Anything that doesn't require a transaction signature. |
+
+The hosted MCP is read-only by design, not by accident. A shared signer would mean every user's on-chain identity is owned by the operator — that's a security model, not a UX shortcut. If you want to call a write tool, install locally. The same Claude Code / Cursor config block works for both — just swap the transport.
+
+Wallet-adapter relay for hosted writes (OAuth + per-session unsigned-tx return + wallet-UI signing) is on the v1.x roadmap, not 0.4.x.
+
+## Where to next
+
+Sixty seconds is enough to feel the shape. The deeper paths:
+
+<Cards>
+  <Card title="The three live paths" href="/getting-started/quickstart">
+    Hit the live x402 demo, mount the SDK middleware on Express, wire the MCP server, all against the hosted testnet build.
+  </Card>
+  <Card title="MCP server" href="/mcp">
+    Twenty-one tools, four resources, three guided prompts. Full install reference at /mcp/install.
+  </Card>
+  <Card title="@agenttrust-sdk/trustgate" href="/sdk">
+    The TypeScript SDK every facilitator pulls in. Express middleware, client helpers, the atomicity guard, the full ValidationRegistry instruction builder set.
+  </Card>
+  <Card title="Architecture" href="/architecture">
+    How the three Solidity contracts compose into one settlement path. The atomic-tx invariant. The FacilitatorAdapter pattern.
+  </Card>
+</Cards>

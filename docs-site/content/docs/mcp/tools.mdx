@@ -1,0 +1,173 @@
+---
+title: Tools
+description: All 21 MCP tools — 10 read, 8 write, 3 discovery — with input/output shape and live testnet examples.
+---
+
+Each tool has a stable Zod schema. Input arguments are documented per tool below. Every write tool surfaces the resulting `txSignature` plus a Monad Explorer URL in its response.
+
+Source: [`mcp/src/tools/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools).
+
+## Read (10 tools — no signer required)
+
+| Tool | Input | Returns |
+|---|---|---|
+| [`agenttrust_get_policy`](#agenttrust_get_policy) | `agent_asset`, `policy_id` | Decoded `PolicyAccount` contract account — every spending cap, velocity threshold, counterparty tier requirement, required capability hash |
+| [`agenttrust_list_policies`](#agenttrust_list_policies) | `agent_asset` | Lightweight summary of all policies registered for an agent |
+| [`agenttrust_simulate_payment`](#agenttrust_simulate_payment) | `caller`, `payer_agent`, `payee_agent`, `amount`, `mint`, `policy_id` | `Allow` / `Deny(reasonCode, reasonName)` / `RequireValidation(capabilityHash)` |
+| [`agenttrust_get_killswitch`](#agenttrust_get_killswitch) | `agent_asset` | `KillSwitchState` + `PolicyAuthority` decoded |
+| [`agenttrust_get_velocity`](#agenttrust_get_velocity) | `agent_asset`, `policy_id` | `VelocityLedger` — sliding-window cumulative spend |
+| [`agenttrust_get_feedback_log`](#agenttrust_get_feedback_log) | `payment_id_hash` (32-byte hex) | `FeedbackEmissionLog` contract account |
+| [`agenttrust_get_quantu_reputation`](#agenttrust_get_quantu_reputation) | `agent_asset` | ERC-8004 `AtomStats` decoded — `tierImmediate`, `tierConfirmed`, `riskScore`, `confidence`, `schemaVersion` |
+| [`agenttrust_get_validation_attestation`](#agenttrust_get_validation_attestation) | `subject_asset`, `capability_name` OR `capability_hash`, `attestor` | Every `ValidationAttestation` contract account matching the filter |
+| [`agenttrust_list_facilitators`](#agenttrust_list_facilitators) | — | Active facilitator adapters (the molandak x402 facilitator / Dexter / atxp / MCPay) + ship status |
+| [`agenttrust_demo_state`](#agenttrust_demo_state) | — | Three pre-warmed testnet counterparties used by `examples/pay-sh-demo` |
+
+### `agenttrust_get_policy`
+
+Decodes the `PolicyAccount` contract account at `["policy", agent_asset, policy_id_le]`. Returns every byte: `enabled_kinds_bitmask`, `gate_mode`, all spending fields, all velocity fields, `min_counterparty_tier`, `max_risk_score`, `min_confidence`, `default_unrated_treatment`, `required_capability_hash` (hex), `accepted_attestors[]`, `scope_kind`. Non-existent policies return `exists: false`.
+
+### `agenttrust_list_policies`
+
+Lightweight summary across `policy_id ∈ {1..10}` for the given agent. Use `get_policy` for the full decode of a specific policy.
+
+### `agenttrust_simulate_payment`
+
+Read-only `gate_payment` simulation. Same semantics as the SDK's [`gatePayment()`](/sdk/gate-payment) — invokes the lazy variant (returns decision via Solidity's return-data channel), parses the response into the `GateDecision` union.
+
+`caller` is required; pass any funded base58 pubkey. The simulation tx isn't committed, but Monad requires a fee-payer key. As of 0.2.1 the tool surfaces a clear actionable error if `caller` is omitted (was a cryptic `AccountNotFound` before).
+
+### `agenttrust_get_killswitch`
+
+Returns the `KillSwitchState` for the agent's per-agent kill switch (scope_kind = 2, scope_key = agent_asset) plus the `PolicyAuthority` (multisig members + threshold). Useful when debugging "why is this agent paused?".
+
+### `agenttrust_get_velocity`
+
+Decodes the `VelocityLedger` contract account at `["velocity", agent_asset, policy_id_le]`. Returns `cumulative_amount`, `last_commit_slot`, `window_start_slot`. The window-active vs window-expired check (`elapsed >= window_slots`) is a pure-fn evaluation — match the policy's `velocity_window_secs` × `tier_decay(payer_tier) × 2 slots/sec`.
+
+### `agenttrust_get_feedback_log`
+
+`FeedbackEmissionLog` lookup by `payment_id_hash`. The contract account is at `["feedback_log", payment_id_hash]`. Returns `score`, `is_dispute`, `emitted_at_slot` if found, or `exists: false`.
+
+### `agenttrust_get_quantu_reputation`
+
+Decodes the ERC-8004 `AtomStats` at `["reputation record", agent_asset]`. Returns:
+
+```json
+{
+  "pda":          "4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv",
+  "ownerProgram": "AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF",
+  "ownerMatches": true,
+  "rawByteLen":   561,
+  "reputation": {
+    "tierImmediate":  3,
+    "tierConfirmed":  2,
+    "riskScore":      42,
+    "confidence":     8500,
+    "schemaVersion":  1
+  }
+}
+```
+
+Mirrors the canonical byte offsets from [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs) verbatim — 549 / 551 / 555 / 557 / 560. Fixed in MCP 0.2.6 (Phase Q1) after the schema-version canary at byte 560 + the `tier ≤ 4` range check were added; v0.2.5 had fabricated offsets that returned junk values.
+
+### `agenttrust_get_validation_attestation`
+
+Returns every `ValidationAttestation` contract account matching `(subject_asset, capability_name OR capability_hash)`, optionally filtered by `attestor`. Accepts the friendly capability name (the SDK computes SHA-256 internally) or the 64-char hex hash. Added in 0.2.4 — real LLMs typically have the human-readable name; requiring the digest was a friction point.
+
+### `agenttrust_list_facilitators`
+
+Returns the active adapter set: the molandak x402 facilitator (live), Dexter (in-flight), atxp (roadmap), MCPay (roadmap). Each entry includes the adapter's wire format hint and ship status.
+
+### `agenttrust_demo_state`
+
+Returns the three pre-warmed testnet counterparties used by `examples/pay-sh-demo`:
+
+| Tier | Asset pubkey | Expected gate decision |
+|---|---|---|
+| 0 (untrusted) | `C9pYqwnCVpwg7MwEbQa4XcmVVYsUcPwqHMYs999KB3dR` | `Deny(CounterpartyTierBelowMin)` |
+| 1 (low-trust) | `9894Sh7F79yDzTi4Pvfm5Jy5VmLpx2XkyhS14BFwpyrd` | `Deny(CounterpartyTierBelowMin)` |
+| 3 (Gold) | `5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y` | `Allow` (with a tier-3 policy) |
+
+The demo state is bundled in the tarball as of 0.2.3 — the published package doesn't need a separate state file.
+
+## Write (8 tools — require a signer: `PRIVATE_KEY` / `KEY_PATH` / Foundry default)
+
+| Tool | Effect |
+|---|---|
+| [`agenttrust_init_authority`](#agenttrust_init_authority) | Create the agent's `PolicyAuthority` contract account explicitly (rarely needed — `init_policy` self-heals this) |
+| [`agenttrust_init_policy`](#agenttrust_init_policy) | Single-bootstrap call: self-heals missing ERC-8004 `agent record` + `reputation record` and missing `PolicyAuthority`, then creates `PolicyAccount` + `VelocityLedger` in one tx |
+| [`agenttrust_set_killswitch`](#agenttrust_set_killswitch) | Pause / unpause the agent's `KillSwitchState` (lead-only multisig in v1) |
+| [`agenttrust_register_namespace`](#agenttrust_register_namespace) | Register a `CapabilityNamespace` contract account on the ValidationRegistry |
+| [`agenttrust_register_attestor`](#agenttrust_register_attestor) | Register an `AttestorProfile` contract account (must be done before `respond_to_validation`) |
+| [`agenttrust_request_validation`](#agenttrust_request_validation) | Open a `ValidationRequest` contract account |
+| [`agenttrust_respond_to_validation`](#agenttrust_respond_to_validation) | Attestor writes a `ValidationAttestation` contract account |
+| [`agenttrust_emit_feedback`](#agenttrust_emit_feedback) | Facilitator-only `emit_feedback` internal call (signer must equal facilitator) |
+
+### `agenttrust_init_authority`
+
+Required args: `agent_asset`, `members` (1–5 base58 pubkeys), `threshold`. Creates the `PolicyAuthority` contract account at `["policy_authority", agent_asset]`. You rarely call this directly in 0.4.x — `init_policy` prepends it transparently when the contract account is missing. Use this tool when you need a non-trivial multisig (members > 1) before any policy is created.
+
+### `agenttrust_init_policy`
+
+Required args: `policy_id`, `enabled_kinds_bitmask` (e.g., `0b11111` = all five kinds). Optional: `agent_asset` (omit to let the tool generate a fresh identity), `metadata_uri` (used when self-healing ERC-8004 registration; max 256 bytes), and every `PolicyAccount` field — defaults are documented in [`programs/policy-vault/src/instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs).
+
+Single-bootstrap behaviour: when `agent_asset` is omitted, the tool generates a fresh ephemeral asset key and prepends TrustGate's `register_agent_via_cpi` into the same atomic transaction. That instruction CPIs into `IdentityRegistry::register_with_options` and `ReputationRegistry::initialize_stats`. The same call also self-heals the AgentTrust `PolicyAuthority` contract account (`init_authority`) and the `KillSwitchState` contract account (`init_killswitch`) when either is missing. End result: a brand-new ERC-8004 agent profile, an `reputation record` contract account, the AgentTrust authority + kill-switch, plus the new `PolicyAccount` + `VelocityLedger` — all in one signed tx. Successful self-heal returns `healedSteps: ["register_agent_via_cpi", "init_authority", "init_killswitch"]`.
+
+### `agenttrust_set_killswitch`
+
+Required args: `agent_asset`, `paused`. Multisig-gated against `PolicyAuthority` per [KillSwitch policy](/programs/policy-vault/kill-switch-policy). v1 uses single-signer (lead-only) for hackathon-velocity reasons; v1.1+ exercises the full Kani-proven multi-signer path.
+
+### `agenttrust_register_namespace`
+
+Required args: `name` (UTF-8 capability name, e.g. `"web/scrape"`), `schema_uri` (max 256 bytes, off-chain JSON schema describing the claim payload). Derives `CapabilityNamespace` contract account at `["capability", sha256(name)]` on the ValidationRegistry program. The on-chain `name_hash` is `sha256(name_utf8)` so the schema URI can rotate independently. Same signer must own the namespace for later `register_attestor` calls under it.
+
+### `agenttrust_register_attestor`
+
+Required args: `namespace_name` OR `namespace_hash_hex`, plus optional `attestor` (defaults to the signer pubkey). Creates the `AttestorProfile` contract account at `["attestor", attestor]` on the ValidationRegistry. Must succeed before the attestor calls `respond_to_validation` for any request under this namespace.
+
+### `agenttrust_request_validation`
+
+Required args: `subject_asset`, `claim_uri_hash_hex`, `deadline_slot`. The capability is implied by the active namespace context. Subject's owner OR any third party can open the request; off-chain attestors discover via the `RequestCreated` event.
+
+### `agenttrust_respond_to_validation`
+
+Required args: `subject_asset`, `claim_payload_hash_hex`, `claim_uri_hash_hex`, `expires_at_slot`. The signer (resolved via the chain `PRIVATE_KEY` / `KEY_PATH` / Foundry default) is the attestor. v1 trust model: tx signature authenticates; v1.1+ adds Ed25519 sysvar verify.
+
+### `agenttrust_emit_feedback`
+
+Required args: `payment_id_hash_hex`, `payee_asset`, `base_collection`, `score`. The signer must equal the facilitator (`FacilitatorSignerMismatch` otherwise). `base_collection` is the value passed to the ERC-8004 `register_agent` — the agent-registry-8004 collection address.
+
+## Discovery (3 tools)
+
+| Tool | Returns |
+|---|---|
+| [`agenttrust_docs`](#agenttrust_docs) | Full-text search over `docs-site/content/docs/` — ranked hits with excerpts |
+| [`agenttrust_facilitator_walkthrough`](#agenttrust_facilitator_walkthrough) | Per-adapter integration walkthrough by name |
+| [`agenttrust_explain_decision`](#agenttrust_explain_decision) | Translate a `DenyReason` code (1..15) into the enum name + remediation hint |
+
+### `agenttrust_docs`
+
+Searches the bundled docs corpus. Returns ranked hits with excerpts. Use case: an LLM asks "what's the atomic-tx invariant?" and the tool surfaces the verification page with a relevant excerpt rather than hallucinating from training data.
+
+The corpus is bundled in the tarball as of 0.2.3. `MCP_DOCS_DIR` env var lets tests point at a different root.
+
+### `agenttrust_facilitator_walkthrough`
+
+Returns the canonical guide for a named facilitator (`pay-sh`, `dexter`, `atxp`, `mcpay`, or `x402`). Falls back to the generic adapters guide for unknown names. Use case: an LLM asks "walk me through adding a new facilitator" and the tool returns the contract page.
+
+### `agenttrust_explain_decision`
+
+Maps a `DenyReason` code (`1..15`) to the canonical name + remediation hint. Same data the [Reference → DenyReason codes](/reference/deny-reason-codes) page surfaces, but tool-shaped for LLM consumption.
+
+## Validation status
+
+Phase M comprehensive E2E (2026-05-07): all 18 tools present at the time of that report, 10/10 read tools return live testnet state with clickable Explorer URLs, 6/6 contract accounts cross-validated against on-chain ground truth, 4/4 Explorer URLs return HTTP 200. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md). The surface has since grown to 21 tools (10 read + 8 write + 3 discovery) in 0.4.x — confirmed live via [`mcp.agenttrust.tech/healthz`](https://mcp.agenttrust.tech/healthz).
+
+Phase P real-LLM tool-routing (2026-05-08): 7/10 strict pass on natural-language scenarios via Claude `sonnet`. The three false negatives were context-gathering artefacts (the LLM called `agenttrust_demo_state` first to gather context, then the expected tool); a less agentic client would score 9/10. Full report: [`docs/proofs/phase-p-llm-routing.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-p-llm-routing.md).
+
+## Source
+
+- Read tools: [`mcp/src/tools/read/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools/read)
+- Write tools: [`mcp/src/tools/write/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools/write)
+- Discovery tools: [`mcp/src/tools/discovery/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/tools/discovery)
+- Tool aggregator: [`mcp/src/tools/index.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/tools/index.ts)

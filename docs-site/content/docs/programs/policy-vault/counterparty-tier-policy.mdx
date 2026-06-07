@@ -1,0 +1,87 @@
+---
+title: CounterpartyTier policy
+description: Read the ERC-8004 AtomStats by byte offset and gate the payment on tier, risk, and confidence — no Cargo dep on the ERC-8004 crate.
+---
+
+CounterpartyTier is the wedge. It reads the payee's `AtomStats` contract account (the ERC-8004 `atom-engine` program) through a manual byte-offset parser, then checks `trust_tier`, `risk_score`, and `confidence` against the policy's thresholds.
+
+Manual parsing — not Borsh deserialization through the ERC-8004 crate. The parser is pinned to commit `bfb09ad` and includes a schema-version canary at byte 560 that fails loud rather than silently misreading fields if ERC-8004 bumps its layout.
+
+Source: [`programs/policy-vault/src/policies/counterparty_tier.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs). Parser: [`programs/policy-vault/src/ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs).
+
+## Reads from `AtomStats`
+
+| Offset | Width | Field | Notes |
+|---:|---:|---|---|
+| `549` | u8 | `risk_score` | 0..=255 — lower is better |
+| `551` | u8 | `tier_immediate` | v1 demo default; 0..=4 |
+| `555` | u8 | `tier_confirmed` | post-vesting; production mode preferred |
+| `557` | u16 LE | `confidence` | basis points 0..=10000 |
+| `560` | u8 | `schema_version` | canary — must equal 1 |
+
+Account size canary: `ATOM_STATS_SIZE = 561`. Account-data-relative (the 8-byte Borsh discriminator at 0..8 is verified via owner + schema check, not by re-parsing).
+
+`ATOM_TIER_MAX = 4`. A tier byte above 4 — with `schema_version == 1` — implies tampering or an undeclared spec change; the parser fails with `AtomStatsSchemaMismatch` rather than silently clamp. Same fail-loud rule for `tier_confirmed`.
+
+ERC-8004 pinned program ID (testnet): `AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF`. Mainnet: [Reference → Mainnet program IDs](/reference/mainnet-program-ids).
+
+## Policy state (subset of `PolicyAccount`)
+
+```rust
+pub gate_mode: u8,                     // off 49      — GATE_MODE_IMMEDIATE | _CONFIRMED
+pub min_counterparty_tier: u8,         // off 130
+pub max_risk_score: u8,                // off 131     — 255 = no constraint
+pub min_confidence: u16,               // off 132..134 — 0..=10000; 0 = no constraint
+pub default_unrated_treatment: u8,     // off 134     — UNRATED_DENY | _ALLOW | _REQUIRE_VALIDATION
+```
+
+`gate_mode` selects which tier byte is checked. `GATE_MODE_IMMEDIATE` reads byte 551 (the v1 demo default — fast ERC-8004 fast-path tier). `GATE_MODE_CONFIRMED` reads byte 555 (post-vesting; production policies prefer this). Any other byte falls back to `tier_confirmed` — the conservative choice if `gate_mode` is corrupted.
+
+## Decision
+
+```
+1. view = parse(reputation record_account)
+2. view == None  → Unrated → composer applies default_unrated_treatment
+3. tier < min_tier              → Deny(CounterpartyTierBelowMin)        code 6
+4. max_risk_score < 255 AND view.risk_score > max_risk_score
+                                → Deny(CounterpartyRiskAboveMax)        code 7
+5. min_confidence > 0 AND view.confidence < min_confidence
+                                → Deny(CounterpartyConfidenceBelow)     code 8
+6. else                         → Allow
+```
+
+The risk constraint is disabled when `max_risk_score == 255` (sentinel). The confidence constraint is disabled when `min_confidence == 0`. Both let a policy elect tier-only gating without touching the other fields.
+
+## Unrated resolution
+
+When the payee's `AtomStats` contract account is uninitialised (no rent or empty data), the parser returns `None` and the policy returns `Unrated`. The composer maps `Unrated` to one of three resolutions per `default_unrated_treatment`:
+
+| Treatment | Constant | Composer maps to |
+|---|---|---|
+| `UNRATED_DENY` (default, byte `0`) | `0` | `Deny(UnratedTreatmentDeny)` — code 15 |
+| `UNRATED_ALLOW` | `1` | `Allow` — proceed |
+| `UNRATED_REQUIRE_VALIDATION` | `2` | `RequireValidation(capability_hash)` — facilitator routes user to attestation flow |
+
+Unrecognised bytes fall through to `Deny` — the safe landing if on-chain corruption ever yields a value outside the documented range.
+
+## Defensive failures (codes 9 / 10)
+
+The parser also surfaces two defensive denials independent of policy thresholds:
+
+- `AtomStatsWrongOwner` (code 9) — the contract account's owner is not the ERC-8004 `atom-engine` program. Rejected via `require_keys_eq!` against the pinned `ATOM_ENGINE_ID`.
+- `AtomStatsSchemaMismatch` (code 10) — size mismatch (`!= 561`), schema-version canary mismatch (`byte 560 != 1`), or tier byte above `ATOM_TIER_MAX = 4`.
+
+Both are catastrophic-fail signals: a `Deny` here implies bad data, not a normal counterparty failure.
+
+## Formal verification
+
+- `counterparty_tier_monotone` (Kani #3, 8 sub-checks, 0.02 s) — if a STRICT policy (high `min_counterparty_tier`) produces `Allow` for a given payee, a LOOSER policy (lower or equal `min_tier`) on the same payee must also produce `Allow`. Loosening the tier requirement can never turn an `Allow` into a `Deny`.
+
+In-module tests cover gate-mode selection (immediate vs confirmed), risk + confidence boundaries, sentinel disabling, fail-fast ordering (tier before risk before confidence), and unrated resolution for all four `UNRATED_*` values including unknown.
+
+## Source
+
+- Policy module: [`policies/counterparty_tier.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/counterparty_tier.rs)
+- AtomStats parser: [`ext/ReputationRegistry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/ReputationRegistry.rs)
+- Kani proof: [`proofs/inv_counterparty_tier_monotone.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs)
+- Byte-offset table: [Reference → Byte offsets](/reference/byte-offset-reference)

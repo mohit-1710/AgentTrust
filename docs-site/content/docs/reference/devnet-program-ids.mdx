@@ -1,0 +1,69 @@
+---
+title: Testnet contract addresses
+description: Deployed AgentTrust contract addresses on Monad testnet, with Explorer links and ABI fetch instructions.
+---
+
+The pinned testnet deployment of the AgentTrust contracts and the ERC-8004 registries. The SDK ships these as `DEFAULT_TESTNET_ADDRESSES`.
+
+Monad testnet — chainId `10143`, RPC `https://testnet-rpc.monad.xyz`, explorer `https://testnet.monadexplorer.com`.
+
+<ProgramIdsTable />
+
+## TypeScript constants
+
+```ts
+import { DEFAULT_TESTNET_ADDRESSES } from "@agenttrust-sdk/trustgate";
+
+DEFAULT_TESTNET_ADDRESSES.policyVault;          // Address
+DEFAULT_TESTNET_ADDRESSES.trustGate;            // Address (camelCase as of 0.2.0)
+DEFAULT_TESTNET_ADDRESSES.validationRegistry;   // Address (new in 0.2.0)
+```
+
+Note: as of SDK 0.2.0, `ProgramIds.trustgate` (lowercase) was renamed to `ProgramIds.trustGate` (camelCase) to match `policyVault`. The new `validationRegistry` field is populated by default. Migration: search-and-replace `.trustgate` → `.trustGate`. See [Reference → Changelog](/reference/changelog).
+
+## Contract declarations
+
+| Contract | Source | Testnet address |
+|---|---|---|
+| `PolicyVault` | [`contracts/src/PolicyVault.sol`](https://github.com/agenttrust-labs/agenttrust/blob/main/contracts/src/PolicyVault.sol) | `0x34b3bB1a99377128126201359749FE7614275E37` |
+| `IdentityRegistry` | ERC-8004 | `0x8004A818BFB912233c491871b3d84c89A494BD9e` |
+| `ReputationRegistry` | ERC-8004 | `0x8004B663056A597Dffe9eCcC1965A193B7388713` |
+| `ValidationRegistry` | ERC-8004 | `0x8004Cb1BF31DAf7788923b405b754f57acEB4272` |
+| `USDC` | ERC-20 | `0x534b2f3A21130d7a60830c2Df862319e593943A3` |
+
+## Verify deployed code
+
+```bash
+for a in 0x34b3bB1a99377128126201359749FE7614275E37 \
+         0x8004B663056A597Dffe9eCcC1965A193B7388713 \
+         0x8004Cb1BF31DAf7788923b405b754f57acEB4272; do
+  cast code "$a" --rpc-url https://testnet-rpc.monad.xyz | head -c 12; echo " $a"
+done
+```
+
+## Fetch ABIs
+
+The verified contract ABIs are available from the explorer:
+
+```bash
+# PolicyVault ABI from the Monad testnet explorer
+curl "https://testnet.monadexplorer.com/api?module=contract&action=getabi&address=0x34b3bB1a99377128126201359749FE7614275E37"
+```
+
+The SDK's `loadPolicyVault` / `loadTrustGate` / `loadValidationRegistry` use bundled ABI snapshots by default. Pass an explicit `abi` argument to override — useful for latency-sensitive paths or freshly-redeployed contracts.
+
+Latest evidence snapshot (SHA-256 hashes + instruction counts): [`docs/proofs/idl-on-chain.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/idl-on-chain.json).
+
+## Read next
+
+<Cards>
+  <Card title="Mainnet program IDs" href="/reference/mainnet-program-ids">
+    the ERC-8004 pinned mainnet IDs that PolicyVault reads from.
+  </Card>
+  <Card title="Discriminator constants" href="/reference/discriminator-constants">
+    contract account seed prefixes + give_feedback discriminator.
+  </Card>
+  <Card title="Live evidence" href="/verification/live-evidence">
+    Every load-bearing claim with an Explorer URL.
+  </Card>
+</Cards>

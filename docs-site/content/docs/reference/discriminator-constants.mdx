@@ -1,0 +1,110 @@
+---
+title: Discriminator constants
+description: Pinned instruction discriminators, contract account seed prefixes, and account size canaries used across AgentTrust.
+---
+
+The constants below are the load-bearing discriminators and seeds AgentTrust depends on. Anything that drifts here breaks downstream tooling.
+
+## ERC-8004 internal call discriminator
+
+| Value | Notes |
+|---|---|
+| `[145, 136, 123, 3, 215, 165, 98, 41]` | `IdentityRegistry::give_feedback` 8-byte instruction discriminator. TrustGate's `emit_feedback` and `dispute_payment` invoke this via `invoke_signed`. |
+
+Source: [`programs/trustgate/src/ext/agent_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/ext/agent_registry.rs). Pinned to ERC-8004 commit `bfb09ad`.
+
+## AgentTrust contract account seed prefixes
+
+| Program | Seed prefix | Seeds | What it identifies |
+|---|---|---|---|
+| `policy_vault` | `b"policy"` | `["policy", agent_asset, policy_id_le]` | `PolicyAccount` |
+| `policy_vault` | `b"velocity"` | `["velocity", agent_asset, policy_id_le]` | `VelocityLedger` |
+| `policy_vault` | `b"killswitch"` | `["killswitch", &[scope_kind], scope_key]` | `KillSwitchState` |
+| `policy_vault` | `b"policy_authority"` | `["policy_authority", agent_asset]` | `PolicyAuthority` |
+| `trustgate` | `b"trustgate_auth"` | `["trustgate_auth", facilitator]` | `TrustGateAuthority` |
+| `trustgate` | `b"feedback_log"` | `["feedback_log", payment_id_hash]` | `FeedbackEmissionLog` |
+| `validation_registry` | `b"capability"` | `["capability", capability_hash]` | `CapabilityNamespace` |
+| `validation_registry` | `b"attestor"` | `["attestor", attestor_pubkey]` | `AttestorProfile` |
+| `validation_registry` | `b"request"` | `["request", subject_asset, capability_hash, requester]` | `ValidationRequest` |
+| `validation_registry` | `b"attestation"` | `["attestation", subject_asset, capability_hash, attestor]` | `ValidationAttestation` |
+
+The SDK exposes derivers for every contract account: [SDK → Exports reference](/sdk/exports-reference#pda-derivers--forge-loaders).
+
+## Account size canaries
+
+| Account | Size | Source |
+|---|---:|---|
+| `PolicyAccount` | 240 | [`policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs) |
+| `VelocityLedger` | 80 | [`velocity_ledger.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/velocity_ledger.rs) |
+| `KillSwitchState` | 96 | [`kill_switch_state.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/kill_switch_state.rs) |
+| `PolicyAuthority` | 272 | [`policy_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_authority.rs) |
+| `TrustGateAuthority` | 104 | [`trustgate_authority.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/state/trustgate_authority.rs) |
+| `FeedbackEmissionLog` | 72 | [`feedback_emission_log.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/state/feedback_emission_log.rs) |
+| `ValidationAttestation` | 290 | [`validation_attestation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/state/validation_attestation.rs) |
+| `AtomStats` (ERC-8004) | 561 | upstream-pinned at commit `bfb09ad`; canary at byte 560 |
+
+Sizes are validated at parse time — a size mismatch fails loud rather than silently misread.
+
+## TrustGate `emit_feedback` field bounds
+
+| Field | Limit | Error |
+|---|---:|---|
+| `score` | ≤ 100 | `ScoreOutOfRange` |
+| `tag1` | ≤ 32 bytes | `TagTooLong` |
+| `tag2` | ≤ 32 bytes | `TagTooLong` |
+| `endpoint` | ≤ 64 bytes | `EndpointTooLong` |
+| `feedback_uri` | ≤ 256 bytes | `UriTooLong` |
+
+`DISPUTE_SCORE` (the score `dispute_payment` hard-codes for negative feedback) lives at [`programs/trustgate/src/constants.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/constants.rs).
+
+## ValidationRegistry name + URI bounds
+
+| Field | Limit | Error |
+|---|---:|---|
+| `CapabilityNamespace.name` | min 3, max 32 bytes; no `':'` | `NameTooShort` / `NameTooLong` / `NamespaceColonForbidden` |
+| `CapabilityNamespace.version` | ≤ 16 bytes | `VersionTooLong` |
+| `CapabilityNamespace.schema_uri` | ≤ 160 bytes | `UriTooLong` |
+| `AttestorProfile.display_name_uri` | ≤ 100 bytes | `UriTooLong` |
+
+## PolicyVault constants module
+
+Bitmask flags for `PolicyAccount.enabled_kinds_bitmask`:
+
+| Flag | Value | Policy |
+|---|---:|---|
+| `KIND_KILLSWITCH` | `0b00001` (1) | KillSwitch |
+| `KIND_SPENDING` | `0b00010` (2) | Spending |
+| `KIND_VELOCITY` | `0b00100` (4) | Velocity |
+| `KIND_COUNTERPARTY_TIER` | `0b01000` (8) | CounterpartyTier |
+| `KIND_REQUIRE_VALIDATION` | `0b10000` (16) | RequireValidation |
+
+`gate_mode` enum:
+
+| Value | Constant | Reads |
+|---:|---|---|
+| `0` | `GATE_MODE_IMMEDIATE` | `AtomStats.tier_immediate` (byte 551) |
+| `1` | `GATE_MODE_CONFIRMED` | `AtomStats.tier_confirmed` (byte 555) |
+
+`default_unrated_treatment` enum:
+
+| Value | Constant | Composer maps to |
+|---:|---|---|
+| `0` | `UNRATED_DENY` | `Deny(UnratedTreatmentDeny)` (code 15) |
+| `1` | `UNRATED_ALLOW` | `Allow` |
+| `2` | `UNRATED_REQUIRE_VALIDATION` | `RequireValidation(capability_hash)` |
+
+Constants module: [`programs/policy-vault/src/constants.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/constants.rs).
+
+## Read next
+
+<Cards>
+  <Card title="Byte-offset reference" href="/reference/byte-offset-reference">
+    Per-account byte-offset tables.
+  </Card>
+  <Card title="Testnet program IDs" href="/reference/devnet-program-ids">
+    Deployed program addresses on testnet.
+  </Card>
+  <Card title="DenyReason codes" href="/reference/deny-reason-codes">
+    The 15 reason codes the gate can return.
+  </Card>
+</Cards>

@@ -1,0 +1,124 @@
+.section {
+  width: 100%;
+  min-height: 150dvh;
+  overflow: visible;
+  background: var(--bg-dark);
+  scroll-margin-top: 116px;
+}
+
+.spacer {
+  height: 48px;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--border-dark);
+  border-bottom: 1px solid var(--border-dark);
+}
+
+.inner {
+  position: sticky;
+  top: 0;
+  min-height: 100dvh;
+  max-width: 1920px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 0.75px, transparent 0.75px);
+  background-size: 17.5px 17.5px;
+  opacity: 0.8;
+}
+
+.glow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 220%;
+  min-width: 640px;
+  height: 20dvh;
+  pointer-events: none;
+  background: var(--accent);
+  filter: blur(64px);
+  opacity: 0.3;
+  transform: translate(-50%, 50%);
+}
+
+.panel {
+  position: relative;
+  min-height: 100dvh;
+  padding: 32px 16px;
+  border-right: 1px solid var(--border-dark);
+  border-left: 1px solid var(--border-dark);
+}
+
+.content {
+  display: flex;
+  min-height: calc(100dvh - 64px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 560;
+  line-height: 1;
+  color: var(--bg-elev);
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.headingMask {
+  display: block;
+  overflow: clip;
+}
+
+.cards {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 940px) {
+  .section {
+    min-height: 185dvh;
+    scroll-margin-top: 56px;
+  }
+
+  .spacer {
+    height: 80px;
+  }
+
+  .panel {
+    padding: 48px 40px 64px;
+  }
+
+  .content {
+    min-height: calc(100dvh - 112px);
+    gap: 40px;
+  }
+
+  .cards {
+    flex-direction: row;
+  }
+}

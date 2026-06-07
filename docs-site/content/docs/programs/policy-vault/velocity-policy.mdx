@@ -1,0 +1,92 @@
+---
+title: Velocity policy
+description: Sliding-window cumulative-spend counter with payer-tier-decayed window size and Allow-only ledger commit.
+---
+
+Velocity is the third policy. One contract account read (`VelocityLedger`), then pure arithmetic. The window size is decayed by the payer's `trust_tier` so a tier-0 agent gets a tighter throttle than a tier-3 agent.
+
+Source: [`programs/policy-vault/src/policies/velocity.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/velocity.rs).
+
+## `VelocityLedger` contract account
+
+```rust
+#[account]
+pub struct VelocityLedger {
+    pub payer_agent_asset: Pubkey, // off  8..40
+    pub policy_id: u32,            // off 40..44
+    pub bump: u8,                  // off 44
+    pub _pad0: [u8; 3],            // off 45..48
+    pub cumulative_amount: u64,    // off 48..56 — sum across active window
+    pub last_commit_slot: u64,     // off 56..64 — slot of last Allow
+    pub window_start_slot: u64,    // off 64..72 — first commit slot in current window
+    pub _reserved: [u8; 8],        // off 72..80
+}
+```
+
+contract account seeds: `["velocity", payer_agent_asset, policy_id_le_bytes]`. Account size: 80 bytes.
+
+## Tier-decayed window
+
+| Payer tier | Multiplier | Effective window |
+|---:|---:|---|
+| 0 (untrusted) | 1/4 | window × 0.25 |
+| 1 | 2/4 | window × 0.50 |
+| 2 | 3/4 | window × 0.75 |
+| 3 (Gold, default) | 4/4 | window × 1.00 |
+| 4 (Platinum) | 5/4 | window × 1.25 |
+
+```rust
+pub fn apply_tier_decay(base_secs: u64, payer_tier: u8) -> u64;
+```
+
+Computed in `u128` to avoid overflow on tier-4 over very large bases; clamps to `u64::MAX` if the multiplied result overflows. Unknown tier (`tier > 4` — corruption canary) falls back to Gold (1×) — conservative-but-not-locking.
+
+`SLOTS_PER_SECOND = 2` (the conservative envelope per `docs/plan/research/04-policyvault-build-playbook.md §E.1`). `window_slots = effective_window_secs × 2`.
+
+## Decision
+
+```rust
+pub fn evaluate(
+    state: VelocityState,
+    ledger: VelocityLedgerSnapshot,
+    amount: u64,
+    payer_tier: u8,
+    now_slot: u64,
+) -> VelocityOutcome;
+```
+
+```
+1. amount == 0  → Allow with no-op deltas (last_commit advances, window not reset)
+2. elapsed = saturating_sub(now_slot, window_start_slot)
+3. if elapsed ≥ window_slots → window expired → reset cumulative to 0
+4. new_cumulative = active_in_window + amount  (checked_add → Deny on overflow)
+5. if new_cumulative > max_in_window → Deny(VelocityWindowExceeded)         code 5
+6. else                              → Allow with new_cumulative + (maybe) new window_start_slot
+```
+
+`saturating_sub` on `now_slot` ensures clock-skew or replay scenarios where `now_slot < window_start_slot` clamp `elapsed` to 0 — window NOT expired, defensive.
+
+## Allow-only commit
+
+The Velocity policy never writes to `VelocityLedger` directly. The composer's Solidity wrapper applies `velocity::apply_deltas(&mut ledger, &deltas)` only when every prior + later policy returns `Allow`. That is what makes `velocity_counter_le_limit` (Kani #2) inductive: every prior `Allow` preserves `cumulative_amount ≤ max_in_window`; a fresh ledger trivially satisfies the base case.
+
+```rust
+pub struct VelocityDeltas {
+    pub new_cumulative_amount:  u64,
+    pub new_last_commit_slot:   u64,
+    pub new_window_start_slot:  u64,
+}
+```
+
+## Formal verification
+
+- `velocity_counter_le_limit` (Kani #2, 9 sub-checks, 0.03 s) — if the pre-state ledger satisfies `cumulative_amount ≤ max_in_window`, then after `velocity::evaluate` returns `Allow(deltas)` the new cumulative counter still satisfies the bound. Cross-policy preservation against `spending.weekly_max` is a separate proof if/when needed.
+
+In-module unit tests cover tier decay (5 cases), window expiry, boundary cases at `max_in_window`, overflow, `max_in_window == 0`, and `now_slot < window_start_slot`. Source: [`programs/policy-vault/src/policies/velocity.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/velocity.rs) — 339 lines.
+
+## Source
+
+- Policy module: [`policies/velocity.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/velocity.rs)
+- State: [`state/velocity_ledger.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/velocity_ledger.rs)
+- Composer: [`policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
+- Kani proof: [`proofs/inv_velocity_counter_le_limit.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_velocity_counter_le_limit.rs)

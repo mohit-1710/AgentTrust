@@ -1,0 +1,142 @@
+---
+title: Capability namespaces
+description: Register a new namespace, derive its hash, gate against it from PolicyVault. Plus how the v1 sybil-resistance model devolves trust to PolicyVault's accepted_attestors[].
+---
+
+Capability namespaces are the names PolicyVault gates against in `RequireValidation`. Each namespace is identified on chain by `SHA-256(name_utf8)` — that 32-byte hash is what `PolicyAccount.required_capability_hash` stores and what the `X-Capability-Required` x402 response header carries.
+
+Source: [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs). State: [`state/capability_namespace.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/state/capability_namespace.rs).
+
+## Register a namespace
+
+```ts
+import { createWalletClient, http } from "viem";
+import {
+  buildRegisterNamespaceIx,
+  computeCapabilityHash,
+  loadValidationRegistry,
+  makeProvider,
+  DEFAULT_TESTNET_ADDRESSES,
+} from "@agenttrust-sdk/trustgate";
+
+const creator = key.fromSecretKey(/* funded testnet key */);
+const provider = makeProvider({
+  rpcUrl: "https://testnet-rpc.monad.xyz",
+  wallet: creator,
+});
+
+const validationRegistry = await loadValidationRegistry(
+  provider,
+  DEFAULT_TESTNET_ADDRESSES.validationRegistry,
+);
+
+const name = "my-org.attestation.v1";          // ≤ 32 bytes; min 3; no ':' allowed
+const version = "v1";                           // ≤ 16 bytes
+const schemaUri = "https://my-org.example/schemas/attestation.v1.json";
+
+const namespaceHash = computeCapabilityHash(name);  // SHA-256(name)
+
+const ix = await buildRegisterNamespaceIx({
+  program:        validationRegistry,
+  creator:        creator.publicKey,
+  namespaceHash,
+  name,
+  version,
+  schemaUri,
+});
+
+const tx = new Transaction().add(ix);
+const sig = await sendAndConfirmTransaction(provider.connection, tx, [creator]);
+console.log(`Namespace registered: ${sig}`);
+```
+
+The `register_namespace` instruction enforces:
+
+| Constraint | Limit | Error on violation |
+|---|---|---|
+| `name.len() >= 3` | min 3 | `NameTooShort` |
+| `name.len() <= 32` | max 32 | `NameTooLong` |
+| `':'` not in `name` | forbidden | `NamespaceColonForbidden` (so namespace strings pack into URIs without escaping) |
+| `version.len() <= 16` | max 16 | `VersionTooLong` |
+| `schema_uri.len() <= 160` | max 160 | `UriTooLong` |
+
+Anyone can register a namespace — rent (~0.0023 MON) is the economic deterrent. PolicyVault decides per-policy which attestors it trusts via `accepted_attestors[]`, so a namespace registration alone confers no trust.
+
+## Derive the contract account
+
+```ts
+import { deriveCapabilityNamespacePda } from "@agenttrust-sdk/trustgate";
+
+const namespacePda = deriveCapabilityNamespacePda(
+  DEFAULT_TESTNET_ADDRESSES.validationRegistry,
+  namespaceHash, // 32 bytes
+);
+```
+
+contract account seeds: `["capability", namespace_hash]`.
+
+## Gate a policy against it
+
+Set `required_capability_hash` on `PolicyAccount` when calling `init_policy`:
+
+```ts
+import { BN } from "@coral-xyz/forge";
+
+await policyVault.methods
+  .initPolicy({
+    policyId:                1,
+    enabledKindsBitmask:     0b11111,  // all five kinds
+    requiredCapabilityHash:  Array.from(namespaceHash),
+    acceptedAttestors:       [/* up to 2 trusted attestor pubkeys, or both PublicKey.default for permissionless */],
+    /* … other policy fields … */
+  })
+  .accounts({
+    /* … */
+  })
+  .rpc();
+```
+
+When PolicyVault's gate runs:
+
+1. If `required_capability_hash == [0; 32]` (zero) — policy is not enabled; pass-through.
+2. Else, look for a `ValidationAttestation` contract account at `["attestation", payee_asset, capability_hash, attestor]`. The `attestor` slot iterates against `accepted_attestors[]`.
+3. If no attestation exists → `RequireValidation(capability_hash)` is returned. The facilitator's `formatChallenge` includes `X-Capability-Required: <hex>` in the x402 response.
+4. After the user obtains an attestation (off-chain claim → attestor calls `respond_to_validation` → contract account written) and re-submits the payment, the gate flips to `Allow`.
+
+Full decision flow: [PolicyVault → RequireValidation policy](/programs/policy-vault/require-validation-policy).
+
+## Naming conventions
+
+The seeded v1 namespaces follow a `domain.subcategory.version` shape:
+
+- `kyc.tier-1.v1`, `kyc.tier-2.v1`, `kyc.tier-3.v1`
+- `audit.smart-contract.v1`, `audit.attestor-firm.v1`
+- `model-card.v1`
+- `jurisdiction.v1`
+- `compliance.payments.v1`
+- `agent-source.v1`
+- `usdc-payment-policy.v1` (the Phase D demo capability)
+
+Full lookup with contract accounts and Explorer URLs: [Reference → Capability namespaces](/reference/capability-namespaces).
+
+The playbook-level descriptive labels in [`docs/plan/research/06-validation-registry-class.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/plan/research/06-validation-registry-class.md) (e.g., `kyc.tier-1.v1.identity-verified`) decompose to these on-chain `name` strings plus the JSON `description` field. The chain stores the bounded name; richer metadata lives in the `schema_uri` document.
+
+## Sybil-resistance model — local trust, not global
+
+Permissionless registration plus per-policy `accepted_attestors[]` filtering. PolicyVault decides which attestors it trusts for a given capability, not a central allow-list. A policy that gates against `audit.smart-contract.v1` might only accept attestations from Halborn or OtterSec; a policy that gates against `kyc.tier-1.v1` might accept any registered KYC attestor.
+
+The trade-off is local trust over global gatekeeping — the only model that scales with the number of facilitators. Detailed rationale: [ValidationRegistry](/programs/validation-registry).
+
+## Read next
+
+<Cards>
+  <Card title="Custom attestor" href="/integration-guides/custom-attestor">
+    The other side — register an attestor profile, respond to validation requests, revoke.
+  </Card>
+  <Card title="RequireValidation policy" href="/programs/policy-vault/require-validation-policy">
+    The PolicyVault read path that consumes the attestation contract account.
+  </Card>
+  <Card title="Capability namespaces (live)" href="/reference/capability-namespaces">
+    Every seeded v1 namespace with contract account + Explorer URL.
+  </Card>
+</Cards>

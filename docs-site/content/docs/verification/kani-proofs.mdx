@@ -1,0 +1,154 @@
+---
+title: Kani proofs
+description: Seven machine-checked invariants over the pure-Rust composer — 662 sub-checks, zero failures, ~81 s on a single CI runner. Per-harness deep-dive.
+---
+
+PolicyVault ships with seven `#[kani::proof]` harnesses over the pure-Rust composer (and one helper). Each runs on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Source: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs).
+
+Kani is the [model-checking/kani](https://github.com/model-checking/kani) bounded model checker. It compiles the Rust under verification to CBMC's intermediate form and explores every reachable state inside the configured bounds.
+
+<KaniProofBadge />
+
+## Seven invariants — summary
+
+| # | Invariant | Sub-checks | Time | Bound |
+|---:|---|---:|---:|---|
+| 1 | `paused_implies_no_allow` | 126 | 0.25 s | `#[kani::unwind(N)]` on the policy-bitmask scan |
+| 2 | `velocity_counter_le_limit` | 9 | 0.03 s | none |
+| 3 | `counterparty_tier_monotone` | 8 | 0.02 s | none |
+| 4 | `validation_expiry_correct` | 85 | 0.23 s | none |
+| 5 | `multisig_threshold_enforced` | 149 | 77.17 s | 3 members + 3 signers |
+| 6 | `gate_payment_strict_correctness` | 258 | ~0.9 s | none |
+| 7 | `spending_allow_respects_caps` | 27 | 0.67 s | none |
+
+**Total: 662 sub-checks, 0 failures, ~81 s.** Phase J5 added invariant 6; invariant 7 adds the Spending cap bound.
+
+## 1 · `paused_implies_no_allow`
+
+**Property.** If the agent's KillSwitch is `paused == true` AND `KIND_KILLSWITCH` is set in the policy bitmask, `compose_decision` cannot return `Allow` for any values of the other policy fields, ledger, or input parameters.
+
+**File.** [`proofs/inv_paused_implies_no_allow.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_paused_implies_no_allow.rs). **Harness:** `paused_killswitch_implies_no_allow`.
+
+**Why it's load-bearing.** This is the safety invariant of the gate. If a future change re-orders or skips KillSwitch evaluation, Kani fails this proof loud.
+
+## 2 · `velocity_counter_le_limit`
+
+**Property.** Inductive form: if the pre-state ledger satisfies `cumulative_amount ≤ max_in_window`, then after `velocity::evaluate` returns `Allow(deltas)` the new cumulative counter still satisfies the bound.
+
+**File.** [`proofs/inv_velocity_counter_le_limit.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_velocity_counter_le_limit.rs). **Harness:** `velocity_allow_implies_cumulative_le_max`.
+
+**Why it's inductive.** Every prior `Allow` preserves the bound; a fresh ledger trivially satisfies the base case. Cross-policy preservation against `spending.weekly_max` is a separate proof if/when needed.
+
+The `apply_deltas` rule on the composer side — only on `Allow` — is what makes this inductive on chain. If a future change applied deltas on `Deny` or `RequireValidation`, this proof becomes a falsehood.
+
+## 3 · `counterparty_tier_monotone`
+
+**Property.** If a STRICT policy (high `min_counterparty_tier`) produces `Allow` for a given payee, a LOOSER policy (lower or equal `min_tier`) on the same payee must also produce `Allow`. Loosening the tier requirement can never turn an `Allow` into a `Deny`.
+
+**File.** [`proofs/inv_counterparty_tier_monotone.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_counterparty_tier_monotone.rs). **Harness:** `counterparty_tier_monotone`.
+
+**Why it's anti-regression.** This is a sanity invariant. If a refactor introduces non-monotone behaviour (e.g., a config combination where loosening the threshold accidentally tightens it), Kani fails.
+
+## 4 · `validation_expiry_correct`
+
+**Property.** An expired attestation (`expires_at != 0 AND expires_at <= now_slot`) cannot produce `Allow` from `require_validation::evaluate`.
+
+**File.** [`proofs/inv_validation_expiry_correct.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs). **Harness:** `validation_expiry_correct`.
+
+**Why it matters.** Subject + capability + revocation are forced equal in the symbolic search so expiry is the deciding gate. Closes the obvious time-of-check / time-of-use stale-attestation hole — even if a payment race somehow passes a stale attestation through the verify path, the expiry check on the gate itself denies it.
+
+## 5 · `multisig_threshold_enforced`
+
+**Property.** `PolicyAuthority::count_distinct_signing_members` cannot return a count exceeding `min(member_count, signer_keys.len())`.
+
+**File.** [`proofs/inv_multisig_threshold_enforced.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_multisig_threshold_enforced.rs). **Harness:** `multisig_threshold_enforced`.
+
+**Why it's load-bearing.** This is the property that backs `set_killswitch`'s `require!(distinct_count >= threshold)` gate. A caller cannot construct a signer set that fools the function into over-counting (duplicate pubkeys, off-by-one tricks, corrupted `members` arrays).
+
+**Bound.** 3 members + 3 signers for symbolic-search tractability; the property generalises by induction.
+
+## 6 · `gate_payment_strict_correctness` (Phase J5)
+
+**Property.** Two harnesses pin the SDK's atomicity contract end-to-end:
+
+- `strict_returns_ok_iff_allow` — `compose_decision == Allow` ⇒ strict handler returns `Ok(())`. `compose_decision == Deny(_)` ⇒ strict returns `Err(_)`. `compose_decision == RequireValidation` ⇒ strict returns `Err(_)`.
+- `gate_decision_is_one_of_three_disjoint_variants` — the three `GateDecision` arms are pairwise disjoint, so a future fourth variant cannot silently slip past the strict dispatch.
+
+Together: `strict_returns_ok ⇔ matches!(decision, Allow)`.
+
+**File.** [`proofs/inv_gate_payment_strict_correctness.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_gate_payment_strict_correctness.rs).
+
+**Why it matters.** This is the on-chain forge of the SDK's atomic-tx invariant. The SDK enforces atomicity at three TS layers; this proof pins the on-chain handler that those layers feed into. If a future change re-routes the `Deny` arm to an `Ok` return, both the TS guards and this proof fail loud.
+
+Sub-check breakdown:
+
+| Sub-harness | Failed | Sub-checks | Unreachable |
+|---|---:|---:|---:|
+| `strict_returns_ok_iff_allow` | 0 | 131 | 3 |
+| `gate_decision_is_one_of_three_disjoint_variants` | 0 | 127 | 3 |
+
+Combined: 0 / 258 failed.
+
+## 7 · `spending_allow_respects_caps`
+
+**Property.** Inductive form: if the pre-state spending counters satisfy `today_used ≤ daily_max` and `week_used ≤ weekly_max`, then whenever `spending::evaluate` returns `Allow(deltas)` the authorized payment honors all three caps at once — `amount ≤ per_tx_max`, `new_today_used ≤ daily_max`, and `new_week_used ≤ weekly_max`.
+
+**File.** [`proofs/inv_spending_allow_respects_caps.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_spending_allow_respects_caps.rs). **Harness:** `spending_allow_respects_caps`.
+
+**Why it's load-bearing.** Spending is the policy that bounds how much value moves. The per-tx bound is unconditional — the early `amount > per_tx_max` guard means any `Allow` already cleared it. The daily and weekly bounds are inductive: a fresh account starts at `today_used = week_used = 0` (base case), and every `Allow` path — the UTC/ISO-week rollover reset, the zero-amount no-op, and the checked-add accumulate behind a `v <= max` guard — preserves the bound. This pins the contract the composer relies on when it calls `spending::apply_deltas` on the all-policies-passed branch.
+
+## Reproduce locally
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+cargo install --locked kani-verifier
+cargo kani setup
+
+cd programs/policy-vault
+
+cargo kani --harness paused_killswitch_implies_no_allow
+cargo kani --harness velocity_allow_implies_cumulative_le_max
+cargo kani --harness counterparty_tier_monotone
+cargo kani --harness validation_expiry_correct
+cargo kani --harness multisig_threshold_enforced
+cargo kani --harness strict_returns_ok_iff_allow
+cargo kani --harness gate_decision_is_one_of_three_disjoint_variants
+cargo kani --harness spending_allow_respects_caps
+```
+
+Or run all seven via the CI workflow:
+
+```bash
+gh workflow run kani-prove.yml
+```
+
+Expected output per harness:
+
+```
+SUMMARY:
+ ** 0 of <N> failed (<X> unreachable)
+
+VERIFICATION:- SUCCESSFUL
+```
+
+## What Kani does NOT prove
+
+- **Solidity handler account validation.** These are tested via [`tests/policy-vault.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/policy-vault.spec.ts) — Solidity end-to-end suite, 50 cases.
+- **Borsh deserialization correctness of foreign contract accounts.** Manual byte-offset parsers in [`programs/policy-vault/src/ext/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/ext); unit tests + runtime constraint checks per parser.
+- **Integer overflow in the ERC-20 token transfer.** Legacy ERC-20 token's own invariant — out of scope for AgentTrust verification.
+- **Liveness.** A denied request never reaches Allow, but the proofs do not bound the number of denials before an Allow eventually fires. Liveness + economic-game-theoretic properties are out of scope for v1.
+
+The seven invariants above are the **safety** properties: nothing catastrophic happens.
+
+## Why bounded
+
+Kani is a bounded model checker. Two of the proofs (`paused_implies_no_allow`, `multisig_threshold_enforced`) use `#[kani::unwind(N)]` to cap loop iterations. This is the standard discipline for finite-state proofs over Monad data — member arrays cap at 7 per `PolicyAuthority`, atom-engine tier domain is `0..=4`, etc. The bounds match production-realistic state sizes; symbolic search exhausts all reachable states inside those bounds.
+
+For an unbounded inductive proof on top of these, the canonical next step is `qedgen-formal-verification` (Lean 4 + Kani harness compilation from a single `.qedspec`), tracked as a v1.1 hardening item.
+
+## Source
+
+- All proofs: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs)
+- Workflow: [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml)
+- README: [`docs/proofs/README.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/README.md)
+- Sub-check summary: [`docs/proofs/kani-summary.txt`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/kani-summary.txt)

@@ -1,0 +1,90 @@
+---
+title: Spending policy
+description: Per-transaction, daily (UTC midnight), and weekly (ISO Monday) limits with forge-rollover math.
+---
+
+Spending is the second policy in the composer. Pure arithmetic — no foreign contract account reads. Three constraints in order: per-tx max, daily max, weekly max.
+
+Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs).
+
+## State (subset of `PolicyAccount`)
+
+```rust
+pub spending_per_tx_max: u64,    // off 50..58
+pub spending_daily_max: u64,     // off 58..66
+pub spending_weekly_max: u64,    // off 66..74
+pub spending_today_used: u64,    // off 74..82  — forge-relative counter
+pub spending_week_used: u64,     // off 82..90  — forge-relative counter
+pub spending_today_anchor: u64,  // off 90..98  — day index since 1970-01-01
+pub spending_week_anchor: u64,   // off 98..106 — week index since 1970-01-05 (Mon)
+```
+
+Per-policy snapshots are extracted via `From<&PolicyAccount> for SpendingState`. The composer never mutates these fields directly — `apply_deltas` does, only on the `Allow` branch.
+
+## Decision order
+
+```rust
+1. amount == 0           → Allow (no-op deltas)
+2. amount > per_tx_max   → Deny(SpendingPerTxExceeded)              code 2
+3. today_used + amount > daily_max  → Deny(SpendingDailyExceeded)   code 3
+4. week_used  + amount > weekly_max → Deny(SpendingWeeklyExceeded)  code 4
+5. else                  → Allow with new today/week counters + anchors
+```
+
+All comparisons use `checked_add`; overflow returns `Deny(SpendingDailyExceeded)` (the daily check is the first to overflow under realistic configs).
+
+## Solidity rollover
+
+`today_anchor` is `floor(unix_ts / 86_400)` — the day index since the Unix epoch. `week_anchor` is `floor((unix_ts - 4 × 86_400) / (7 × 86_400))` — the week index since Monday 1970-01-05 (the first Monday after the Unix epoch, which was a Thursday).
+
+When the cluster's current `unix_ts` falls into a new day, the policy treats `today_used_effective = 0` (rollover); the same logic applies to weekly. The new forge is written back along with the new counter on `Allow`.
+
+```rust
+let today_used_effective = if state.today_anchor == today_anchor_now {
+    state.today_used
+} else {
+    0
+};
+```
+
+The week forge is biased to ISO Monday — `1970-01-05` was a Monday; subsequent weeks roll at Monday 00:00 UTC. The day forge uses pure UTC midnight.
+
+## Pure decision function
+
+```rust
+pub fn evaluate(state: SpendingState, amount: u64, unix_ts: i64) -> SpendingOutcome;
+
+pub enum SpendingOutcome {
+    Allow(SpendingDeltas),
+    Deny(DenyReason),
+}
+
+pub struct SpendingDeltas {
+    pub new_today_used:  u64,
+    pub new_week_used:   u64,
+    pub new_today_anchor: u64,
+    pub new_week_anchor: u64,
+}
+```
+
+The composer applies deltas via `spending::apply_deltas(account, &deltas)` only when every policy returns `Allow`. The deltas are computed but never written if a later policy denies — that is the rule that makes `velocity_counter_le_limit` (Kani #2) inductive.
+
+## Formal verification
+
+The Spending policy is exercised by the composer-level `gate_payment_strict_correctness` proof (Kani #6, 258 sub-checks). Spending-specific behaviour is covered by the 14 in-module unit tests, including:
+
+- `happy_path_writes_amount_to_both_counters`
+- `deny_per_tx_exceeded` / `deny_daily_exceeded_with_existing_usage` / `deny_weekly_exceeded_with_existing_usage`
+- `rollover_resets_daily_when_anchor_changes` / `rollover_resets_weekly_when_anchor_changes`
+- `overflow_is_treated_as_daily_exceeded`
+- `boundary_amount_at_daily_max_allows`
+- `negative_unix_ts_clamps_to_zero_anchors`
+
+Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs) — 301 lines including tests.
+
+## Source
+
+- Policy module: [`policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs)
+- Composer: [`policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
+- State: [`state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs)
+- Init instruction: [`instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs)
