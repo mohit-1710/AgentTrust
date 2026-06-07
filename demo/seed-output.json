@@ -1,0 +1,53 @@
+{
+  "network": "monad-testnet",
+  "chainId": 10143,
+  "explorer": "https://testnet.monadexplorer.com",
+  "attestor": "0x56665935703ECE0d7b16193035dEafA5Cc679A85",
+  "agentOwner": "0xCeCf20B16dD95170F0D6276b711760FD3934Ad9f",
+  "contracts": {
+    "policyVault": "0x34b3bB1a99377128126201359749FE7614275E37",
+    "identity": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "reputation": "0x8004B663056A597Dffe9eCcC1965A193B7388713"
+  },
+  "goodAgentId": "1763",
+  "scammerAgentId": "1764",
+  "unknownAgentId": "999999",
+  "registerTxs": {
+    "good": "0x7cab4bd687a38c3e4670d70d17dce4f23202b14fc7943d04df378b17d34597a9",
+    "scammer": "0xcac6042bcf1421db6a170d55701de3b85b63f38bc6e4dd7c14be796ceec5f6c7"
+  },
+  "feedbackTxs": {
+    "good": [
+      "0x1c4d6627b5c10cf1b75d226fdf6c688f942d21f83ec759a2d9c92ae67d7ca3df",
+      "0xb0046f992d4db97771db9154cd93f6a9179e170ac510822972e6f673a68ad70a",
+      "0x66a7ca39989cd3ea79eab8cb16d341ea7a46057fb9b02a1d32210b885312a28a"
+    ],
+    "scammer": [
+      "0x03f2d30ef9bd2096f2e28374a5731d2caa58836e8843ba85e08b7c67aefe86f6",
+      "0x4b1540c52e9dd58716c90e2c22bac6c5405e25058f5634db1d9120a0bcb12a75",
+      "0x020f18be3357d0f748ca6fb6ee7d26b5bdcc3897966d89185e1c67d338c047ad"
+    ]
+  },
+  "policyTx": "0x27142262b265c38352a8aa35a95bcd054bb7f7b22d7479622cf17f086a8cea9a",
+  "minReputation": 50,
+  "gate": {
+    "good": {
+      "decision": 0,
+      "label": "ALLOW",
+      "reason": "ok",
+      "agentId": "1763"
+    },
+    "scammer": {
+      "decision": 1,
+      "label": "DENY",
+      "reason": "payee: reputation below threshold",
+      "agentId": "1764"
+    },
+    "unknown": {
+      "decision": 2,
+      "label": "REQUIRE_VALIDATION",
+      "reason": "payee: insufficient feedback from trusted attestors",
+      "agentId": "999999"
+    }
+  }
+}
