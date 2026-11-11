@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "capability": "invoice.audit.v1",
+  "conformance_suite_version": 1,
+  "claim": "controlled_fixture_conformance_only",
+  "fixtures": [
+    {
+      "fixture_id": "mixed-validity",
+      "csv_sha256": "wB7RHqvs5/AW5N0fUZqZqNJ7vBrmN+CKwjk/FZwXZYc=",
+      "golden_sha256": "4f2EHUhx5sc9eloLFAQNUtX7FOWJTYLxpkFZ3G4loJw="
+    },
+    {
+      "fixture_id": "quoted-multiline",
+      "csv_sha256": "ET9vQcoiEnF5trNYa6TIn6CO/Chp6r8+vqnhBtvcZm4=",
+      "golden_sha256": "3rV66kYB5BtapSfK76x2Bl+9sa0yqH5CkhRtZzJJ5h8="
+    },
+    {
+      "fixture_id": "rejected-values",
+      "csv_sha256": "eOfVi33ez0plt1P36HnhcdydjcaeNO7HTy/p5UjejMU=",
+      "golden_sha256": "F8BMr8rwrUCp8gZOkyD+GJ066f8+eN5XSHo4ZA+akMY="
+    },
+    {
+      "fixture_id": "header-only",
+      "csv_sha256": "+xq4NjGTcaZeR6BSz59s1DMxKtIHQtus6sPZt3mEJwI=",
+      "golden_sha256": "nuyCa1atmJIM9CK2VSUCcCc2YhL0qd04WHNnQVdsrEY="
+    }
+  ]
+}
