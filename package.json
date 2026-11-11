@@ -1,0 +1,37 @@
+{
+  "name": "agenttrust-near",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": "24.22.2",
+    "pnpm": "10.33.0"
+  },
+  "scripts": {
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:rust": "cargo test --locked -p agenttrust-domain",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "check:fast": "pnpm test:rust && pnpm test:unit && pnpm typecheck",
+    "build": "pnpm build:contract",
+    "build:contract": "cargo build --locked --target wasm32-unknown-unknown --release -p agenttrust-core && node scripts/check-wasm.mjs target/wasm32-unknown-unknown/release/agenttrust_core.wasm",
+    "build:surfaces": "node scripts/not-ready.mjs build:surfaces T25",
+    "test:ui": "node scripts/not-ready.mjs test:ui T21",
+    "verify:runtime": "node scripts/not-ready.mjs verify:runtime T13",
+    "demo:prepare:testnet": "node scripts/not-ready.mjs demo:prepare:testnet T18",
+    "demo:run:testnet": "node scripts/not-ready.mjs demo:run:testnet T18",
+    "evidence:check": "node scripts/not-ready.mjs evidence:check T13"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "docs-site>react": "19.2.5",
+      "docs-site>react-dom": "19.2.5"
+    }
+  }
+}

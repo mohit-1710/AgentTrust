@@ -67,7 +67,7 @@ The pure domain crate is the only deliberate boundary beyond deployment componen
 
 ## 3. Frozen wire types and canonical invoice
 
-JSON amounts and timestamps use unsigned decimal strings: `U128String` for yoctoNEAR, `U64String` for Unix nanoseconds/counters. Revisions use bounded u32 integers. No floating-point money or JavaScript number conversion of U128/u64 values. Account IDs undergo native NEAR validation. Hashes and Ed25519 key/signature bytes use canonical padded base64 in JSON and fixed-size byte arrays inside Borsh.
+JSON amounts and timestamps use unsigned decimal strings: `U128String` for yoctoNEAR, `U64String` for Unix nanoseconds/counters. Revisions use bounded u32 integers. No floating-point money or JavaScript number conversion of U128/u64 values. Account IDs undergo native NEAR validation. Profile IDs are nonempty UTF-8 strings of at most64 bytes, with no normalization; the same bound applies in Rust and TypeScript. Hashes and Ed25519 key/signature bytes use canonical padded base64 in JSON and fixed-size byte arrays inside Borsh.
 
 ```ts
 type AccountId = string;

@@ -1,0 +1,5 @@
+packages:
+  - web
+  - docs-site
+  - packages/*
+  - examples/*

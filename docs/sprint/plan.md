@@ -34,15 +34,15 @@ Proposed user-run handoff windows (not calendar bookings): T13 on Nov11 20:00–
 
 ## Stack, commands and execution boundary
 
-- Rust pure domain crate and native core contract; candidate pins `near-sdk 5.30.1`, `near-api-js 7.4.0`, `near-workspaces 0.24.0`. T02 verifies compatibility and locks exact transitive versions/toolchain; availability is not proof they build together.
+- Rust pure domain crate and native core contract; verified local pins `near-sdk 5.30.1`, `near-api-js 7.4.0`, Rust1.97.1, Node24.22.2; `near-workspaces 0.24.0` is the separate Rust runtime-harness candidate for T13. T02 records the build/smoke compatibility result and exact lockfiles, not runtime compatibility.
 - TypeScript/pnpm **10.33.0**, Node **24 LTS** (exact patch pinned in T02); retain upstream Next **16.2.4**, web React **19.2.4**, compatible docs React **19.2.5**, Fumadocs/GSAP dependencies. No upgrades without evidenced need.
 - Vitest pure TS/HTTP tests, ordinary Rust domain tests, browser/Playwright smoke. Stateless Node service, local stdio MCP; no application database/Redis/queue/indexer.
 - Hosting target: existing Next deployment shape on Vercel, one plain Node service on Render. Account availability/config/deploy authorization checked separately; no paid plan assumed. Event-permitted local service plus recorded/reproducible demo is the disclosed fallback if hosting fails. A missing hosting account does not reopen the native architecture.
 - Machine currently has Node **26.7.0**, pnpm **11.24.0**, no Rust/Cargo/NEAR CLI on PATH. T02 performs setup when implementation starts. NEAR CLI is optional; reviewed SDK scripts can perform owner operations.
 
-**Standing restriction:** the agent must not perform database/AWS/Terraform writes, including by CI or another agent. Sandbox persists a database: its runner is **USER-RUN REQUIRED**. Prepare exact commands and inspect returned evidence; do not execute it. Pure ordinary in-memory tests may run. Deployment/funding/key installation, live payment and public hosting are also outside the present planning authorization. No script below currently exists or has run.
+**Standing restriction:** the agent must not perform database/AWS/Terraform writes, including by CI or another agent. Sandbox persists a database: its runner is **USER-RUN REQUIRED**. Prepare exact commands and inspect returned evidence; do not execute it. Pure ordinary in-memory tests may run. Deployment/funding/key installation, live payment and public hosting are also outside the present planning authorization. T02 supplies the command entry points; its toolchain record distinguishes implemented checks from explicit not-ready commands.
 
-| Future command, created in T02 | Purpose / effect |
+| Command entry point, created in T02 | Purpose / effect |
 |---|---|
 | `cargo test -p agenttrust-domain` | Pure Rust tests; no database/chain runtime |
 | `pnpm test:unit` | Vitest; explicitly excludes runtime/live cases |

@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation started.** The frozen plan is approved, and the selective UI/docs baseline is imported with exact provenance. Native NEAR implementation is next. There is no deployed NEAR contract or passing runtime test claim.
+**Status: implementation started.** The frozen plan is approved, and the selective UI/docs baseline is imported with exact provenance. The pinned Rust/TypeScript workspace passes its initial pure tests and compiles a read-only NEAR WASM probe. Native authority/payment behavior is not implemented yet. There is no deployed NEAR contract or passing runtime test claim.
 
 ## Start here
 
@@ -35,6 +35,6 @@ No product runtime is running yet. The planned providers, synthetic invoice data
 
 ## Verification and execution boundary
 
-Commands in the plan are future interfaces, not currently available scripts. No runtime/deployment command is implied by reading this repository. Ordinary pure in-memory tests and builds will be separate from database-writing Sandbox/integration operations. The standing database/AWS/Terraform restrictions apply; restricted execution is prepared for the user to run themselves. No cloud infrastructure, production deployments, public release or event submission is part of this planning baseline.
+Run `. scripts/env.sh`, `pnpm check:fast` and `pnpm build:contract` for the implemented local checks. See [toolchain setup and results](docs/sprint/toolchain.md). Future runtime/UI commands fail explicitly until their owning tasks implement them. No runtime/deployment command is implied by reading this repository. Ordinary pure in-memory tests and builds will be separate from database-writing Sandbox/integration operations. The standing database/AWS/Terraform restrictions apply; restricted execution is prepared for the user to run themselves. No cloud infrastructure, production deployments, public release or event submission is part of this planning baseline.
 
 Event deadline: **14 November 2026, 23:59 UTC / 15 November 2026, 05:29 IST**. The repository is private during preparation and must be made public before submission through a later explicit release action. [Official rules](https://nearhackathon.com/HACKATHON.md).

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"]
+  },
+  "include": ["packages/**/*.ts", "examples/**/*.ts", "tests/unit/**/*.ts", "vitest.config.ts"],
+  "exclude": ["**/node_modules/**", "**/dist/**", "tests/runtime/**", "tests/live/**"]
+}
