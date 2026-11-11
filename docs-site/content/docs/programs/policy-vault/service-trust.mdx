@@ -1,0 +1,29 @@
+---
+title: "Service trust and blocks"
+description: "Explicit owner approval binds a service version, payout, key and endpoint to selected profiles."
+---
+
+> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+
+The owner maintains three bounded lists: service approvals, blocked services and blocked payout accounts. These are owner-specific settings, not a global reputation or social graph.
+
+A trust entry binds the exact registered service ID/version, payout account, invoice key and endpoint commitment. It also records the allowed purchase profiles, active state and optional expiry. Registration alone does not create this entry.
+
+```text
+set_service_trust(service_id, service_version,
+                  allowed_profile_ids, expires_at_ns, active)
+block_service(service_id, blocked)
+block_payout(payout_account, blocked)
+```
+
+These are owner management methods, never worker MCP tools. An update requires direct owner authority and the management deposit. Authorization changes advance policy revision without clearing counters.
+
+Changing the registered payout, key or endpoint creates a new service version. The old trust entry and old capability cannot silently follow it. The owner must review the new identity and explicitly approve it before another new purchase can pass.
+
+A service block or payout block defeats a matching trust entry. Required capability checks still apply to trusted services. An unknown service is denied; there is no automatic trial purchase or one-off approval bypass.
+
+The prototype bounds each list at 32 stored entries. See the implementation status before relying on list management or its final retained-entry behavior.
+
+## Source and verification
+
+[Trust/list specification](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Scope and task ownership](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/plan.md)

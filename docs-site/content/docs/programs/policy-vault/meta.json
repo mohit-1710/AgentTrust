@@ -1,12 +1,12 @@
 {
-  "title": "PolicyVault",
+  "title": "Vault and policy",
   "pages": [
     "index",
     "composer",
     "kill-switch-policy",
     "spending-policy",
     "velocity-policy",
-    "counterparty-tier-policy",
+    "service-trust",
     "require-validation-policy"
   ],
   "defaultOpen": true

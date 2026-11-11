@@ -1,5 +1,9 @@
 {
-  "title": "Programs",
-  "pages": ["policy-vault", "trustgate", "validation-registry"],
+  "title": "Native core",
+  "pages": [
+    "policy-vault",
+    "validation-registry",
+    "trustgate"
+  ],
   "defaultOpen": true
 }

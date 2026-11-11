@@ -1,123 +1,35 @@
 ---
-title: Quickstart
-description: Hit the hosted devnet build, install the SDK, wire the MCP server. Three paths, no clone, under five minutes.
+title: "Local quickstart"
+description: "Run the implemented checks without starting a chain runtime or deploying a contract."
 ---
 
-Three live paths. Each runs against the hosted devnet endpoints under `*.agenttrust.tech`. None require a local clone.
+Use an authorized checkout of `mohit-1710/AgentTrust`. The repository is private during preparation. There is no published native package or public payment endpoint to install from this snapshot.
 
-## 1. Hit the live demo
+## Pin the tools
 
-The demo at [`demo.agenttrust.tech`](https://demo.agenttrust.tech) runs the full Pay.sh + AgentTrust flow against deployed devnet programs. With no payment proof, `/protected` returns a real x402 v2 challenge:
+Use Node **24.22.2**, pnpm **10.33.0** and Rust **1.97.1** with `wasm32-unknown-unknown`. The root toolchain files and lockfiles are the source of truth. `scripts/env.sh` uses installed tools or the local ignored tool directory; it does not install tools itself.
 
-```bash
-curl -i https://demo.agenttrust.tech/protected
+From the repository root:
+
+```sh
+. scripts/env.sh
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm check:fast
+pnpm build:contract
 ```
 
-The response carries `HTTP/2 402` with a SERVICE-signed `payment-required` envelope (base64). To walk the full Allow → settle → emit_feedback path, install Pay.sh and let it pay:
+`check:fast` runs pure Rust tests, TypeScript tests and native typechecking. `build:contract` compiles WASM and inspects its NEAR host imports without executing it. A successful build is not a native payment or runtime proof.
 
-```bash
-pay --sandbox curl https://demo.agenttrust.tech/protected
-```
+## Before a purchase can run
 
-Three deterministic counterparties drive each decision branch. Fetch their pubkeys from the demo's health endpoint:
+The owner must fund spendable principal and separate storage credit, configure a policy/profile, explicitly trust the intended service version, register a session and install its restricted protocol key. Merchants and issuers need their own funded storage accounts. These roles must not share the worker process's key material.
 
-```bash
-curl -s https://demo.agenttrust.tech/health | jq '.counterparties'
-```
+Runtime preparation, actual testnet setup, live purchases and hosted surfaces remain separate gates. At this snapshot, root commands for those unfinished tasks fail explicitly with a not-ready message. Do not substitute a passing unit test for a missing runtime result.
 
-| Tier | Header | Decision |
-| --- | --- | --- |
-| 0 | `X-Demo-Payer-Agent: <tier-0 pubkey>` | `402 Deny — CounterpartyTierBelowMin` |
-| 1 | `X-Demo-Payer-Agent: <tier-1 pubkey>` | `402 Deny — CounterpartyTierBelowMin` |
-| 3 | `X-Demo-Payer-Agent: <tier-3 pubkey>` | `200 Allow + X-Payment-Receipt` |
+The standing execution rules keep database-writing Sandbox work user-run. Follow the reviewed runbook when it is available; no runtime, funding or deployment command is part of the local commands above.
 
-The full atomic-settlement trace (gate, transfer, feedback) for the tier-3 path is captured under [Verification → Devnet smoke](/verification/devnet-smoke).
+Continue with [owner/session authority](/programs/policy-vault), [testnet configuration](/reference/devnet-program-ids) and [verification lanes](/verification).
 
-## 2. Install the SDK
+## Source and verification
 
-Add [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) to any Node project:
-
-```bash
-pnpm add @agenttrust-sdk/trustgate
-```
-
-Mount the middleware on an Express app:
-
-```ts
-import express from "express";
-import { Keypair } from "@solana/web3.js";
-import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
-
-const app = express();
-app.use(express.json());
-
-await mountTrustGate(app, {
-  rpcUrl:             "https://api.devnet.solana.com",
-  facilitatorKeypair: Keypair.fromSecretKey(/* your facilitator key */),
-  network:            "solana-devnet",
-  atomicityEnforced:  true,             // literal `true` — TS rejects `false`
-});
-
-app.listen(3000);
-```
-
-The `atomicityEnforced: true` literal is the SDK's load-bearing guard. The compile-time type rejects callers who omit it, the runtime throws on `as any` bypasses, and the on-chain `gate_payment_strict_correctness` Kani proof binds the strict handler's return value to the composer's `Allow` arm. Full details: [Atomic-tx invariant](/verification/atomic-tx-invariant).
-
-You now have:
-
-- `POST /verify` — read-only `gate_payment` simulation
-- `POST /settle` — one-tx atomic settle (gate + transfer + feedback)
-- `POST /dispute` — dispute path
-- `GET /receipt/:hash` — `FeedbackEmissionLog` lookup by payment hash
-
-## 3. Wire the MCP server
-
-[`@agenttrust-sdk/mcp`](https://www.npmjs.com/package/@agenttrust-sdk/mcp) exposes 21 tools to any Model Context Protocol client. For Claude Desktop, drop this into your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
-
-```json
-{
-  "mcpServers": {
-    "agenttrust": {
-      "command": "npx",
-      "args": ["-y", "@agenttrust-sdk/mcp"],
-      "env": {
-        "RPC_URL": "https://api.devnet.solana.com",
-        "NETWORK": "solana-devnet"
-      }
-    }
-  }
-}
-```
-
-Restart Claude Desktop. Then ask:
-
-- *"What demo agents are available on AgentTrust?"*
-- *"Simulate a 5-USDC payment from the tier-3 demo agent to the tier-0 demo agent against policy 1. What does the gate decide?"*
-- *"Search the AgentTrust docs for the atomic-tx invariant."*
-
-A hosted HTTP transport is also live at [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) for clients that speak `StreamableHTTPServerTransport`. Full setup: [MCP → Install](/mcp/install).
-
-## What's running where
-
-<ProgramIdsTable />
-
-| Surface | URL |
-| --- | --- |
-| Demo | [`demo.agenttrust.tech`](https://demo.agenttrust.tech) |
-| Facilitator (`/verify` + `/settle`) | [`api.agenttrust.tech`](https://api.agenttrust.tech) |
-| MCP HTTP endpoint | [`mcp.agenttrust.tech`](https://mcp.agenttrust.tech) |
-| Repo | [`github.com/agenttrust-labs/agenttrust`](https://github.com/agenttrust-labs/agenttrust) |
-
-## Read next
-
-<Cards>
-  <Card title="Architecture" href="/architecture">
-    How the three programs, the SDK, and the adapter layer compose into one settlement path.
-  </Card>
-  <Card title="Pay.sh adapter" href="/integration-guides/pay-sh-adapter">
-    The live Pay.sh integration end to end — challenge, retry, settle, feedback.
-  </Card>
-  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
-    Why gate + transfer + feedback must execute as one Solana transaction or none.
-  </Card>
-</Cards>
+[Toolchain record](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/toolchain.md) · [Command definitions](https://github.com/mohit-1710/AgentTrust/blob/main/package.json) · [Sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md)

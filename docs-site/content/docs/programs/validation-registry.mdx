@@ -1,156 +1,28 @@
 ---
-title: ValidationRegistry
-description: Capability namespaces, attestor profiles, validation requests, and attestation PDAs — the third leg of ERC-8004 on Solana.
+title: "Service and credential registry"
+description: "Merchant-owned identity versions and issuer-owned capability assertions in the core."
 ---
 
-ValidationRegistry productizes the ERC-8004 V variant on Solana. Permissionless namespace + attestor registration; downstream-consumer filtering in PolicyVault. Five instructions over four PDAs.
+The registry is part of the single native core. It stores two different records.
 
-**Devnet:** [`Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`](https://explorer.solana.com/address/Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv?cluster=devnet)
+## Service identity
 
-## Instructions
+`set_service(expected_version, payout_account, invoice_key, endpoint_hash, active)` derives the service ID from the direct merchant caller. Creation requires `expected_version=null` and starts at version 1. Updating requires the exact current version and increments it, including an active-state update.
 
-| Instruction | Signer | Effect |
-|---|---|---|
-| `register_namespace(namespace_hash, name, version, schema_uri)` | creator | Create `CapabilityNamespace` PDA |
-| `register_attestor(display_name_uri)` | attestor | Create `AttestorProfile` PDA for the signer |
-| `request_validation(subject_asset, capability_hash, claim_uri_hash, deadline)` | requester (subject's owner OR third party) | Create `ValidationRequest` PDA |
-| `respond_to_validation(subject_asset, capability_hash, claim_payload_hash, claim_uri_hash, expires_at)` | attestor + payer | Create `ValidationAttestation` PDA |
-| `revoke_validation` | original attestor | Set `revoked = true`, `revoked_at = clock.slot`, store `revocation_reason_hash` |
+The invoice key is a raw 32-byte Ed25519 key in canonical padded base64. It is distinct from the complete native public key used for a worker session. The endpoint field is a hash commitment, not a discoverable URL.
 
-The v1 trust model is "attestor signs the transaction"; the tx signature itself authenticates the attestor. The 64-byte `attestor_signature` field on `ValidationAttestation` is reserved for v1.1+ Ed25519 sysvar verification (per Quantu's `set_agent_wallet` pattern at `identity/instructions.rs:506-541`), which adds non-repudiation against future key compromise.
+## Credential assertion
 
-## State accounts
+`issue_credential(credential_id, expected_revision, assertion)` derives the issuer from the caller. The assertion contains service ID/version, capability namespace/version, suite version/hash, separate evidence-manifest hash and issue/expiry timestamps.
 
-### `CapabilityNamespace`
+The referenced service must exist, be active and have the exact version. The supported capability is `invoice.audit` version `1`. Suite version is positive. Expiry is strictly after issue and current time; issue time has at most five seconds of clock-skew tolerance. This is not a hidden extension of expiry.
 
-```rust
-#[account]
-pub struct CapabilityNamespace {
-    pub namespace_hash: [u8; 32], // SHA256(name_utf8) — self-reference
-    pub name: String,             // ≤ 32 bytes; min 3; no ':' allowed
-    pub version: String,          // ≤ 16 bytes (e.g., "v1")
-    pub schema_uri: String,       // ≤ 160 bytes (IPFS / HTTP)
-    pub registered_at: u64,
-    pub creator: Pubkey,
-    pub bump: u8,
-}
-```
+A new credential starts at revision 1. Revocation keeps that assertion revision and sets `revoked=true`; repeating it is a no-op. Renewal requires the expected revision, increments it and clears revoked. Old references can therefore distinguish `REVOKED` from `REVISION_CHANGED`.
 
-PDA seeds: `["capability", namespace_hash]`. The colon character is forbidden in `name` (`NamespaceColonForbidden`) so namespace strings can be packed into URIs without escaping. Anyone can register; rent (~0.0023 SOL) is the economic deterrent.
+At most 32 credentials are retained per issuer, including revoked records. Each actor funds its own storage. A caller cannot alter a record under another merchant or issuer account.
 
-Ten canonical v1 namespaces are seeded on devnet: [Reference → Capability namespaces](/reference/capability-namespaces).
+Read `get_service(service_id)` and `get_credential(issuer_id, credential_id)` for current records. Being registered or credentialed does not imply owner approval or spending authority.
 
-### `AttestorProfile`
+## Source and verification
 
-```rust
-#[account]
-pub struct AttestorProfile {
-    pub attestor: Pubkey,                    // self-reference
-    pub display_name_uri: String,            // ≤ 100 bytes
-    pub total_attestations: u64,             // counter, all-time
-    pub total_revoked_by_attestor: u64,      // self-revoked
-    pub total_revoked_externally: u64,       // reserved for v1.1+ external revoke
-    pub registered_at: u64,
-    pub bump: u8,
-}
-```
-
-PDA seeds: `["attestor", attestor_pubkey]`. Self-registered (permissionless). `total_attestations` increments on each `respond_to_validation`; `total_revoked_by_attestor` increments on `revoke_validation`. v1.1+ adds `staked_amount` for stake-weighted scoring; v2 adds slashing.
-
-### `ValidationRequest`
-
-```rust
-#[account]
-pub struct ValidationRequest {
-    pub subject_asset: Pubkey,
-    pub capability_hash: [u8; 32],
-    pub requester: Pubkey,        // subject's owner OR any third party
-    pub claim_uri_hash: [u8; 32], // SHA256 of off-chain claim URI
-    pub created_at: u64,
-    pub deadline: u64,            // slot after which the request is "abandoned"
-    pub bump: u8,
-}
-```
-
-PDA seeds: `["request", subject_asset, capability_hash, requester]`. Off-chain attestors discover open requests via the `RequestCreated` event; the PDA itself is just an audit-trail record. Non-responded requests past `deadline` are abandoned.
-
-### `ValidationAttestation` — the headline read target
-
-```rust
-#[account]
-pub struct ValidationAttestation {
-    pub subject_asset: Pubkey,            // off  8..40   (parser: 8)
-    pub capability_hash: [u8; 32],        // off 40..72   (parser: 40)
-    pub attestor: Pubkey,                 // off 72..104  (parser: 72)
-    pub claim_payload_hash: [u8; 32],     // off 104..136
-    pub attestor_signature: [u8; 64],     // off 136..200 — Ed25519 sig (v1.1+)
-    pub issued_at: u64,                   // off 200..208
-    pub expires_at: u64,                  // off 208..216 (parser: 208) — 0 = never
-    pub revoked: bool,                    // off 216      (parser: 216)
-    pub revoked_at: u64,                  // off 217..225
-    pub revocation_reason_hash: [u8; 32], // off 225..257
-    pub claim_uri_hash: [u8; 32],         // off 257..289
-    pub bump: u8,                         // off 289
-}
-```
-
-PDA seeds: `["attestation", subject_asset, capability_hash, attestor]`. Account size: 290 bytes.
-
-This is the PDA PolicyVault's `RequireValidation` policy reads at fixed byte offsets via [`ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs). Field declaration order is **load-bearing** — reordering fields silently breaks PolicyVault's reads.
-
-## Capability namespace + hash
-
-Capabilities are addressed by their SHA-256 hash, not their string name. The v1 PolicyVault parser only knows `capability_hash`; the human-readable name lives in `CapabilityNamespace.name` for off-chain display.
-
-```ts
-import { sha256 } from "@noble/hashes/sha256";
-
-const name = "kyc.tier-1.v1";
-const capability_hash = sha256(new TextEncoder().encode(name));
-// → 366c075140aa69746625d4b733b55e267fc5c28387fd6d1c24901976ee3ddc42
-```
-
-`MAX_NAME_LEN = 32` constrains namespace names. The playbook-level descriptive labels in `docs/plan/research/06-validation-registry-class.md` (e.g., `kyc.tier-1.v1.identity-verified`) decompose to these on-chain category names plus the JSON `description` field.
-
-## Attestation message — domain separation
-
-Per Phase D, the attestation message that attestors sign in v1.1+ is domain-separated:
-
-```
-AGENTTRUST_ATTEST || subject_asset || capability_hash || claim_payload_hash || expires_at
-```
-
-In v1, the same attestor signs the Solana transaction containing `respond_to_validation`; the tx signature serves as the authentication signal. v1.1+ migrates to Ed25519 sysvar verify so a future attestor-key compromise cannot retroactively forge attestations.
-
-## Sybil-resistance model
-
-Permissionless registration plus opinionated downstream filtering. Anyone can register a namespace or an attestor; PolicyVault decides per-policy which attestors to trust via `accepted_attestors[]`. A policy that gates against `audit.smart-contract.v1` might only accept attestations from Halborn or OtterSec; a policy that gates against `kyc.tier-1.v1` might accept any registered KYC attestor.
-
-This is the only model that scales with the number of facilitators. Global gatekeeping (a central allow-list of "approved attestors") would either be too lax (admit too many) or too tight (block niche attestors with valid use cases). Local trust devolves the policy decision to the integrator who owns the cap-set their users care about.
-
-## Revocation — audit-trail-preserving
-
-`revoke_validation` does not delete the `ValidationAttestation` PDA. It sets `revoked = true`, writes `revoked_at = clock.slot`, and stores a `revocation_reason_hash`. Downstream readers (PolicyVault) treat `revoked == true` as `Deny(AttestationRevoked)` (DenyReason code `13`). The audit trail — including `issued_at`, `expires_at`, `claim_uri_hash`, and the original `attestor_signature` (v1.1+) — stays on chain.
-
-This is the ERC-8004 spec posture: revocations preserve history rather than erase it.
-
-## Live evidence
-
-Four-signature chained-validation trace on devnet (`gate_payment` → `request_validation` → `respond_to_validation` → `gate_payment`): [Verification → Chained validation](/verification/chained-validation). Ten capability namespaces seeded: [Reference → Capability namespaces](/reference/capability-namespaces).
-
-## Events
-
-| Event | Fields |
-|---|---|
-| `NamespaceRegistered` | `namespace_hash`, `creator` |
-| `AttestorRegistered` | `attestor` |
-| `RequestCreated` | `subject_asset`, `capability_hash`, `requester`, `claim_uri_hash`, `deadline` |
-| `AttestationCreated` | `subject_asset`, `capability_hash`, `attestor`, `expires_at`, `issued_at` |
-| `AttestationRevoked` | `subject_asset`, `capability_hash`, `attestor`, `revoked_at`, `revocation_reason_hash` |
-
-## Source
-
-- Program entry: [`programs/validation-registry/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/lib.rs)
-- State: [`state/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/validation-registry/src/state)
-- Instructions: [`instructions/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/validation-registry/src/instructions)
-- PolicyVault byte-offset parser: [`policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
+[Registry types and transitions](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/registry.rs) · [Native registry methods](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/registry.rs)

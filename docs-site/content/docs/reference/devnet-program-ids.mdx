@@ -1,66 +1,27 @@
 ---
-title: Devnet program IDs
-description: Deployed AgentTrust program addresses on Solana devnet, with Explorer links and Anchor IDL fetch instructions.
+title: "Testnet configuration"
+description: "One core account and verified deployment metadata, supplied by an actual run."
 ---
 
-The pinned devnet deployment of the three AgentTrust programs. The SDK ships these as `DEFAULT_DEVNET_PROGRAM_IDS`.
+This native build targets the protocol domain `near:testnet`. The active deployment model is one core account and one WASM artifact.
 
-<ProgramIdsTable />
+No account ID, code hash, transaction ID or hosted service URL is asserted as deployed in this documentation snapshot. Do not use upstream addresses or a fixture's synthetic account strings as native deployment configuration.
 
-## TypeScript constants
+After an authorized/user-run deployment, record and verify:
 
-```ts
-import { DEFAULT_DEVNET_PROGRAM_IDS } from "@agenttrust-sdk/trustgate";
+| Field | Required evidence |
+|---|---|
+| Network/domain | RPC network and core `get_config()` agree with the client configuration. |
+| Core account | Actual deployed account ID, not a display name or copied example. |
+| Code | Actual deployed code hash and matching reviewed Git commit/WASM artifact. |
+| Actor roles | Owner, worker session public-key fingerprint, merchants and issuer; never private keys. |
+| Services | Exact service/version/payout/key/endpoint commitments plus configured origins. |
+| Results | Actual transaction and receipt IDs, final state and input/output hashes. |
 
-DEFAULT_DEVNET_PROGRAM_IDS.policyVault;          // PublicKey
-DEFAULT_DEVNET_PROGRAM_IDS.trustGate;            // PublicKey (camelCase as of 0.2.0)
-DEFAULT_DEVNET_PROGRAM_IDS.validationRegistry;   // PublicKey (new in 0.2.0)
-```
+The core's configured domain and actual current account must match every new invoice. A successful HTTP request or explorer link alone does not prove that the correct contract enforced a purchase.
 
-Note: as of SDK 0.2.0, `ProgramIds.trustgate` (lowercase) was renamed to `ProgramIds.trustGate` (camelCase) to match `policyVault`. The new `validationRegistry` field is populated by default. Migration: search-and-replace `.trustgate` → `.trustGate`. See [Reference → Changelog](/reference/changelog).
+The existing mainnet guide is archived. This sprint makes no production deployment or custody claim.
 
-## Anchor declarations
+## Source and verification
 
-| Program | Source | Devnet ID |
-|---|---|---|
-| `policy_vault` | [`programs/policy-vault/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/lib.rs) | `8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR` |
-| `trustgate` | [`programs/trustgate/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/trustgate/src/lib.rs) | `HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N` |
-| `validation_registry` | [`programs/validation-registry/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/lib.rs) | `Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv` |
-
-## Verify executable status
-
-```bash
-for p in 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR \
-         HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N \
-         Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv; do
-  solana program show "$p" --url devnet | grep Executable
-done
-```
-
-## Fetch IDLs
-
-All three Anchor IDLs are published on devnet:
-
-```bash
-anchor idl fetch 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR --provider.cluster devnet  # policy_vault
-anchor idl fetch HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N --provider.cluster devnet  # trustgate
-anchor idl fetch Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv --provider.cluster devnet  # validation_registry
-```
-
-The SDK's `loadPolicyVault` / `loadTrustGate` / `loadValidationRegistry` fetch the IDL from chain by default. Pass an explicit `idl` argument to use a bundled snapshot — useful for latency-sensitive paths or freshly-redeployed programs.
-
-Latest evidence snapshot (SHA-256 hashes + instruction counts): [`docs/proofs/idl-on-chain.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/idl-on-chain.json).
-
-## Read next
-
-<Cards>
-  <Card title="Mainnet program IDs" href="/reference/mainnet-program-ids">
-    Quantu's pinned mainnet IDs that PolicyVault reads from.
-  </Card>
-  <Card title="Discriminator constants" href="/reference/discriminator-constants">
-    PDA seed prefixes + give_feedback discriminator.
-  </Card>
-  <Card title="Live evidence" href="/verification/live-evidence">
-    Every load-bearing claim with an Explorer URL.
-  </Card>
-</Cards>
+[Core configuration view](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/views.rs) · [Evidence requirements](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md) · [Execution boundaries](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/plan.md)

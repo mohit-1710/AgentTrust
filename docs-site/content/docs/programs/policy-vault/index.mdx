@@ -1,98 +1,30 @@
 ---
-title: PolicyVault
-description: The decision engine — five orthogonal policy kinds composed under one gate_payment instruction with fail-fast semantics.
+title: "Native vault and sessions"
+description: "The owner authority, funded account and session boundary inside the single core contract."
 ---
 
-PolicyVault is the program that turns "should this payment go through?" into a typed `GateDecision`. It reads the payer agent, the payee agent, the policy account, the velocity ledger, the kill switch, the payer's `AtomStats` (Quantu), the payee's `AtomStats`, and an optional `ValidationAttestation`, then returns one of three values:
+The native core keeps an owner's spendable balance separate from unused storage credit. An initial funded actor starts paused at policy revision `0`, with zero daily and dispatch limits. Configuration is an explicit owner action.
 
-```rust
-pub enum GateDecision {
-    Allow,
-    Deny(DenyReason),
-    RequireValidation([u8; 32]),  // capability_hash
-}
-```
+## Management methods
 
-**Devnet:** [`8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR`](https://explorer.solana.com/address/8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR?cluster=devnet)
-
-## Instructions
-
-| Instruction | Effect |
+| Method | Purpose |
 |---|---|
-| `init_authority` | Create `PolicyAuthority` PDA with multisig members + threshold |
-| `init_killswitch` | Create `KillSwitchState` PDA (per-agent / per-collection / global) |
-| `init_policy` | Create `PolicyAccount` + `VelocityLedger` for `(agent, policy_id)` |
-| `set_killswitch` | Pause / unpause; multisig-gated against `PolicyAuthority` |
-| `gate_payment` | Lazy decision — returns `Allow` / `Deny(reason)` / `RequireValidation(hash)` |
-| `gate_payment_strict` | Strict variant — returns `Ok(())` iff `Allow`, else `Err`. The SDK's atomic composer uses this. |
+| `deposit(storage_credit_yocto)` | Split attached NEAR into storage credit and spendable principal; the sole actor-creation path. |
+| `set_policy(...)` | Set the owner-wide daily cap, fixed-minute dispatch count and pause state. |
+| `set_profile(...)` | Select a capability/suite and accepted issuers, or explicitly select no requirement. |
+| `register_session(...)` | Bind a new session ID and actual native public key to one profile/revision, expiry and purchase cap. |
+| `revoke_session(session_id)` | Prevent new admissions under that session. |
 
-The strict variant is the load-bearing one for atomicity. Phase J5 added a Kani proof, `gate_payment_strict_correctness`, that pins `strict_returns_ok_iff_allow` (a biconditional) and `gate_decision_is_one_of_three_disjoint_variants`. A future change that re-routes the `Deny` arm to an `Ok` return fails the proof loud.
+Management requires `predecessor_account_id == signer_account_id`, derives authority from that direct caller and requires exactly one yoctoNEAR attached deposit. Funding is the payable exception. The worker's protocol key cannot attach management deposits and must have only the singleton method allowlist `execute_payment`.
 
-## State accounts
+## Session rules
 
-| PDA | Seeds | Size | Role |
-|---|---|---:|---|
-| `PolicyAuthority` | `["policy_authority", agent_asset]` | 272 | Multisig members + threshold (1..=7) |
-| `KillSwitchState` | `["killswitch", scope_kind, scope_key]` | 96 | Emergency pause flag + audit trail |
-| `PolicyAccount` | `["policy", agent_asset, policy_id_le]` | 240 | Per-policy config + lazy counters |
-| `VelocityLedger` | `["velocity", agent_asset, policy_id_le]` | 80 | Sliding-window cumulative-spend counter |
+A session ID is immutable. Changing key, profile or expiry means revoking the old session and registering a new ID. At most one unrevoked session may use a key for an owner. A profile edit changes its revision and makes old-revision sessions unusable for a new purchase until explicitly rebound. Owner authorization changes advance policy revision without resetting money counters.
 
-Per-program byte layouts live on each policy page (linked below). The full `PolicyAccount` declaration is in [`programs/policy-vault/src/state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs).
+Profile IDs are nonempty, at most 64 UTF-8 bytes, with no normalization. The prototype retains at most 4 profiles and 8 sessions; revoked sessions do not free their IDs.
 
-## The composer
+No full-access owner/deploy key belongs in the worker, MCP environment or browser bundle. See [pause and revocation](/programs/policy-vault/kill-switch-policy) and [explicit service lists](/programs/policy-vault/service-trust).
 
-`gate_payment` is a thin Anchor wrapper around the pure-Rust `compose_decision` function. The wrapper:
+## Source and verification
 
-1. Snapshots all read accounts into plain Rust structs (`PolicySnapshot`, `VelocityLedgerSnapshot`, `KillSwitchSnapshot`, optional `AtomStatsView` ×2, optional `ValidationAttestationView`).
-2. Calls `compose_decision(input)`.
-3. On `Allow`, applies the returned `SpendingDeltas` and `VelocityDeltas` to `PolicyAccount` and `VelocityLedger` respectively.
-4. On `Deny` or `RequireValidation`, mutates nothing.
-
-Order is fixed and fail-fast:
-
-| # | Policy | Cost | Fails fast on |
-|---:|---|---|---|
-| 1 | [KillSwitch](/programs/policy-vault/kill-switch-policy) | cheapest (one bool) | `paused == true` |
-| 2 | [Spending](/programs/policy-vault/spending-policy) | pure arithmetic | per-tx / daily / weekly limits |
-| 3 | [Velocity](/programs/policy-vault/velocity-policy) | one PDA read | sliding-window cap |
-| 4 | [CounterpartyTier](/programs/policy-vault/counterparty-tier-policy) | two `AtomStats` PDA reads | tier / risk / confidence |
-| 5 | [RequireValidation](/programs/policy-vault/require-validation-policy) | one attestation PDA read | subject / capability / expiry / attestor |
-
-Full composer reference: [Composer](/programs/policy-vault/composer).
-
-## DenyReason codes
-
-`DenyReason` is the enum returned in the `Deny` arm. The Borsh wire format follows declaration order, but clients should consume the stable numeric `code()` instead — it is decoupled from Borsh field order.
-
-| Code | Variant | Originating policy |
-|---:|---|---|
-| 1 | `KillSwitchEngaged` | KillSwitch |
-| 2 | `SpendingPerTxExceeded` | Spending |
-| 3 | `SpendingDailyExceeded` | Spending |
-| 4 | `SpendingWeeklyExceeded` | Spending |
-| 5 | `VelocityWindowExceeded` | Velocity |
-| 6 | `CounterpartyTierBelowMin` | CounterpartyTier |
-| 7 | `CounterpartyRiskAboveMax` | CounterpartyTier |
-| 8 | `CounterpartyConfidenceBelow` | CounterpartyTier |
-| 9 | `AtomStatsWrongOwner` | CounterpartyTier (defensive) |
-| 10 | `AtomStatsSchemaMismatch` | CounterpartyTier (defensive) |
-| 11 | `AttestationMissing` | RequireValidation |
-| 12 | `AttestationExpired` | RequireValidation |
-| 13 | `AttestationRevoked` | RequireValidation |
-| 14 | `AttestationAttestorRejected` | RequireValidation |
-| 15 | `UnratedTreatmentDeny` | CounterpartyTier (Unrated → Deny resolution) |
-
-Full table with remediation hints: [Reference → DenyReason codes](/reference/deny-reason-codes).
-
-## Formal verification
-
-<KaniProofBadge />
-
-Seven Kani harnesses run on every PR via [`.github/workflows/kani-prove.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/kani-prove.yml). Per-harness deep-dive: [Verification → Kani proofs](/verification/kani-proofs).
-
-## Source
-
-- Program entry: [`programs/policy-vault/src/lib.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/lib.rs)
-- Composer: [`programs/policy-vault/src/policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
-- DenyReason: [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs)
-- Kani proofs: [`programs/policy-vault/src/proofs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/programs/policy-vault/src/proofs)
+[Owner domain state](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/owner.rs) · [Native owner methods](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/owner.rs) · [Authority checks](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/authority.rs)
