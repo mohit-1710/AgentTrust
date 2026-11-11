@@ -99,6 +99,13 @@ interface InvoiceV1 {
 }
 interface SignedInvoiceV1 { invoice: InvoiceV1; signature: Signature64 }
 interface CredentialRef { issuer_id: AccountId; credential_id: Hash32; revision: number }
+interface CapabilityRequirement {
+  capability_namespace: "invoice.audit";
+  capability_version: 1;       // together: invoice.audit.v1
+  conformance_suite_version: number; // nonzero u32
+  conformance_suite_hash: Hash32;
+  accepted_issuers: AccountId[];      // 1–4 unique accounts
+}
 interface ExecutePaymentArgs { quote: SignedInvoiceV1; credential: CredentialRef | null }
 ```
 

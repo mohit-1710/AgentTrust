@@ -1,0 +1,28 @@
+{
+  "schema": "agenttrust-protocol-signatures-v1",
+  "source": "https://www.rfc-editor.org/rfc/rfc8032#section-7.1",
+  "warning": "Public test seed only; never fund or use this key for a real account.",
+  "test_seed_hex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+  "public_key_base64": "11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+  "rfc8032_empty_signature_hex": "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b",
+  "invoices": [
+    {
+      "vector": "ordinary",
+      "signature_base64": "UGcg1cnRMCJYx8IICNODeFGTTWJCJO1nIJvRKmtppSl3Ly4CNXkI9NpHCl/PfoFaqWqk7SFGzU1nUjsgNYHwBA=="
+    },
+    {
+      "vector": "unicode-large",
+      "signature_base64": "VNw4TtTegMun+HlRTHDSVTIyWetsUKZu7Hpn6Q1EVJ/1noaBFLDmQKTEkc0f7n5R8Yb0dpNRPiavkzfbujyyCA=="
+    },
+    {
+      "vector": "integer-maxima",
+      "signature_base64": "QzAv57V5LSsR6as4u0wf4MuiT2BPUzcoAei1Qqj21aOBbPGvSQ3x9zfVQF5CdmZFxFZYf4zqGvMzxL6EfqunAw=="
+    }
+  ],
+  "identities": [
+    {
+      "vector": "identity-unicode-large-context",
+      "signature_base64": "J4o0aptdjN8ZdxImY3/nOVIJrTNKmIiu+AegHOrAvELmCPe26rdJlvrMwqwQH6CWMyM79zN1po/u1VPduqflBQ=="
+    }
+  ]
+}

@@ -1,2 +1,5 @@
-// Native protocol exports are added as their implementation tasks pass.
-export {};
+export type * from "./types.js";
+export {
+  encodeInvoice, invoiceHash, encodeIdentityDescriptor, identityDescriptorHash,
+  requestHash, verifyInvoiceSignature, verifyIdentityDescriptorSignature,
+} from "./codec.js";

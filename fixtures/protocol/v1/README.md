@@ -65,3 +65,44 @@ Run pure checks from the repository root:
 . scripts/env.sh
 cargo test --locked -p agenttrust-domain codec
 ```
+
+## T04 TypeScript and signature checks
+
+The Node-local SDK exposes the same invoice/descriptor encoders and hashes plus
+`requestHash`, `verifyInvoiceSignature` and `verifyIdentityDescriptorSignature`.
+Encoders reject malformed wire values; signature helpers return false for malformed
+or invalid signatures. These helpers verify cryptography only. They do not grant
+payment permission or validate current policy, dates, nonce, registry version,
+endpoint ownership or credentials.
+
+`signatures.json` contains deterministic signatures over the independent committed
+`canonical_hex` bytes. `generate-signatures.mjs` imports no project encoder. It uses
+the **public test1 seed from [RFC8032 section7.1](https://www.rfc-editor.org/rfc/rfc8032#section-7.1)**,
+checks its known public key and empty-message signature, and signs the fixture
+messages directly with Ed25519 (no prehash and no JSON serialization).
+**Never use or fund this public test key as a real account or service key.**
+The identity fixture retains its synthetic embedded key from T03; a signature over
+it proves the message bytes, not that this embedded key matches a registry entry.
+The identity validator in T16 must perform that separate comparison.
+
+Verification requires an explicit independently registered public key; it never
+selects the descriptor's own key as its trust root. Tests cover mutation of every
+invoice/descriptor field, both signature-domain substitutions, wrong keys,
+noncanonical scalar/encoding, and bounded weak-key forgery cases. Those cases are
+not an exhaustive cryptographic audit or proof of NEAR host verification behavior.
+
+Two request-hash goldens were calculated separately with Python `hashlib` over the
+request domain followed by exact UTF-8 CSV bytes. No normalization, trimming, BOM
+removal or newline rewriting occurs. Unpaired JavaScript UTF-16 surrogates reject
+instead of silently becoming replacement bytes; raw CSV is limited to64KiB.
+
+```sh
+. scripts/env.sh
+pnpm exec vitest run packages/near-sdk/test/codec.test.ts
+pnpm check:fast
+```
+
+To deliberately reproduce the public signatures, run
+`node fixtures/protocol/v1/generate-signatures.mjs` and inspect the diff. This
+ordinary fixture-file operation does not create account keys, access a database,
+broadcast a transaction or contact a chain.

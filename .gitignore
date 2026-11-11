@@ -3,7 +3,7 @@
 /.claude/
 /.sprint/
 /.gstack/
-/.agenttrust/
+/.agenttrust
 .DS_Store
 
 # Credentials and local environment
@@ -18,7 +18,7 @@
 *.key
 
 # Generated dependencies, builds and local runtime data
-node_modules/
+node_modules
 .next/
 .source/
 dist/

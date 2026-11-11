@@ -1,6 +1,6 @@
 # Verification contract
 
-Verification requirements frozen 11 November 2026. Actual task results are recorded in the sprint ledger. Source inspection, a test file existing, compilation and a passing runtime test are different evidence. T01/T02 verify provenance and toolchain smoke checks only; no product/runtime gate has passed yet.
+Verification requirements frozen 11 November 2026. Actual task results are recorded in the sprint ledger. Source inspection, a test file existing, compilation and a passing runtime test are different evidence. T01/T02 verify provenance and toolchain smoke checks. T03/T04 establish V05 local Rust/TypeScript byte agreement and signature/input cases described in the ledger. No runtime gate has passed.
 
 ## Lanes and execution
 
