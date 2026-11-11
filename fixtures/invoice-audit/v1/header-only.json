@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "capability": "invoice.audit.v1",
+  "input_hash": "3xyT1NMaXnEFrAc88Qyqb5g5r958l5xsBHVVeQApx+4=",
+  "row_count": 0,
+  "accepted_row_count": 0,
+  "rejected_row_count": 0,
+  "duplicate_groups": [],
+  "rejected_rows": [],
+  "currency_totals": [],
+  "totals_basis": "all_valid_rows_including_duplicates",
+  "totals_are_payable": false
+}
