@@ -1,0 +1,34 @@
+# Local research checkouts, legacy backup and assistant scratch
+/.reference/
+/.claude/
+/.sprint/
+/.gstack/
+.DS_Store
+
+# Credentials and local environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/credentials/
+**/secrets/
+**/*private-key*
+*.pem
+*.key
+
+# Generated dependencies, builds and local runtime data
+node_modules/
+.next/
+.source/
+dist/
+target/
+coverage/
+test-results/
+playwright-report/
+.vercel/
+.near/
+.sandbox/
+*.log
+
+# Capture outputs must be reviewed before explicit inclusion
+/artifacts/local/

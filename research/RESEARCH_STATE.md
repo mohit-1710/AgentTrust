@@ -1,0 +1,19 @@
+# Current research state
+
+Updated: 11 November 2026.
+
+Current objective: adapt the chosen AgentTrust product to native NEAR while preserving its existing UI and documentation design; decide exact gates and trust-list semantics, and develop the strongest credible hackathon strategy. This replaces earlier unapproved idea rankings. Current request is research and decisions, not implementation.
+
+Entry point: [AgentTrust NEAR study](agenttrust-near/README.md). Canonical product decisions: [feature specification](agenttrust-near/09-feature-spec.md). Competition/demo: [strategy](agenttrust-near/10-competitive-strategy.md). Architecture/accounting: [blueprint](agenttrust-near/05-blueprint.md).
+
+Completed: x-recon announcement/article verification; pinned AgentTrust source tracing; current NEAR core, Intents/MPC/TEE/Market/x402/event research; UI/docs inventory; exact gate/list specification and design review; 494-ID public directory snapshot and six close competitor source comparisons; consolidated demo/cut plan. Source revision: `21a3b111b7677d0b06ab1b063d647e4f52ea3b17` in `.reference/agenttrust/`, unchanged by research. Competition review was static, not hosted-flow or video verification.
+
+Recommendation: preserve frontend/docs design, build one native testnet vault core with direct restricted keys, mandatory integrity checks, pause/revocation, purchase/day caps, fixed-window dispatch counts, exact owner service trust/block lists and profile-bound accepted-issuer capabilities. Each session has exactly one owner-selected profile/revision. Remove numeric tier/risk/confidence gating and follower trust; weekly limits deferred. Unknown services deny by default; exact one-off approval is cuttable if its complete safe flow cannot finish. This supersedes the initial keep-all-five recommendation. Settlement facts do not become quality scores.
+
+First paid-service rail is a custom AgentTrust native-NEAR HTTP 402 adapter; upstream standard NEAR x402 `exact` has a different FullAccess-delegate/token model. Proposed demonstration: an agent selects an eligible invoice-CSV audit service after capability rejection, completes a real paid task, and cannot make a fresh purchase using revoked evidence or a changed payout identity. Endpoint checks are issuer/gateway observations; the contract cannot observe HTTP or certify output quality. Add an FT only after the complete native demo is evidenced; defer Intents/MPC/TEE. The winning strategy is a proposal, not a prize forecast or validated demand claim.
+
+Outstanding empirical work: no implementation, tests, chain writes/deployments, UI interaction, x402 conformance or performance measurements. The blueprint now specifies conservative native aggregate backing using pinned host-balance/deduction source; refund ordering/lazy Promise behavior still require runtime verification. Recommended invoice authentication is mandatory on-chain Ed25519 verification against an authenticated registered merchant key, with a canonical versioned Borsh payment-domain schema. Both need implementation tests. See blueprint and critique for requirements and limitations.
+
+Standing constraints: no database/AWS/Terraform writes except applicable user-defined exceptions; no external-shared document writes; no messages/posts/submission. Sandbox persists database state and has not been executed. Only local research files were created. No remote repository, commit or publication was created for this study.
+
+Research deliverable is complete. Next action when implementation is requested: native contract/key-boundary work and permitted verification, then service/capability binding, the paid-service loop and existing UI/docs migration. Event deadline: 15 November 2026 05:29 IST (14 November 23:59 UTC); suggested feature freeze 14 November noon IST. Reread rules before publication/submission.
