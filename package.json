@@ -18,10 +18,11 @@
     "build:contract": "cargo build --locked --target wasm32-unknown-unknown --release -p agenttrust-core && node scripts/check-wasm.mjs target/wasm32-unknown-unknown/release/agenttrust_core.wasm",
     "build:surfaces": "node scripts/not-ready.mjs build:surfaces T25",
     "test:ui": "node scripts/not-ready.mjs test:ui T21",
-    "verify:runtime": "node scripts/not-ready.mjs verify:runtime T13",
+    "verify:runtime": "node scripts/run-runtime.mjs",
     "demo:prepare:testnet": "node scripts/not-ready.mjs demo:prepare:testnet T18",
     "demo:run:testnet": "node scripts/not-ready.mjs demo:run:testnet T18",
-    "evidence:check": "node scripts/not-ready.mjs evidence:check T13"
+    "evidence:check": "node scripts/runtime-evidence.ts",
+    "check:runtime:compile": "cargo check --locked --manifest-path tests/runtime/Cargo.toml"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

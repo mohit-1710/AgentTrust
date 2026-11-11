@@ -1,0 +1,37 @@
+[package]
+name = "agenttrust-runtime"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.1"
+publish = false
+autotests = false
+license = "MIT"
+
+# Deliberately separate: ordinary cargo test/build must never start Sandbox.
+[workspace]
+
+[[bin]]
+name = "agenttrust-runtime"
+path = "src/main.rs"
+test = false
+bench = false
+
+[[test]]
+name = "rpc_rejections"
+path = "tests/rpc_rejections.rs"
+
+[dependencies]
+agenttrust-domain = { path = "../../crates/agenttrust-domain" }
+anyhow = "=1.0.104"
+base64 = "=0.22.1"
+bs58 = "=0.5.1"
+chrono = "=0.4.45"
+near-crypto = "=0.38.0"
+near-jsonrpc-client = "=0.23.0"
+near-jsonrpc-primitives = "=0.38.0"
+near-primitives = "=0.38.0"
+near-workspaces = { version = "=0.24.0", default-features = false, features = ["rustls"] }
+reqwest = { version = "=0.13.5", default-features = false, features = ["json", "rustls"] }
+serde_json = "=1.0.154"
+sha2 = "=0.10.9"
+tokio = { version = "=1.54.1", features = ["macros", "rt-multi-thread", "time"] }
