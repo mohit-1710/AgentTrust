@@ -1,6 +1,6 @@
 # Verification contract
 
-Planning baseline, 11 November 2026. **Every product check below is pending.** Source inspection, a test file existing and a passing test are different evidence. The current session only verifies research/planning structure and repository metadata.
+Verification requirements frozen 11 November 2026. Actual task results are recorded in the sprint ledger. Source inspection, a test file existing, compilation and a passing runtime test are different evidence. T01/T02 verify provenance and toolchain smoke checks only; no product/runtime gate has passed yet.
 
 ## Lanes and execution
 

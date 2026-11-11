@@ -1,0 +1,203 @@
+[
+  {
+    "field": "amount_yocto",
+    "value": 0
+  },
+  {
+    "field": "amount_yocto",
+    "value": 1.5
+  },
+  {
+    "field": "amount_yocto",
+    "value": null
+  },
+  {
+    "field": "amount_yocto",
+    "value": ""
+  },
+  {
+    "field": "amount_yocto",
+    "value": "00"
+  },
+  {
+    "field": "amount_yocto",
+    "value": "01"
+  },
+  {
+    "field": "amount_yocto",
+    "value": "+1"
+  },
+  {
+    "field": "amount_yocto",
+    "value": "-1"
+  },
+  {
+    "field": "amount_yocto",
+    "value": " 1"
+  },
+  {
+    "field": "amount_yocto",
+    "value": "1 "
+  },
+  {
+    "field": "amount_yocto",
+    "value": "1.0"
+  },
+  {
+    "field": "amount_yocto",
+    "value": "1e3"
+  },
+  {
+    "field": "amount_yocto",
+    "value": "340282366920938463463374607431768211456"
+  },
+  {
+    "field": "issued_at_ns",
+    "value": 0
+  },
+  {
+    "field": "issued_at_ns",
+    "value": ""
+  },
+  {
+    "field": "issued_at_ns",
+    "value": "01"
+  },
+  {
+    "field": "issued_at_ns",
+    "value": "+1"
+  },
+  {
+    "field": "issued_at_ns",
+    "value": "-1"
+  },
+  {
+    "field": "issued_at_ns",
+    "value": "18446744073709551616"
+  },
+  {
+    "field": "schema_version",
+    "value": -1
+  },
+  {
+    "field": "schema_version",
+    "value": 256
+  },
+  {
+    "field": "schema_version",
+    "value": 1.5
+  },
+  {
+    "field": "schema_version",
+    "value": "1"
+  },
+  {
+    "field": "policy_revision",
+    "value": -1
+  },
+  {
+    "field": "policy_revision",
+    "value": 4294967296
+  },
+  {
+    "field": "policy_revision",
+    "value": 1.5
+  },
+  {
+    "field": "policy_revision",
+    "value": "1"
+  },
+  {
+    "field": "session_id",
+    "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHg=="
+  },
+  {
+    "field": "session_id",
+    "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g"
+  },
+  {
+    "field": "session_id",
+    "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+  },
+  {
+    "field": "session_id",
+    "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\n"
+  },
+  {
+    "field": "session_id",
+    "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB="
+  },
+  {
+    "field": "session_id",
+    "value": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "field": "owner_id",
+    "value": "a"
+  },
+  {
+    "field": "owner_id",
+    "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  {
+    "field": "owner_id",
+    "value": "Owner.testnet"
+  },
+  {
+    "field": "owner_id",
+    "value": "bad..testnet"
+  },
+  {
+    "field": "owner_id",
+    "value": "bad-_testnet"
+  },
+  {
+    "field": "owner_id",
+    "value": "-bad.testnet"
+  },
+  {
+    "field": "profile_id",
+    "value": ""
+  },
+  {
+    "field": "profile_id",
+    "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  {
+    "field": "profile_id",
+    "value": "₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹"
+  }
+]

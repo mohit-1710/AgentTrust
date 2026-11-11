@@ -1,0 +1,142 @@
+[
+  {
+    "field": "schema_version",
+    "token": "0",
+    "expected": 0
+  },
+  {
+    "field": "schema_version",
+    "token": "-0",
+    "expected": 0
+  },
+  {
+    "field": "schema_version",
+    "token": "-0.0",
+    "expected": 0
+  },
+  {
+    "field": "schema_version",
+    "token": "1",
+    "expected": 1
+  },
+  {
+    "field": "schema_version",
+    "token": "1.0",
+    "expected": 1
+  },
+  {
+    "field": "schema_version",
+    "token": "1e0",
+    "expected": 1
+  },
+  {
+    "field": "schema_version",
+    "token": "255",
+    "expected": 255
+  },
+  {
+    "field": "schema_version",
+    "token": "255.0",
+    "expected": 255
+  },
+  {
+    "field": "schema_version",
+    "token": "-1",
+    "expected": null
+  },
+  {
+    "field": "schema_version",
+    "token": "-1.0",
+    "expected": null
+  },
+  {
+    "field": "schema_version",
+    "token": "1.5",
+    "expected": null
+  },
+  {
+    "field": "schema_version",
+    "token": "256",
+    "expected": null
+  },
+  {
+    "field": "schema_version",
+    "token": "256.0",
+    "expected": null
+  },
+  {
+    "field": "schema_version",
+    "token": "1e309",
+    "expected": null
+  },
+  {
+    "field": "policy_revision",
+    "token": "0",
+    "expected": 0
+  },
+  {
+    "field": "policy_revision",
+    "token": "-0",
+    "expected": 0
+  },
+  {
+    "field": "policy_revision",
+    "token": "-0.0",
+    "expected": 0
+  },
+  {
+    "field": "policy_revision",
+    "token": "1",
+    "expected": 1
+  },
+  {
+    "field": "policy_revision",
+    "token": "1.0",
+    "expected": 1
+  },
+  {
+    "field": "policy_revision",
+    "token": "1e0",
+    "expected": 1
+  },
+  {
+    "field": "policy_revision",
+    "token": "4294967295",
+    "expected": 4294967295
+  },
+  {
+    "field": "policy_revision",
+    "token": "4294967295.0",
+    "expected": 4294967295
+  },
+  {
+    "field": "policy_revision",
+    "token": "-1",
+    "expected": null
+  },
+  {
+    "field": "policy_revision",
+    "token": "-1.0",
+    "expected": null
+  },
+  {
+    "field": "policy_revision",
+    "token": "1.5",
+    "expected": null
+  },
+  {
+    "field": "policy_revision",
+    "token": "4294967296",
+    "expected": null
+  },
+  {
+    "field": "policy_revision",
+    "token": "4294967296.0",
+    "expected": null
+  },
+  {
+    "field": "policy_revision",
+    "token": "1e309",
+    "expected": null
+  }
+]

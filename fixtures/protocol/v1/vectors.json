@@ -1,0 +1,461 @@
+{
+  "schema": "agenttrust-protocol-vectors-v1",
+  "invoices": [
+    {
+      "name": "ordinary",
+      "input": {
+        "schema_version": 1,
+        "network": "near:testnet",
+        "core_account": "core.testnet",
+        "owner_id": "owner.testnet",
+        "session_id": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+        "payment_id": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8=",
+        "policy_revision": 1,
+        "profile_id": "audit",
+        "profile_revision": 7,
+        "service_id": "audit.testnet",
+        "service_version": 3,
+        "payout_account": "seller.testnet",
+        "endpoint_hash": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8=",
+        "request_hash": "YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8=",
+        "asset": "NEAR",
+        "amount_yocto": "1000000000000000000000",
+        "issued_at_ns": "1794358800000000000",
+        "expires_at_ns": "1794358920000000000"
+      },
+      "canonical_hex": "4147454e5454525553545f4e4541525f494e564f4943455f563100010c0000006e6561723a746573746e65740c000000636f72652e746573746e65740d0000006f776e65722e746573746e6574000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f01000000050000006175646974070000000d00000061756469742e746573746e6574030000000e00000073656c6c65722e746573746e6574404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f040000004e4541520000a0dec5adc935360000000000000000a09859d2d7e6180050274aeed7e618",
+      "sha256_hex": "74e2f53d05f6c1e123d3e4852ee2daf24ef271460d89cc3f3861284677d3c787",
+      "sha256_base64": "dOL1PQX2weEj0+SFLuLa8k7ycUYNicw/OGEoRnfTx4c=",
+      "byte_length": 301,
+      "fields": [
+        {
+          "field": "domain",
+          "offset": 0,
+          "length": 27
+        },
+        {
+          "field": "schema_version",
+          "offset": 27,
+          "length": 1
+        },
+        {
+          "field": "network",
+          "offset": 28,
+          "length": 16
+        },
+        {
+          "field": "core_account",
+          "offset": 44,
+          "length": 16
+        },
+        {
+          "field": "owner_id",
+          "offset": 60,
+          "length": 17
+        },
+        {
+          "field": "session_id",
+          "offset": 77,
+          "length": 32
+        },
+        {
+          "field": "payment_id",
+          "offset": 109,
+          "length": 32
+        },
+        {
+          "field": "policy_revision",
+          "offset": 141,
+          "length": 4
+        },
+        {
+          "field": "profile_id",
+          "offset": 145,
+          "length": 9
+        },
+        {
+          "field": "profile_revision",
+          "offset": 154,
+          "length": 4
+        },
+        {
+          "field": "service_id",
+          "offset": 158,
+          "length": 17
+        },
+        {
+          "field": "service_version",
+          "offset": 175,
+          "length": 4
+        },
+        {
+          "field": "payout_account",
+          "offset": 179,
+          "length": 18
+        },
+        {
+          "field": "endpoint_hash",
+          "offset": 197,
+          "length": 32
+        },
+        {
+          "field": "request_hash",
+          "offset": 229,
+          "length": 32
+        },
+        {
+          "field": "asset",
+          "offset": 261,
+          "length": 8
+        },
+        {
+          "field": "amount_yocto",
+          "offset": 269,
+          "length": 16
+        },
+        {
+          "field": "issued_at_ns",
+          "offset": 285,
+          "length": 8
+        },
+        {
+          "field": "expires_at_ns",
+          "offset": 293,
+          "length": 8
+        }
+      ]
+    },
+    {
+      "name": "unicode-large",
+      "input": {
+        "schema_version": 1,
+        "network": "near:testnet",
+        "core_account": "core.testnet",
+        "owner_id": "owner.testnet",
+        "session_id": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+        "payment_id": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8=",
+        "policy_revision": 1,
+        "profile_id": "audit-₹",
+        "profile_revision": 7,
+        "service_id": "audit.testnet",
+        "service_version": 3,
+        "payout_account": "seller.testnet",
+        "endpoint_hash": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8=",
+        "request_hash": "YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8=",
+        "asset": "NEAR",
+        "amount_yocto": "9007199254740993",
+        "issued_at_ns": "9007199254740993",
+        "expires_at_ns": "9007319254740993"
+      },
+      "canonical_hex": "4147454e5454525553545f4e4541525f494e564f4943455f563100010c0000006e6561723a746573746e65740c000000636f72652e746573746e65740d0000006f776e65722e746573746e6574000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f010000000900000061756469742de282b9070000000d00000061756469742e746573746e6574030000000e00000073656c6c65722e746573746e6574404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f040000004e45415201000000000020000000000000000000010000000000200001b08ef01b002000",
+      "sha256_hex": "32caccb233701515d3ece818dd7028f0ca72646b6ee766655963f0f36b917a6f",
+      "sha256_base64": "MsrMsjNwFRXT7OgY3XAo8MpyZGtu52ZlWWPw82uRem8=",
+      "byte_length": 305,
+      "fields": [
+        {
+          "field": "domain",
+          "offset": 0,
+          "length": 27
+        },
+        {
+          "field": "schema_version",
+          "offset": 27,
+          "length": 1
+        },
+        {
+          "field": "network",
+          "offset": 28,
+          "length": 16
+        },
+        {
+          "field": "core_account",
+          "offset": 44,
+          "length": 16
+        },
+        {
+          "field": "owner_id",
+          "offset": 60,
+          "length": 17
+        },
+        {
+          "field": "session_id",
+          "offset": 77,
+          "length": 32
+        },
+        {
+          "field": "payment_id",
+          "offset": 109,
+          "length": 32
+        },
+        {
+          "field": "policy_revision",
+          "offset": 141,
+          "length": 4
+        },
+        {
+          "field": "profile_id",
+          "offset": 145,
+          "length": 13
+        },
+        {
+          "field": "profile_revision",
+          "offset": 158,
+          "length": 4
+        },
+        {
+          "field": "service_id",
+          "offset": 162,
+          "length": 17
+        },
+        {
+          "field": "service_version",
+          "offset": 179,
+          "length": 4
+        },
+        {
+          "field": "payout_account",
+          "offset": 183,
+          "length": 18
+        },
+        {
+          "field": "endpoint_hash",
+          "offset": 201,
+          "length": 32
+        },
+        {
+          "field": "request_hash",
+          "offset": 233,
+          "length": 32
+        },
+        {
+          "field": "asset",
+          "offset": 265,
+          "length": 8
+        },
+        {
+          "field": "amount_yocto",
+          "offset": 273,
+          "length": 16
+        },
+        {
+          "field": "issued_at_ns",
+          "offset": 289,
+          "length": 8
+        },
+        {
+          "field": "expires_at_ns",
+          "offset": 297,
+          "length": 8
+        }
+      ]
+    },
+    {
+      "name": "integer-maxima",
+      "input": {
+        "schema_version": 1,
+        "network": "near:testnet",
+        "core_account": "core.testnet",
+        "owner_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "session_id": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+        "payment_id": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8=",
+        "policy_revision": 4294967295,
+        "profile_id": "₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹₹a",
+        "profile_revision": 4294967295,
+        "service_id": "audit.testnet",
+        "service_version": 4294967295,
+        "payout_account": "seller.testnet",
+        "endpoint_hash": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8=",
+        "request_hash": "YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8=",
+        "asset": "NEAR",
+        "amount_yocto": "340282366920938463463374607431768211455",
+        "issued_at_ns": "18446744073709551615",
+        "expires_at_ns": "18446744073709551615"
+      },
+      "canonical_hex": "4147454e5454525553545f4e4541525f494e564f4943455f563100010c0000006e6561723a746573746e65740c000000636f72652e746573746e65744000000061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3fffffffff40000000e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b9e282b961ffffffff0d00000061756469742e746573746e6574ffffffff0e00000073656c6c65722e746573746e6574404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f040000004e454152ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "sha256_hex": "c64cd280218f3686a8133a8f40ccb61da07e7bdfc270a2ec19ba2ffaa70a1511",
+      "sha256_base64": "xkzSgCGPNoaoEzqPQMy2HaB+e9/CcKLsGbov+qcKFRE=",
+      "byte_length": 411,
+      "fields": [
+        {
+          "field": "domain",
+          "offset": 0,
+          "length": 27
+        },
+        {
+          "field": "schema_version",
+          "offset": 27,
+          "length": 1
+        },
+        {
+          "field": "network",
+          "offset": 28,
+          "length": 16
+        },
+        {
+          "field": "core_account",
+          "offset": 44,
+          "length": 16
+        },
+        {
+          "field": "owner_id",
+          "offset": 60,
+          "length": 68
+        },
+        {
+          "field": "session_id",
+          "offset": 128,
+          "length": 32
+        },
+        {
+          "field": "payment_id",
+          "offset": 160,
+          "length": 32
+        },
+        {
+          "field": "policy_revision",
+          "offset": 192,
+          "length": 4
+        },
+        {
+          "field": "profile_id",
+          "offset": 196,
+          "length": 68
+        },
+        {
+          "field": "profile_revision",
+          "offset": 264,
+          "length": 4
+        },
+        {
+          "field": "service_id",
+          "offset": 268,
+          "length": 17
+        },
+        {
+          "field": "service_version",
+          "offset": 285,
+          "length": 4
+        },
+        {
+          "field": "payout_account",
+          "offset": 289,
+          "length": 18
+        },
+        {
+          "field": "endpoint_hash",
+          "offset": 307,
+          "length": 32
+        },
+        {
+          "field": "request_hash",
+          "offset": 339,
+          "length": 32
+        },
+        {
+          "field": "asset",
+          "offset": 371,
+          "length": 8
+        },
+        {
+          "field": "amount_yocto",
+          "offset": 379,
+          "length": 16
+        },
+        {
+          "field": "issued_at_ns",
+          "offset": 395,
+          "length": 8
+        },
+        {
+          "field": "expires_at_ns",
+          "offset": 403,
+          "length": 8
+        }
+      ]
+    }
+  ],
+  "identities": [
+    {
+      "name": "identity-unicode-large-context",
+      "input": {
+        "schema_version": 1,
+        "network": "near:testnet",
+        "core_account": "core.testnet",
+        "service_id": "audit.testnet",
+        "service_version": 3,
+        "payout_account": "seller.testnet",
+        "endpoint_hash": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8=",
+        "issued_at_ns": "9007199254740993",
+        "expires_at_ns": "9007319254740993",
+        "challenge_nonce": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8=",
+        "invoice_key": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp8="
+      },
+      "canonical_hex": "4147454e5454525553545f4e4541525f4944454e544954595f563100010c0000006e6561723a746573746e65740c000000636f72652e746573746e6574202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f0d00000061756469742e746573746e6574030000000e00000073656c6c65722e746573746e6574404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f010000000000200001b08ef01b002000",
+      "sha256_hex": "5b2d554f99c678a89745b7b3302e9d85594991fa383c4319474f21273750ba35",
+      "sha256_base64": "Wy1VT5nGeKiXRbezMC6dhVlJkfo4PEMZR08hJzdQujU=",
+      "byte_length": 212,
+      "fields": [
+        {
+          "field": "domain",
+          "offset": 0,
+          "length": 28
+        },
+        {
+          "field": "schema_version",
+          "offset": 28,
+          "length": 1
+        },
+        {
+          "field": "network",
+          "offset": 29,
+          "length": 16
+        },
+        {
+          "field": "core_account",
+          "offset": 45,
+          "length": 16
+        },
+        {
+          "field": "challenge_nonce",
+          "offset": 61,
+          "length": 32
+        },
+        {
+          "field": "service_id",
+          "offset": 93,
+          "length": 17
+        },
+        {
+          "field": "service_version",
+          "offset": 110,
+          "length": 4
+        },
+        {
+          "field": "payout_account",
+          "offset": 114,
+          "length": 18
+        },
+        {
+          "field": "endpoint_hash",
+          "offset": 132,
+          "length": 32
+        },
+        {
+          "field": "invoice_key",
+          "offset": 164,
+          "length": 32
+        },
+        {
+          "field": "issued_at_ns",
+          "offset": 196,
+          "length": 8
+        },
+        {
+          "field": "expires_at_ns",
+          "offset": 204,
+          "length": 8
+        }
+      ]
+    }
+  ]
+}

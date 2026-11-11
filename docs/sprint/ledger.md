@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T03. T01–T02 accepted; T03–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T04. T01–T03 accepted; T04–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -36,4 +36,8 @@ Ruling: near-sdk5.30.1 requires cfg(near) for native host bindings | exact SDK s
 
 Ruling: profile IDs are1–64 UTF-8 bytes without normalization | codec preparation exposed an unbounded storage key in the frozen schema | same bound in Rust/TS and owner management; T03/T04 boundary tests, no feature expansion
 
-T02 done in this task commit | pinned Node24.22.2/pnpm10.33.0/Rust1.97.1; safe Rust/TS workspace and lockfiles | checks:1Rust+2TS tests, native typecheck, fmt, frozen lifecycle-free install,13,733-byte WASM with NEARhostimports; no WASM execution | gate: fresh spec/quality pass,0 Critical/Important; docsReact drift fixed via scoped override | report:toolchain.md; no runtime/chain deployment
+T02 done 4bd7566 | pinned Node24.22.2/pnpm10.33.0/Rust1.97.1; safe Rust/TS workspace and lockfiles | checks:1Rust+2TS tests, native typecheck, fmt, frozen lifecycle-free install,13,733-byte WASM with NEARhostimports; no WASM execution | gate: fresh spec/quality pass,0 Critical/Important; docsReact drift fixed via scoped override | report:toolchain.md; no runtime/chain deployment
+
+Ruling: canonical invoice/descriptor numeric u8/u32 fields accept parsed finite integral values in range, including1.0/1e0 and-0 | Rust/JS lexical number differences do not affect signed Borsh bytes | shared28-case token fixture; amount/timestamp parsing remains strict decimal strings
+
+T03 done in this task commit | pure Rust invoice/identity types and canonical Borsh/hash functions; independent annotated Python vectors | red:10 explicit codec stubs failed, then numeric parity regression failed; green:11 codec tests/12Rusttotal,42 malformed field cases,28 numeric-token cases,2TS tests/typecheck/fmt/WASM | gate: fresh spec/quality pass, no findings | signatures and runtime still pending
