@@ -16,3 +16,5 @@ mod tests {
 
 pub mod authority;
 pub mod owner;
+
+pub mod accounting;

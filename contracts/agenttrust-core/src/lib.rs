@@ -1,4 +1,4 @@
-//! Native owner/session boundary. Funding and payments are implemented in later tasks.
+//! Native owner/session authority and actor-funded ledger. Payments follow in later tasks.
 use agenttrust_domain::{owner::ActorState, types::U128String};
 use near_sdk::{AccountId, PanicOnDefault, env, near, store::LookupMap};
 

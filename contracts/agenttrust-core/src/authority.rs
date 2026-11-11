@@ -42,6 +42,11 @@ pub fn require_initialization() {
     must(domain::authorize_initialization(&context.as_context()));
 }
 
+pub fn require_funding() -> AccountId {
+    let context = RuntimeContext::capture();
+    must(domain::funding_actor(&context.as_context()))
+}
+
 pub fn require_management() -> AccountId {
     let context = RuntimeContext::capture();
     must(domain::management_actor(&context.as_context()))

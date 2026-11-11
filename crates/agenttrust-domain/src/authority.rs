@@ -20,6 +20,7 @@ pub enum AuthorityError {
     SessionRevoked,
     StorageCredit,
     ArithmeticOverflow,
+    InvalidDeposit,
 }
 impl AuthorityError {
     pub fn code(self) -> &'static str {
@@ -38,6 +39,7 @@ impl AuthorityError {
             Self::SessionRevoked => "SESSION_REVOKED",
             Self::StorageCredit => "STORAGE_CREDIT",
             Self::ArithmeticOverflow => "ARITHMETIC_OVERFLOW",
+            Self::InvalidDeposit => "INVALID_DEPOSIT",
         }
     }
 }
@@ -116,4 +118,15 @@ pub fn authorize_session(
         return Err(AuthorityError::ProfileMismatch);
     }
     Ok(())
+}
+
+/// Direct funding authority is separate from one-yocto management authority.
+pub fn funding_actor(context: &CallContext<'_>) -> Result<AccountId, AuthorityError> {
+    if context.predecessor != context.signer {
+        return Err(AuthorityError::Unauthorized);
+    }
+    if context.attached_deposit_yocto == 0 {
+        return Err(AuthorityError::InvalidDeposit);
+    }
+    Ok(context.signer.clone())
 }

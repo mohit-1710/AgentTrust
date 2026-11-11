@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T06. T01–T05 accepted; T06–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T07. T01–T06 accepted; T07–T30 pending; T15 prepares in its isolated worktree. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -48,6 +48,10 @@ Ruling: capability DTO uses namespace invoice.audit and version1 to represent in
 
 T04 done ef235d6 | TypeScript invoice/identity codecs, hashes, strict input validation and explicit-registry-key Ed25519 verification; public RFC8032 signature fixtures | red:120 focused cases failed against explicit stubs; green:123 focused cases/125TS total,12Rust total and typecheck | gate: fresh spec/quality pass, no findings | no real account keys, signing transaction, runtime or chain execution
 
-T05 done in this task commit | contract-account initialization, direct one-yocto owner management, immutable key/profile sessions, bounded state and minimal views | red:9 authority stubs plus storage-credit stub failed; integrated green:22Rust+125TS tests, typecheck/fmt,167,462-byte WASM with required ABI/host imports | gate: fresh spec/quality pass, no findings; isolated source integrated and full checks rerun | funded actor creation and runtime proof remain T06/T13
+T05 done b3c665b | contract-account initialization, direct one-yocto owner management, immutable key/profile sessions, bounded state and minimal views | red:9 authority stubs plus storage-credit stub failed; integrated green:22Rust+125TS tests, typecheck/fmt,167,462-byte WASM with required ABI/host imports | gate: fresh spec/quality pass, no findings; isolated source integrated and full checks rerun | funded actor creation and runtime proof remain T06/T13
 
 Ruling: prototype storage shrinkage does not refund previously charged credit | retain simple conservative storage accounting; growth remains actor-funded | no claim of refundable storage or available principal; disclose with T28 limitations
+
+Ruling: prepare T15 pure CSV audit in isolated sprint/t15 worktree alongside core work | independent provider computation/fixtures share no mutable core files | review and integrate at its later gate; no HTTP/payment/runtime shortcut and no completed-task claim yet
+
+T06 done in this task commit | direct deposits, sole funded actor creation, checked principal/storage split, actor-paid persisted storage growth and observational get_account | red:9 accounting stubs failed; green:31Rust+125TS tests, typecheck/fmt,173,500-byte WASM | gate: fresh spec/quality pass, no findings | no native transfer/runtime claim; T07 must flush all registry writes before shared storage pricing
