@@ -9,6 +9,12 @@ publish.workspace = true
 [lib]
 crate-type = ["cdylib"]
 
+[features]
+default = []
+# User-run T13 only: build into a separate target directory and record its hash.
+# Never deploy this alternate artifact as the production/demo core.
+runtime-test-callback-failure = []
+
 [dependencies]
 near-sdk.workspace = true
 agenttrust-domain.workspace = true

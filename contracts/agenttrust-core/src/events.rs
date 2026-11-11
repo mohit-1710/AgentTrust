@@ -88,3 +88,46 @@ pub(crate) fn dispatched(payment: &PaymentRecord, backing: DispatchBacking) {
         },
     );
 }
+
+/// Receipt-local post-write sample, not proof that a refund receipt has arrived.
+#[derive(Serialize)]
+#[serde(crate = "near_sdk::serde")]
+pub(crate) struct BackingObservation {
+    pub runtime_account_balance_yocto: U128String,
+    pub total_available_yocto: U128String,
+    pub total_storage_credit_yocto: U128String,
+    pub operating_reserve_yocto: U128String,
+    pub storage_usage_bytes: U64String,
+    pub storage_byte_cost_yocto: U128String,
+}
+
+#[derive(Serialize)]
+#[serde(crate = "near_sdk::serde")]
+struct PaymentFinalized<'a> {
+    owner_id: &'a AccountId,
+    payment_id: &'a Hash32,
+    invoice_hash: &'a Hash32,
+    payout_account: &'a AccountId,
+    amount_yocto: U128String,
+    dispatch_day: U64String,
+    state: PaymentState,
+    finalized_at_ns: U64String,
+    backing: BackingObservation,
+}
+
+pub(crate) fn payment_finalized(payment: &PaymentRecord, backing: BackingObservation) {
+    emit(
+        "payment_finalized",
+        PaymentFinalized {
+            owner_id: &payment.invoice.owner_id,
+            payment_id: &payment.invoice.payment_id,
+            invoice_hash: &payment.invoice_hash,
+            payout_account: &payment.invoice.payout_account,
+            amount_yocto: payment.invoice.amount_yocto,
+            dispatch_day: payment.dispatch_day,
+            state: payment.state,
+            finalized_at_ns: payment.finalized_at_ns,
+            backing,
+        },
+    );
+}

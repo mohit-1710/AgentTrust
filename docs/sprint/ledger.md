@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T11. T01–T10 accepted; T11–T30 pending; T15 and T24 reviewed and pushed on isolated branches, T12 pure accounting and T13/T16 preparations in isolated worktrees. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T12. T01–T11 accepted; T12–T30 pending; T15,T16,T24 reviewed and pushed on isolated branches, T12 pure accounting and T13/T14 preparations in isolated worktrees. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -72,6 +72,10 @@ T15 preparation pushed 0c3ca7e on sprint/t15 | reviewed pure CSV audit and indep
 
 T24 preparation pushed 2aec257 on sprint/t24 |34 native MDX pages,11 byte-preserved archives and44-page migration inventory | fresh content/spec review passed; mapping/hash/link/navigation/AST checks passed | reconcile snapshot at integration; generators/assistant/search/render verification remain T25
 
-T10 done in this task commit | authoritative worker admission, registry-key host signature call, immutable retries, priced reservation/index and actual-balance guard before one explicit native Promise transfer | red:9 admission stubs failed; green:83Rust+125TS tests, typecheck/fmt,338,837-byte WASM with required host imports/exports | gate: fresh spec/quality pass, no findings | receipt-local observations and diagnostic views added; T11 callback intentionally absent, intermediate artifact must not be deployed or run
+T10 done 5eb5f12 | authoritative worker admission, registry-key host signature call, immutable retries, priced reservation/index and actual-balance guard before one explicit native Promise transfer | red:9 admission stubs failed; green:83Rust+125TS tests, typecheck/fmt,338,837-byte WASM with required host imports/exports | gate: fresh spec/quality pass, no findings | receipt-local observations and diagnostic views added; callback absent at that historical milestone
 
 Ruling: T12 pure withdrawal accounting and T13 runtime harness may prepare independently while T10 completes; T16 consumes reviewed audit fixtures in its own worktree | no overlapping main implementation, no runtime/issuance execution | integrate and review each task separately; preparation is not a passed gate
+
+T11 done in this task commit | private self/exactly-one-result callback, bounded native result handling, fixed-size finalization and receipt-local backing observations | red:2 authority stubs failed; green:85Rust+125TS, typecheck/fmt; production344,684-byte and isolated fault341,694-byte WASMs inspected without execution | gate: fresh spec/quality pass, no findings | unexpected result aborts rather than refunds; default-off fault feature has no public switch/resolver; artifact-kind mismatches rejected; actual host gas/storage/refund/rollback remain T13
+
+T16 preparation pushed 97966b3 on sprint/t16 | signed fresh identity challenge, committed fixture-only conformance and scoped assertion draft with separate evidence hash |69 focused tests,74Rust+258TS/typecheck on isolated base; fresh spec/quality pass, no findings | no live HTTP/credential issuance; T14 registry/directory, T17 route and T18 issuer integration pending

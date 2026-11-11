@@ -48,3 +48,11 @@ pub fn require_management() -> AccountId {
     let context = RuntimeContext::capture();
     must(domain::management_actor(&context.as_context()))
 }
+
+pub(crate) fn require_callback() {
+    must(domain::authorize_callback(
+        &env::current_account_id(),
+        &env::predecessor_account_id(),
+        env::promise_results_count(),
+    ));
+}

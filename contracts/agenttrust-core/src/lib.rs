@@ -11,6 +11,7 @@ use near_sdk::{
 };
 
 pub mod authority;
+mod callbacks;
 mod events;
 mod owner;
 mod payments;

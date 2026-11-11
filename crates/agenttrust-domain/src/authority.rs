@@ -134,3 +134,16 @@ pub fn funding_actor(context: &CallContext<'_>) -> Result<AccountId, AuthorityEr
     }
     Ok(context.signer.clone())
 }
+
+/// Callback authority comes from the actual predecessor and promise-result count,
+/// never the transaction signer or a caller-supplied outcome.
+pub fn authorize_callback(
+    current_account: &AccountId,
+    predecessor: &AccountId,
+    promise_results_count: u64,
+) -> Result<(), AuthorityError> {
+    if predecessor != current_account || promise_results_count != 1 {
+        return Err(AuthorityError::Unauthorized);
+    }
+    Ok(())
+}
