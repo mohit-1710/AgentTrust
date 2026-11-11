@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T12. T01–T11 accepted; T12–T30 pending; T15,T16,T24 reviewed and pushed on isolated branches, T12 pure accounting and T13/T14 preparations in isolated worktrees. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T13 integration and user-run native evidence. T01–T12 accepted locally; T13–T30 pending; T15,T16,T24 reviewed and pushed on isolated branches, T13/T14 preparations in isolated worktrees. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -76,6 +76,10 @@ T10 done 5eb5f12 | authoritative worker admission, registry-key host signature c
 
 Ruling: T12 pure withdrawal accounting and T13 runtime harness may prepare independently while T10 completes; T16 consumes reviewed audit fixtures in its own worktree | no overlapping main implementation, no runtime/issuance execution | integrate and review each task separately; preparation is not a passed gate
 
-T11 done in this task commit | private self/exactly-one-result callback, bounded native result handling, fixed-size finalization and receipt-local backing observations | red:2 authority stubs failed; green:85Rust+125TS, typecheck/fmt; production344,684-byte and isolated fault341,694-byte WASMs inspected without execution | gate: fresh spec/quality pass, no findings | unexpected result aborts rather than refunds; default-off fault feature has no public switch/resolver; artifact-kind mismatches rejected; actual host gas/storage/refund/rollback remain T13
+T11 done cf28cdb | private self/exactly-one-result callback, bounded native result handling, fixed-size finalization and receipt-local backing observations | red:2 authority stubs failed; green:85Rust+125TS, typecheck/fmt; production344,684-byte and isolated fault341,694-byte WASMs inspected without execution | gate: fresh spec/quality pass, no findings | unexpected result aborts rather than refunds; default-off fault feature has no public switch/resolver; artifact-kind mismatches rejected; actual host gas/storage/refund/rollback remain T13
 
 T16 preparation pushed 97966b3 on sprint/t16 | signed fresh identity challenge, committed fixture-only conformance and scoped assertion draft with separate evidence hash |69 focused tests,74Rust+258TS/typecheck on isolated base; fresh spec/quality pass, no findings | no live HTTP/credential issuance; T14 registry/directory, T17 route and T18 issuer integration pending
+
+T12 done in this task commit | direct owner-only available withdrawal to self, immutable replay/status views, priced backing guard and private exactly-once callback | red:7 pure transition stubs then4 storage/view stubs failed; green:96Rust+125TS, typecheck/fmt, production365,092-byte and separate fault362,921-byte WASM inspections | gate: fresh spec/quality pass, no findings | shared8 outstanding, no worker budget use, pending funds/storage/operating reserve excluded; no native execution claim
+
+T13 preparation review found and is repairing an RPC error-cause classification defect and tool-version provenance labeling | permission rejection must be distinguished from transport failure | no runtime evidence exists; missing refund-gap/midnight and further matrix variants remain explicitly open

@@ -23,3 +23,5 @@ pub mod accounting;
 pub mod registry;
 
 pub mod payments;
+
+pub mod withdrawals;

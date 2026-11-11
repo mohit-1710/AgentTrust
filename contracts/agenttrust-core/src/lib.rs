@@ -4,6 +4,7 @@ use agenttrust_domain::{
     owner::ActorState,
     registry::{Credential, ServiceIdentity},
     types::{Hash32, U128String},
+    withdrawals::WithdrawalRecord,
 };
 use near_sdk::{
     AccountId, PanicOnDefault, env, near,
@@ -17,6 +18,7 @@ mod owner;
 mod payments;
 mod registry;
 mod views;
+mod withdrawals;
 
 #[near(contract_state)]
 #[derive(PanicOnDefault)]
@@ -31,6 +33,7 @@ pub struct AgentTrustCore {
     credentials: LookupMap<(AccountId, Hash32), Credential>,
     payments: LookupMap<(AccountId, Hash32), PaymentRecord>,
     payment_ids: LookupMap<AccountId, Vec<Hash32>>,
+    withdrawals: LookupMap<(AccountId, Hash32), WithdrawalRecord>,
 }
 
 #[near]
@@ -53,6 +56,7 @@ impl AgentTrustCore {
             credentials: LookupMap::new(b"credentials:v1".to_vec()),
             payments: LookupMap::new(b"payments:v1".to_vec()),
             payment_ids: LookupMap::new(b"payment-ids:v1".to_vec()),
+            withdrawals: LookupMap::new(b"withdrawals:v1".to_vec()),
         }
     }
 }

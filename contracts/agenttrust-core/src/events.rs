@@ -4,6 +4,7 @@ use agenttrust_domain::{
     codec::invoice_hash,
     policy::Decision,
     types::{AccountId, FixedBytes, Hash32, InvoiceV1, U64String, U128String},
+    withdrawals::WithdrawalRecord,
 };
 use near_sdk::{env, serde::Serialize};
 
@@ -127,6 +128,37 @@ pub(crate) fn payment_finalized(payment: &PaymentRecord, backing: BackingObserva
             dispatch_day: payment.dispatch_day,
             state: payment.state,
             finalized_at_ns: payment.finalized_at_ns,
+            backing,
+        },
+    );
+}
+
+#[derive(Serialize)]
+#[serde(crate = "near_sdk::serde")]
+struct WithdrawalEvent<'a, B: Serialize> {
+    #[serde(flatten)]
+    withdrawal: &'a WithdrawalRecord,
+    payout_account: &'a AccountId,
+    backing: B,
+}
+
+pub(crate) fn withdrawal_dispatched(withdrawal: &WithdrawalRecord, backing: DispatchBacking) {
+    emit(
+        "withdrawal_dispatched",
+        WithdrawalEvent {
+            withdrawal,
+            payout_account: &withdrawal.owner_id,
+            backing,
+        },
+    );
+}
+
+pub(crate) fn withdrawal_finalized(withdrawal: &WithdrawalRecord, backing: BackingObservation) {
+    emit(
+        "withdrawal_finalized",
+        WithdrawalEvent {
+            withdrawal,
+            payout_account: &withdrawal.owner_id,
             backing,
         },
     );

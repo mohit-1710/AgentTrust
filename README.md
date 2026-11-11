@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Shared invoice codecs, owner/session and registry methods, policy gates and payment reservation accounting pass pure tests and WASM compilation. Native transfer/callback integration, the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
+**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Invoice codecs, owner/session and registry methods, policy gates, payment dispatch/private callbacks and owner withdrawals pass local checks: 96 pure Rust tests, 125 TypeScript tests and WASM compilation. The native runtime harness, complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 
@@ -32,6 +32,8 @@ The older Monad project is a separate legacy repository; it is not the baseline 
 ## What is mocked or controlled
 
 No product runtime is running yet. The planned providers, synthetic invoice dataset and project-operated capability issuer are controlled demonstration components. The issuer's claim is limited to a named conformance suite and time. Core authorization, contract payout, settlement and replay protection must be real in the final demonstration. Testnet activity is not revenue; settled payments are not proof of service quality.
+
+A successful transfer followed by a failed callback can leave funds reserved indefinitely. The 120-second reconciliation label is diagnostic only; this prototype has no automatic refund, resend or administrative resolver. Storage shrinkage does not refund previously charged credit.
 
 ## Verification and execution boundary
 
