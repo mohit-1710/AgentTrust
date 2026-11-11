@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "capability": "invoice.audit.v1",
+  "input_hash": "b6yhwgU63NdqCBcY+nLV0iOcPGeCZDWa8pGNPQQ00B4=",
+  "row_count": 15,
+  "accepted_row_count": 8,
+  "rejected_row_count": 7,
+  "duplicate_groups": [
+    {
+      "vendor_id": "acme",
+      "invoice_id": "A-100",
+      "row_indices": [
+        1,
+        2
+      ]
+    }
+  ],
+  "rejected_rows": [
+    {
+      "row_index": 9,
+      "codes": [
+        "NEGATIVE_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 10,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 11,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 12,
+      "codes": [
+        "UNSUPPORTED_CURRENCY"
+      ]
+    },
+    {
+      "row_index": 13,
+      "codes": [
+        "EMPTY_VENDOR_ID"
+      ]
+    },
+    {
+      "row_index": 14,
+      "codes": [
+        "EMPTY_INVOICE_ID"
+      ]
+    },
+    {
+      "row_index": 15,
+      "codes": [
+        "COLUMN_COUNT"
+      ]
+    }
+  ],
+  "currency_totals": [
+    {
+      "currency": "EUR",
+      "amount": "3.23",
+      "row_count": 2
+    },
+    {
+      "currency": "INR",
+      "amount": "10000000000000000.00",
+      "row_count": 2
+    },
+    {
+      "currency": "USD",
+      "amount": "19.25",
+      "row_count": 4
+    }
+  ],
+  "totals_basis": "all_valid_rows_including_duplicates",
+  "totals_are_payable": false
+}

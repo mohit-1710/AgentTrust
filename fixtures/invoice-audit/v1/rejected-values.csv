@@ -1,0 +1,10 @@
+vendor_id,invoice_id,amount,currency
+ , ,-5,usd
+v,i,"1,000",USD
+v,i," 1.00",USD
+v,i,"1.00 ",USD
+v,i,.50,USD
+v,i,1.,USD
+v,i,-0,USD
+v,i,+0,USD
+

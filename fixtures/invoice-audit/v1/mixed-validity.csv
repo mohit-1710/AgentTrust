@@ -1,0 +1,16 @@
+vendor_id,invoice_id,amount,currency
+acme,A-100,10.10,USD
+ acme , A-100 ,+2.05,USD
+acme,A-101,0.10,USD
+ACME,A-100,7,USD
+euro,E-1,1.20,EUR
+euro,E-2,2.03,EUR
+india,I-1,9999999999999999.99,INR
+india,I-2,0.01,INR
+bad,B-1,-0.01,USD
+bad,B-2,1.234,USD
+bad,B-3,1e3,USD
+bad,B-4,2,JPY
+,missing,3,USD
+bad,,4,USD
+short,only

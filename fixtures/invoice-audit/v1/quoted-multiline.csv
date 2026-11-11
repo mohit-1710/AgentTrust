@@ -1,0 +1,9 @@
+﻿currency,amount,invoice_id,vendor_id
+USD,"1.25","INV,""quoted""","Vendor, Inc"
+USD,2.75,"INV,""quoted""","Vendor, Inc"
+EUR,0.10,"line
+item",euro
+EUR,0.20,"line
+item",euro
+INR,+00.50,"₹-1"," भारत "
+USD,1.01,tail,last

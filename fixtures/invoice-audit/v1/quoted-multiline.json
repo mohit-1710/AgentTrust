@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "capability": "invoice.audit.v1",
+  "input_hash": "MnDX8RMmENQLbnHMiu2dJrNgbh4hl9n42hlYNFl77Rw=",
+  "row_count": 6,
+  "accepted_row_count": 6,
+  "rejected_row_count": 0,
+  "duplicate_groups": [
+    {
+      "vendor_id": "Vendor, Inc",
+      "invoice_id": "INV,\"quoted\"",
+      "row_indices": [
+        1,
+        2
+      ]
+    },
+    {
+      "vendor_id": "euro",
+      "invoice_id": "line\r\nitem",
+      "row_indices": [
+        3,
+        4
+      ]
+    }
+  ],
+  "rejected_rows": [],
+  "currency_totals": [
+    {
+      "currency": "EUR",
+      "amount": "0.30",
+      "row_count": 2
+    },
+    {
+      "currency": "INR",
+      "amount": "0.50",
+      "row_count": 1
+    },
+    {
+      "currency": "USD",
+      "amount": "5.01",
+      "row_count": 3
+    }
+  ],
+  "totals_basis": "all_valid_rows_including_duplicates",
+  "totals_are_payable": false
+}
