@@ -11,7 +11,7 @@ for (const name of ["current_account_id", "predecessor_account_id", "signer_acco
     throw new Error(`Missing NEAR host import env.${name}; check cfg(near).`);
   }
 }
-for (const name of ["new", "deposit", "get_account", "set_policy", "set_profile", "register_session", "revoke_session", "get_config", "get_policy", "get_session"]) {
+for (const name of ["new", "deposit", "get_account", "set_policy", "set_profile", "register_session", "revoke_session", "get_config", "get_policy", "get_session", "set_service", "issue_credential", "revoke_credential", "get_service", "get_credential"]) {
   if (!exports.some((item) => item.name === name && item.kind === "function")) {
     throw new Error(`Missing native contract export ${name}.`);
   }

@@ -80,6 +80,8 @@ pub struct ActorState {
     pub policy: OwnerPolicy,
     pub profiles: BTreeMap<ProfileId, Profile>,
     pub sessions: BTreeMap<Hash32, Session>,
+    /// Includes revoked credentials; no automatic record pruning.
+    pub issued_credential_count: u32,
 }
 
 pub struct SessionRegistration {
@@ -106,6 +108,7 @@ impl ActorState {
             },
             profiles: BTreeMap::new(),
             sessions: BTreeMap::new(),
+            issued_credential_count: 0,
         }
     }
 

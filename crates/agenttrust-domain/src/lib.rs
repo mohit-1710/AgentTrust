@@ -18,3 +18,5 @@ pub mod authority;
 pub mod owner;
 
 pub mod accounting;
+
+pub mod registry;

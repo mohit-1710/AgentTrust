@@ -12,7 +12,7 @@ use agenttrust_domain::{
 use near_sdk::{AccountId, PublicKey, env, near};
 
 impl AgentTrustCore {
-    fn managed_actor(&self) -> (AccountId, ActorState) {
+    pub(crate) fn managed_actor(&self) -> (AccountId, ActorState) {
         let owner_id = require_management();
         let actor = must(require_actor(self.actors.get(&owner_id))).clone();
         (owner_id, actor)

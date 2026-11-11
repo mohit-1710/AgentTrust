@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T07. T01–T06 accepted; T07–T30 pending; T15 prepares in its isolated worktree. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T08. T01–T07 accepted; T08–T30 pending; T15 is reviewed in its isolated worktree awaiting later integration. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -54,4 +54,10 @@ Ruling: prototype storage shrinkage does not refund previously charged credit | 
 
 Ruling: prepare T15 pure CSV audit in isolated sprint/t15 worktree alongside core work | independent provider computation/fixtures share no mutable core files | review and integrate at its later gate; no HTTP/payment/runtime shortcut and no completed-task claim yet
 
-T06 done in this task commit | direct deposits, sole funded actor creation, checked principal/storage split, actor-paid persisted storage growth and observational get_account | red:9 accounting stubs failed; green:31Rust+125TS tests, typecheck/fmt,173,500-byte WASM | gate: fresh spec/quality pass, no findings | no native transfer/runtime claim; T07 must flush all registry writes before shared storage pricing
+T06 done d185ce0 | direct deposits, sole funded actor creation, checked principal/storage split, actor-paid persisted storage growth and observational get_account | red:9 accounting stubs failed; green:31Rust+125TS tests, typecheck/fmt,173,500-byte WASM | gate: fresh spec/quality pass, no findings | no native transfer/runtime claim; T07 must flush all registry writes before shared storage pricing
+
+T15 preparation ready in isolated sprint/t15 |64 audit/checker tests,22Rust+189TS/typecheck passed on its T05 base;4 manual goldens cross-checked independently | fresh spec/quality review passed with no findings; not integrated or marked done, no HTTP/payment/runtime claim
+
+Burn check after T06: six accepted local milestones are within their initial preparation timeboxes; no cut justified | keep original allowances for unresolved runtime, HTTP integration, UI/docs and handoffs rather than extrapolating codec speed | feature freeze unchanged; no deployment or native runtime gate passed
+
+T07 done in this task commit | versioned merchant-owned service identities, issuer-scoped credential issue/revoke/renew and bounded views/index | red:12 registry stubs failed; green:43Rust+125TS tests, typecheck/fmt,214,839-byte WASM | gate: fresh spec/quality pass, no findings | revoke retains assertion revision; renewal increments; all writes charged to responsible actor after flush; no runtime claim
