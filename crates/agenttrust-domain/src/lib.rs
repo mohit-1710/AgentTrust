@@ -13,3 +13,6 @@ mod tests {
         assert_eq!(borsh::from_slice::<u128>(&bytes).unwrap(), value);
     }
 }
+
+pub mod authority;
+pub mod owner;

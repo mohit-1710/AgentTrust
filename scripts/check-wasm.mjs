@@ -6,13 +6,15 @@ const bytes = await readFile(path);
 const module = new WebAssembly.Module(bytes);
 const imports = WebAssembly.Module.imports(module);
 const exports = WebAssembly.Module.exports(module);
-for (const name of ["current_account_id", "read_register", "value_return"]) {
+for (const name of ["current_account_id", "predecessor_account_id", "signer_account_id", "signer_account_pk", "attached_deposit", "read_register", "value_return", "storage_read", "storage_write"]) {
   if (!imports.some((item) => item.module === "env" && item.name === name)) {
     throw new Error(`Missing NEAR host import env.${name}; check cfg(near).`);
   }
 }
-if (!exports.some((item) => item.name === "current_account" && item.kind === "function")) {
-  throw new Error("Missing T02 current_account contract export.");
+for (const name of ["new", "set_policy", "set_profile", "register_session", "revoke_session", "get_config", "get_policy", "get_session"]) {
+  if (!exports.some((item) => item.name === name && item.kind === "function")) {
+    throw new Error(`Missing native contract export ${name}.`);
+  }
 }
 console.log(JSON.stringify({
   path,

@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T05 integration after its isolated review. T01–T04 accepted; T05 in progress; T06–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T06. T01–T05 accepted; T06–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -46,4 +46,8 @@ Ruling: T05 may prepare in isolated sprint/t05 worktree while T04 implements the
 
 Ruling: capability DTO uses namespace invoice.audit and version1 to represent invoice.audit.v1, with conformance_suite_version/hash and1–4 unique accepted_issuers | explicit field names for T05/T07; no duplicate version suffix or general capability framework | null remains the explicit no-requirement profile
 
-T04 done in this task commit | TypeScript invoice/identity codecs, hashes, strict input validation and explicit-registry-key Ed25519 verification; public RFC8032 signature fixtures | red:120 focused cases failed against explicit stubs; green:123 focused cases/125TS total,12Rust total and typecheck | gate: fresh spec/quality pass, no findings | no real account keys, signing transaction, runtime or chain execution
+T04 done ef235d6 | TypeScript invoice/identity codecs, hashes, strict input validation and explicit-registry-key Ed25519 verification; public RFC8032 signature fixtures | red:120 focused cases failed against explicit stubs; green:123 focused cases/125TS total,12Rust total and typecheck | gate: fresh spec/quality pass, no findings | no real account keys, signing transaction, runtime or chain execution
+
+T05 done in this task commit | contract-account initialization, direct one-yocto owner management, immutable key/profile sessions, bounded state and minimal views | red:9 authority stubs plus storage-credit stub failed; integrated green:22Rust+125TS tests, typecheck/fmt,167,462-byte WASM with required ABI/host imports | gate: fresh spec/quality pass, no findings; isolated source integrated and full checks rerun | funded actor creation and runtime proof remain T06/T13
+
+Ruling: prototype storage shrinkage does not refund previously charged credit | retain simple conservative storage accounting; growth remains actor-funded | no claim of refundable storage or available principal; disclose with T28 limitations
