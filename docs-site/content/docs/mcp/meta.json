@@ -1,0 +1,12 @@
+{
+  "title": "MCP server",
+  "pages": [
+    "index",
+    "install",
+    "tools",
+    "resources",
+    "prompts",
+    "hosted-endpoint"
+  ],
+  "defaultOpen": true
+}

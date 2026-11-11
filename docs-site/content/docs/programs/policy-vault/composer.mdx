@@ -1,0 +1,117 @@
+---
+title: Composer
+description: The pure-Rust orchestration that ties the five policy kinds together with fail-fast semantics and Allow-only state mutation.
+---
+
+`compose_decision` is the single function that runs every policy and returns the gate's verdict. The Anchor handlers (`gate_payment`, `gate_payment_strict`) are thin wrappers around it.
+
+Source: [`programs/policy-vault/src/policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs).
+
+## Signature
+
+```rust
+pub fn compose_decision(input: ComposerInput) -> ComposerResult;
+
+pub struct ComposerInput {
+    pub policy: PolicySnapshot,
+    pub ledger: VelocityLedgerSnapshot,
+    pub killswitch: KillSwitchSnapshot,
+    pub payer_atom: Option<AtomStatsView>,
+    pub payee_atom: Option<AtomStatsView>,
+    pub attestation: Option<ValidationAttestationView>,
+    pub amount: u64,
+    pub payee_agent_asset: Pubkey,
+    pub now_slot: u64,
+    pub unix_ts: i64,
+}
+
+pub struct ComposerResult {
+    pub decision: GateDecision,
+    pub spending_deltas: Option<SpendingDeltas>,
+    pub velocity_deltas: Option<VelocityDeltas>,
+}
+```
+
+The Anchor wrapper feeds the composer plain-data snapshots, never on-chain account references. That separation is what makes every policy unit-testable in plain Rust and Kani-provable without an Anchor harness.
+
+## Fail-fast order
+
+```
+KillSwitch  →  Spending  →  Velocity  →  CounterpartyTier  →  RequireValidation
+```
+
+Cheapest reads first. KillSwitch is one bool. Spending is pure arithmetic. Velocity reads one local PDA. CounterpartyTier reads two foreign `AtomStats` PDAs. RequireValidation reads one foreign `ValidationAttestation` PDA. The first policy that returns `Deny` short-circuits the rest — no foreign-PDA reads beyond the deciding policy.
+
+## State mutation rule
+
+The composer **never** mutates state. It returns *deltas* — `SpendingDeltas`, `VelocityDeltas` — that the Anchor handler applies to `PolicyAccount` and `VelocityLedger` only on the `Allow` branch.
+
+```rust
+match result.decision {
+    GateDecision::Allow => {
+        if let Some(d) = result.spending_deltas {
+            spending::apply_deltas(&mut ctx.accounts.policy_account, &d);
+        }
+        if let Some(d) = result.velocity_deltas {
+            velocity::apply_deltas(&mut ctx.accounts.velocity_ledger, &d);
+        }
+    }
+    GateDecision::Deny(_) | GateDecision::RequireValidation(_) => {
+        // Mutate nothing.
+    }
+}
+```
+
+This rule is what `velocity_counter_le_limit` (Kani #2) is inductive over: if the pre-state ledger satisfies `cumulative_amount ≤ max_in_window` and the policy returns `Allow(deltas)`, then the post-state ledger also satisfies the bound. A fresh ledger trivially satisfies the base case.
+
+## Strict variant
+
+`gate_payment_strict` converts non-`Allow` into `Err`:
+
+```rust
+pub fn gate_payment_strict(ctx: Context<GatePaymentStrict>, …) -> Result<()> {
+    let result = compose_decision(input);
+    match result.decision {
+        GateDecision::Allow => {
+            // Apply deltas, return Ok.
+            Ok(())
+        }
+        GateDecision::Deny(reason) => Err(reason.into()),
+        GateDecision::RequireValidation(_) => Err(ErrorCode::ValidationRequired.into()),
+    }
+}
+```
+
+The SDK's `composeAtomicSettleTx` calls `gate_payment_strict`. Any `Deny` on the gate fails the entire bundled transaction (`gate + transfer + emit_feedback`), which means the SPL transfer never runs and `FeedbackEmissionLog` is never created. Solana's transaction atomicity does the rest.
+
+The Phase J5 Kani proof `gate_payment_strict_correctness` pins this contract end-to-end:
+
+- `strict_returns_ok_iff_allow` — strict `Ok(())` ⇔ composer `Allow`.
+- `gate_decision_is_one_of_three_disjoint_variants` — the three `GateDecision` arms are pairwise disjoint, so a fourth variant cannot silently slip past the strict dispatch.
+
+Together: 258 sub-checks, ~0.9 s. The strict-correctness invariant is the on-chain anchor of the SDK's atomic-tx invariant.
+
+## Why pure-Rust
+
+Three reasons:
+
+1. **Kani provability.** `compose_decision` is a deterministic function over plain types. Kani's bounded model checker explores every reachable state inside the bounds in seconds. An Anchor handler with account validation, CPI, and rent calculations would not be tractable.
+2. **Unit-testability.** The same function works in `cargo test` without an Anchor program-test harness. Every policy module ships with a dense unit-test suite (Spending: 14 tests, Velocity: 14, CounterpartyTier: 13, RequireValidation: 13, KillSwitch: 2 — plus 113 module-level tests across PolicyVault).
+3. **Wrapper churn isolation.** Account-validation, IDL changes, Anchor-version bumps live in the wrapper. Decision logic doesn't move when wrappers do.
+
+## Read next
+
+<Cards>
+  <Card title="KillSwitch policy" href="/programs/policy-vault/kill-switch-policy">
+    First in the composer; one bool; multisig-gated mutation.
+  </Card>
+  <Card title="Spending policy" href="/programs/policy-vault/spending-policy">
+    Per-tx, daily (UTC), and weekly (ISO Monday) limits with anchor-rollover math.
+  </Card>
+  <Card title="Velocity policy" href="/programs/policy-vault/velocity-policy">
+    Sliding-window cumulative-spend counter with payer-tier-decayed window size.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    The strict variant is the on-chain half of the three-layer atomicity guard.
+  </Card>
+</Cards>

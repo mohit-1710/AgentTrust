@@ -1,0 +1,1177 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/preset.css';
+
+@theme {
+  --color-fd-background: #ffffff;
+  --color-fd-foreground: #1a1a1e;
+  --color-fd-muted: #f8f8fb;
+  --color-fd-muted-foreground: #535357;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #1a1a1e;
+  --color-fd-card: #fbfbfd;
+  --color-fd-card-foreground: #1a1a1e;
+  --color-fd-border: #f2f1f5;
+  --color-fd-primary: #6f4cff;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f8f8fb;
+  --color-fd-secondary-foreground: #1a1a1e;
+  --color-fd-accent: rgba(111, 76, 255, 0.1);
+  --color-fd-accent-foreground: #3f2ac9;
+  --color-fd-ring: rgba(111, 76, 255, 0.44);
+  --color-fd-overlay: rgba(16, 16, 22, 0.22);
+}
+
+@theme static {
+  --color-fd-info: #4a63ff;
+  --color-fd-warning: #b87913;
+  --color-fd-error: #c13b26;
+  --color-fd-success: #1f7a3d;
+  --color-fd-idea: #6f4cff;
+  --color-fd-diff-remove: rgba(193, 59, 38, 0.12);
+  --color-fd-diff-remove-symbol: #c13b26;
+  --color-fd-diff-add: rgba(31, 122, 61, 0.1);
+  --color-fd-diff-add-symbol: #1f7a3d;
+}
+
+:root {
+  --bg: #ffffff;
+  --bg-shell: #f7f7f9;
+  --bg-rail: #fbfbfd;
+  --bg-subtle: #f8f8fb;
+  --bg-code: #fafafc;
+  --ink: #1a1a1e;
+  --ink-dim: #535357;
+  --ink-soft: #737377;
+  --border: #f2f1f5;
+  --border-strong: rgba(162, 161, 166, 0.3);
+  --accent: #6f4cff;
+  --accent-deep: #3f2ac9;
+  --accent-soft: rgba(111, 76, 255, 0.1);
+  --ok: #1f7a3d;
+  --warn: #b87913;
+  --err: #c13b26;
+  --radius-control: 12px;
+  --radius-small: 8px;
+  color-scheme: light;
+}
+
+.dark {
+  --color-fd-background: #0a0a0c;
+  --color-fd-foreground: #ededf2;
+  --color-fd-muted: #121217;
+  --color-fd-muted-foreground: rgba(237, 237, 242, 0.68);
+  --color-fd-popover: #111116;
+  --color-fd-popover-foreground: #ededf2;
+  --color-fd-card: #101014;
+  --color-fd-card-foreground: #ededf2;
+  --color-fd-border: rgba(242, 241, 245, 0.12);
+  --color-fd-primary: #8d74ff;
+  --color-fd-primary-foreground: #0a0a0c;
+  --color-fd-secondary: #15151a;
+  --color-fd-secondary-foreground: #ededf2;
+  --color-fd-accent: rgba(141, 116, 255, 0.14);
+  --color-fd-accent-foreground: #d8d0ff;
+  --color-fd-ring: rgba(141, 116, 255, 0.48);
+  --color-fd-overlay: rgba(0, 0, 0, 0.52);
+  --bg: #0a0a0c;
+  --bg-shell: #08080a;
+  --bg-rail: #101014;
+  --bg-subtle: #15151a;
+  --bg-code: #111116;
+  --ink: #ededf2;
+  --ink-dim: rgba(237, 237, 242, 0.72);
+  --ink-soft: rgba(237, 237, 242, 0.58);
+  --border: rgba(242, 241, 245, 0.12);
+  --border-strong: rgba(242, 241, 245, 0.18);
+  --accent: #8d74ff;
+  --accent-deep: #cfc5ff;
+  --accent-soft: rgba(141, 116, 255, 0.14);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-gutter: stable;
+  background: var(--bg-shell);
+  color: var(--ink);
+  font-family: var(--font-geist-sans);
+  letter-spacing: 0;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-shell);
+  color: var(--ink);
+  font-family: var(--font-geist-sans);
+  letter-spacing: 0;
+  text-rendering: geometricPrecision;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-geist-mono);
+}
+
+#nd-docs-layout {
+  position: relative;
+  background: var(--bg-shell);
+  color: var(--ink);
+  --fd-layout-width: 1440px;
+  --fd-sidebar-width: 0px;
+  --fd-toc-width: 0px;
+}
+
+.docs-topbar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  #nd-docs-layout {
+    --fd-sidebar-width: 264px;
+  }
+}
+
+@media (min-width: 1280px) {
+  #nd-docs-layout {
+    --fd-toc-width: 264px;
+  }
+}
+
+#nd-sidebar {
+  background: var(--bg-shell);
+  border-color: var(--border);
+  color: var(--ink-soft);
+}
+
+@media (min-width: 1024px) {
+  .docs-topbar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 30px;
+    background: color-mix(in srgb, var(--bg-shell) 94%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .docs-topbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 760;
+    line-height: 24px;
+    text-decoration: none;
+  }
+
+  .docs-topbar nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 477px;
+  }
+
+  .docs-topbar-primary,
+  .docs-topbar-secondary {
+    display: flex;
+    align-items: center;
+  }
+
+  .docs-topbar-primary {
+    gap: 28px;
+  }
+
+  .docs-topbar-secondary {
+    gap: 22px;
+  }
+
+  .docs-topbar nav a {
+    color: var(--ink-dim);
+    font-size: 15px;
+    font-weight: 520;
+    line-height: 24px;
+    text-decoration: none;
+  }
+
+  .docs-topbar nav a[aria-current='page'] {
+    color: var(--ink);
+    font-weight: 720;
+  }
+
+  .docs-topbar nav a:hover,
+  .docs-topbar-brand:hover {
+    color: var(--accent);
+  }
+
+  #nd-docs-layout::before {
+    position: absolute;
+    inset: 56px 8px 8px 272px;
+    z-index: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    background: var(--bg);
+    content: '';
+  }
+
+  #nd-page,
+  #nd-toc,
+  [data-sidebar-placeholder],
+  [data-sidebar-panel] {
+    position: relative;
+    z-index: 1;
+  }
+
+  [data-ask-ai-open='true'] .docs-topbar {
+    right: 368px;
+  }
+
+  [data-ask-ai-open='true'] #nd-docs-layout {
+    width: calc(100vw - 368px);
+  }
+
+  [data-ask-ai-open='true'] #nd-page {
+    width: 792px;
+    max-width: 792px;
+    padding-inline: 65px 113px;
+  }
+
+  [data-ask-ai-open='true'] .docs-page-actions {
+    right: 113px;
+  }
+
+  [data-ask-ai-open='true'] #nd-toc {
+    display: none !important;
+  }
+
+  [data-ask-ai-open='true'] #nd-docs-layout::before {
+    right: 8px;
+  }
+
+  #nd-sidebar {
+    position: fixed !important;
+    top: 56px !important;
+    bottom: 0 !important;
+    width: 264px !important;
+    height: calc(100dvh - 56px) !important;
+  }
+
+  #nd-sidebar > div:first-child {
+    height: 44px;
+    gap: 0;
+    padding: 8px 16px 0 25px;
+  }
+
+  #nd-sidebar > div:first-child > div:first-child {
+    display: none !important;
+  }
+
+  #nd-sidebar [data-search-full] {
+    width: 178px;
+  }
+
+  #nd-sidebar > div:nth-child(2) {
+    flex: 1 1 auto;
+  }
+
+  #nd-page {
+    height: calc(100dvh - 64px);
+    margin-top: 20px;
+    margin-right: auto;
+    margin-left: 8px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .docs-page-actions {
+    position: absolute !important;
+    top: 82px;
+    right: 76px;
+    width: auto;
+    height: 34px;
+    margin-bottom: 0 !important;
+    gap: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+    border-color: transparent !important;
+  }
+
+  .docs-page-actions > button:first-child {
+    width: 122px;
+    height: 34px;
+    border-color: rgb(226, 225, 230) !important;
+    border-right: 0 !important;
+    border-radius: 12px 0 0 12px !important;
+    background: var(--bg) !important;
+    color: var(--ink-dim) !important;
+    font-size: 16px;
+    font-weight: 400 !important;
+    line-height: 16px;
+    padding: 6px 12px;
+  }
+
+  .docs-page-actions > button:nth-child(2) {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    overflow: hidden;
+    border-color: rgb(226, 225, 230) !important;
+    border-radius: 0 12px 12px 0 !important;
+    background: var(--bg) !important;
+    color: var(--ink-dim) !important;
+    font-size: 0;
+    font-weight: 400 !important;
+    gap: 0;
+  }
+
+  .docs-page-actions > button:nth-child(2) svg {
+    margin: 0;
+  }
+
+  #nd-page > div.prose {
+    margin-top: 0;
+  }
+
+  /* TOC was previously pulled left with `transform: translateX(-28px)`
+   * to tighten alignment to the prose column. That put it on top of
+   * `#nd-page`'s right-edge scrollbar — the scrollbar then painted
+   * over the TOC's first column of text on always-show-scrollbars
+   * platforms. Held in its grid column now; scrollbar lives in its
+   * own gutter. */
+}
+
+/* Thin styled scrollbar for #nd-page. When the platform shows a
+ * permanent scrollbar (Windows / Linux / macOS-with-always-show-
+ * scrollbars), this keeps it narrow + subtle next to the TOC
+ * instead of a wide chrome bar. macOS overlay scrollbars are
+ * unaffected (they always paint above content briefly).
+ */
+#nd-page::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+#nd-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+#nd-page::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-soft) 28%, transparent);
+  border-radius: 4px;
+}
+#nd-page::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink-soft) 45%, transparent);
+}
+#nd-page {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink-soft) 28%, transparent) transparent;
+}
+
+@media (max-width: 1023px) {
+  #nd-docs-layout {
+    --fd-header-height: 56px;
+    --fd-sidebar-width: 0px;
+  }
+
+  [data-sidebar-placeholder] {
+    display: none !important;
+  }
+
+  #nd-subnav {
+    display: flex !important;
+  }
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] {
+  padding: 24px 16px;
+}
+
+#nd-sidebar [data-radix-scroll-area-viewport] > div::before {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin: 0 0 8px;
+  padding-left: 16px;
+  color: var(--ink);
+  content: 'Introduction';
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+#nd-sidebar header,
+#nd-subnav,
+[data-toc-popover] > header {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+#nd-sidebar a,
+#nd-sidebar button {
+  border-radius: var(--radius-control);
+}
+
+#nd-sidebar a:not(.agenttrust-brand),
+#nd-sidebar button:not([data-search-full]) {
+  min-height: 32px;
+  padding: 6px 12px 6px 16px !important;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+#nd-sidebar a[data-active='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  text-shadow:
+    -0.2px 0 0 currentColor,
+    0.2px 0 0 currentColor;
+}
+
+#nd-sidebar a[data-active='true']::before {
+  display: none;
+}
+
+#nd-sidebar a[data-active='false']:hover,
+#nd-sidebar button:hover {
+  background: rgba(83, 83, 87, 0.05);
+  color: var(--ink);
+}
+
+.dark #nd-sidebar a[data-active='false']:hover,
+.dark #nd-sidebar button:hover {
+  background: rgba(237, 237, 242, 0.05);
+}
+
+.dark #nd-sidebar a:not(.agenttrust-brand),
+.dark #nd-sidebar button:not([data-search-full]) {
+  color: rgba(237, 237, 242, 0.78);
+}
+
+.dark #nd-sidebar [data-radix-scroll-area-viewport] > div::before {
+  color: var(--ink);
+}
+
+[data-search-full]:hover {
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+}
+
+[data-search-full] {
+  min-height: 36px;
+  border-radius: var(--radius-control);
+  border-color: var(--border-strong);
+  background: var(--bg) !important;
+  color: var(--ink-soft) !important;
+  line-height: 24px;
+  padding: 0 12px 0 14px !important;
+  box-shadow: 0 0 0 1px var(--border-strong) !important;
+}
+
+#nd-sidebar [data-search-full]:hover,
+#nd-sidebar [data-search-full]:focus-visible {
+  background: var(--bg-subtle) !important;
+  color: var(--accent-deep) !important;
+}
+
+[data-search-full] kbd {
+  border-color: var(--border);
+  background: var(--bg-subtle);
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 16px;
+  box-shadow: none;
+}
+
+.agenttrust-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+a:hover .agenttrust-brand,
+.agenttrust-brand:hover {
+  color: var(--accent-deep);
+}
+
+.agenttrust-brand-mark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.docs-topbar-brand .agenttrust-brand-mark {
+  width: 24px;
+  height: 24px;
+}
+
+#nd-page {
+  max-width: 900px;
+  padding-top: 56px;
+  padding-bottom: 112px;
+  padding-inline: 32px;
+  gap: 0;
+}
+
+@media (min-width: 1024px) {
+  #nd-page {
+    max-width: 864px;
+    padding-top: 51px;
+    padding-inline: 68px 76px;
+  }
+}
+
+@media (min-width: 1280px) {
+  #nd-page {
+    padding-inline: 68px 76px;
+  }
+}
+
+@media (max-width: 767px) {
+  #nd-page {
+    padding-inline: 24px;
+    padding-top: 32px;
+  }
+}
+
+#nd-page h1 {
+  color: var(--ink);
+  font-family: var(--font-display), 'Fraunces', Georgia, serif;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 540;
+  letter-spacing: -0.4px;
+  font-variation-settings: 'opsz' 36, 'SOFT' 30, 'WONK' 0;
+  margin-bottom: 8px;
+}
+
+#nd-page h2 {
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 32px;
+  letter-spacing: 0;
+}
+
+#nd-page h2 a {
+  color: var(--ink) !important;
+}
+
+#nd-page h3 {
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+#nd-page p,
+#nd-page li {
+  color: var(--ink-dim);
+  line-height: 1.75;
+}
+
+#nd-page > p:first-of-type,
+#nd-page [class*='DocsDescription'] {
+  color: var(--ink-dim);
+}
+
+.docs-page-kicker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  min-height: 20px;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.docs-page-kicker > span + span::before {
+  display: inline-block;
+  width: 8px;
+  margin: 0 8px;
+  color: var(--ink-soft);
+  content: '/';
+  opacity: 0.6;
+}
+
+.docs-page-description {
+  min-height: 56px;
+  margin-bottom: 32px !important;
+  line-height: 28px !important;
+}
+
+#nd-page hr,
+#nd-page [class*='border'],
+#nd-toc,
+#nd-toc * {
+  border-color: var(--border);
+}
+
+#nd-page a {
+  color: var(--accent-deep);
+}
+
+#nd-page a:hover {
+  color: var(--accent);
+}
+
+#nd-page table {
+  border-color: var(--border);
+  font-size: 14px;
+  min-width: 620px;
+}
+
+#nd-page .docs-table-scroll {
+  width: 100%;
+  margin: 18px 0 28px;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  -webkit-overflow-scrolling: touch;
+}
+
+#nd-page .docs-table-scroll > table {
+  margin: 0;
+  border: 0;
+}
+
+#nd-page .docs-table-scroll th:first-child,
+#nd-page .docs-table-scroll td:first-child {
+  padding-left: 16px;
+}
+
+#nd-page .docs-table-scroll th:last-child,
+#nd-page .docs-table-scroll td:last-child {
+  padding-right: 16px;
+}
+
+#nd-page th {
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+
+#nd-page td,
+#nd-page th {
+  border-color: var(--border);
+}
+
+#nd-page :not(pre) > code {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 7px;
+}
+
+.dark #nd-page :not(pre) > code {
+  background: rgba(242, 241, 245, 0.06);
+  border-color: rgba(242, 241, 245, 0.16);
+  color: #f4f3f9;
+}
+
+#nd-page pre,
+#nd-page figure {
+  border-radius: var(--radius-control);
+}
+
+#nd-page pre {
+  border: 1px solid var(--border);
+  background: var(--bg-code) !important;
+  box-shadow: none;
+}
+
+#nd-page pre code {
+  font-size: 13px;
+  line-height: 24px;
+}
+
+#nd-toc {
+  color: var(--ink-soft);
+  padding-top: 56px;
+}
+
+@media (min-width: 1024px) {
+  #nd-toc {
+    padding-top: 108px;
+  }
+}
+
+#toc-title {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+#nd-toc a {
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+#nd-toc a[data-active='true'],
+#nd-toc a:hover {
+  color: var(--accent);
+}
+
+[role='dialog'] {
+  border-color: var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: 0 18px 48px rgba(16, 16, 22, 0.14);
+}
+
+[role='dialog'] input {
+  font-family: var(--font-geist-sans);
+}
+
+[data-theme-toggle] {
+  border-color: var(--border);
+  background: var(--bg);
+}
+
+button[aria-label='Open Next.js Dev Tools'] {
+  display: none !important;
+}
+
+html[data-ask-ai-open='true'] body {
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  body:has(#nd-docs-layout) {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  body:has(#nd-docs-layout) #nd-docs-layout {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+}
+
+.docs-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 48px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.docs-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  border-radius: 6px;
+  padding: 1px 1px;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.docs-footer-label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+.docs-footer-link:hover {
+  color: var(--accent-deep);
+}
+
+.docs-footer-link:hover code {
+  border-color: var(--accent);
+  color: var(--accent-deep);
+}
+
+.docs-footer-link:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
+.docs-footer code,
+.license-badge {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--ink);
+  font-family: var(--font-geist-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.program-id-table,
+.kani-proof-badge {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg-subtle);
+}
+
+.program-id-table {
+  display: grid;
+  margin: 18px 0 28px;
+  overflow: hidden;
+}
+
+.program-id-row {
+  display: grid;
+  grid-template-columns: minmax(148px, 0.35fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.program-id-row:last-child {
+  border-bottom: 0;
+}
+
+.program-id-row span,
+.program-id-row code {
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+}
+
+.program-id-row code {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.program-id-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 120ms ease;
+}
+
+.program-id-link:hover code,
+.program-id-link:focus-visible code {
+  color: var(--accent);
+}
+
+.program-id-link:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.kani-proof-badge {
+  display: grid;
+  grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);
+  gap: 18px;
+  margin: 18px 0 28px;
+  padding: 16px;
+}
+
+.kani-proof-badge strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.kani-proof-badge p {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.kani-proof-badge ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kani-proof-badge li {
+  margin: 0;
+  line-height: 18px;
+}
+
+.kani-proof-badge code {
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .program-id-row,
+  .kani-proof-badge {
+    grid-template-columns: 1fr;
+  }
+
+  .program-id-row {
+    gap: 4px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Anchor links on headings
+ * ------------------------------------------------------------------------- */
+#nd-page :is(h1, h2, h3, h4, h5, h6) a[aria-hidden='true'] {
+  display: inline-block;
+  margin-left: 0.4ch;
+  color: var(--ink-soft);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+#nd-page :is(h1, h2, h3, h4, h5, h6):hover a[aria-hidden='true'],
+#nd-page :is(h1, h2, h3, h4, h5, h6) a[aria-hidden='true']:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------------
+ * Inline code pill — Monad reference parity
+ * ------------------------------------------------------------------------- */
+#nd-page :not(pre) > code {
+  font-family: var(--font-geist-mono);
+  font-size: 0.86em;
+  font-weight: 600;
+  background: rgba(242, 241, 245, 0.6);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.dark #nd-page :not(pre) > code {
+  background: rgba(242, 241, 245, 0.06);
+  border-color: rgba(242, 241, 245, 0.10);
+}
+
+/* ---------------------------------------------------------------------------
+ * Cards / Card hover polish (Fumadocs default + accent on hover)
+ * ------------------------------------------------------------------------- */
+#nd-page [class*='Cards'] a:hover,
+#nd-page [class*='card'] a:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+#nd-page [class*='Cards'] a:focus-visible,
+#nd-page [class*='card'] a:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom 404 page — matches docs aesthetic
+ * ------------------------------------------------------------------------- */
+.not-found {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 120px 32px 96px;
+  font-family: var(--font-geist-sans);
+}
+
+.not-found-eyebrow {
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.not-found-title {
+  margin: 0 0 16px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.not-found-body {
+  margin: 0 0 40px;
+  color: var(--ink-dim);
+  font-size: 17px;
+  line-height: 1.55;
+  max-width: 60ch;
+}
+
+.not-found-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .not-found-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.not-found-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.not-found-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.not-found-card:focus-visible {
+  outline: 2px solid var(--color-fd-ring);
+  outline-offset: 2px;
+}
+
+.not-found-card-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.not-found-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.not-found-card-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------------------------------------------------------------------------
+ * Code-block — language label hover + selection
+ * ------------------------------------------------------------------------- */
+#nd-page pre {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-code) !important;
+}
+
+#nd-page pre code {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#nd-page pre::selection,
+#nd-page pre code::selection {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+/* ---------------------------------------------------------------------------
+ * Blockquote — subtle accent
+ * ------------------------------------------------------------------------- */
+#nd-page blockquote {
+  border-left: 3px solid var(--accent-soft);
+  padding-left: 16px;
+  color: var(--ink-dim);
+  font-style: normal;
+  margin: 16px 0;
+}
+
+#nd-page blockquote p {
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Previous / next page nav (Fumadocs default ships with `.truncate` which
+ * sets `white-space: nowrap` and ellipsis-clips long descriptions
+ * mid-sentence. The description is the only useful context on the card —
+ * let it wrap to as many lines as it needs.)
+ * ------------------------------------------------------------------------- */
+#nd-page > a[class*='rounded-lg'][class*='border'] > p.truncate,
+#nd-page > div > a[class*='rounded-lg'][class*='border'] > p.truncate {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.45;
+}
+
+/* Keep the prev / next pair the same height so layout stays even when one
+ * description wraps to a different line count than the other. */
+#nd-page > div:has(> a[class*='rounded-lg'][class*='border']) {
+  align-items: stretch;
+}
+#nd-page > a[class*='rounded-lg'][class*='border']:has(+ a[class*='rounded-lg']) {
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tables — hairline + zebra
+ * ------------------------------------------------------------------------- */
+#nd-page table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13.5px;
+}
+
+#nd-page table th,
+#nd-page table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+#nd-page table th {
+  font-weight: 600;
+  color: var(--ink);
+  text-align: left;
+  background: var(--bg-subtle);
+}
+
+#nd-page table tr:hover td {
+  background: color-mix(in srgb, var(--accent-soft) 30%, transparent);
+}

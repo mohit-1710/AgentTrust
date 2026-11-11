@@ -1,12 +1,12 @@
 # Build workflow and scope freeze
 
-Frozen 11 November 2026. The user requested planning and private repository setup now, with implementation in the next phase. This file controls build discipline; it does not override standing host restrictions.
+Frozen 11 November 2026. The user authorized implementation and regular private commits/pushes after approving the frozen plan. This file controls build discipline; it does not override standing host restrictions.
 
 ## Authority
 
 - Root workspace: this repository; remote `mohit-1710/AgentTrust`, private.
-- Planning changes and initial private-repository commits/push are authorized now.
-- Future implementation begins on the user's build instruction. No repeated design approval is needed for routine choices within this frozen plan.
+- In-scope implementation and regular private-repository commits/pushes are authorized.
+- Implementation began on the user's 11 November build instruction. No repeated design approval is needed for routine choices within this frozen plan.
 - No public visibility change, deployment, financial transaction, external message or submission is authorized by this planning phase.
 - Database, AWS and Terraform write restrictions remain in force. Prepare exact commands/tests; prohibited operations must be run by the user. A remote CI job must not be used to bypass the restriction.
 - No inherited upstream workflows/deployment files are activated. Read their effects before any selective import.
@@ -17,7 +17,7 @@ Bootstrap milestone P00 commits the existing research and repository boundary. P
 
 During the build, each independently accepted task gets `TNN: concrete change` and the relevant checks. Split a task only if each part is meaningful; combine tiny coupled edits when neither is reviewable alone. No empty cadence commits, backdating, artificially split files or copied proof claims. No AI co-author trailers or generated-by messages. Preserve required third-party license notices.
 
-Use `main` for this sole-owner private sprint until collaborative changes make a branch necessary. Commit only reviewed explicit paths, then push accepted milestones to the private remote. Recheck `origin` and private visibility before the first build push. This is the proposed ongoing cadence; initial planning push is authorized. Review unrelated work before staging; do not use blanket `git add .`.
+Use `main` for this sole-owner private sprint until collaborative changes make a branch necessary. Commit only reviewed explicit paths, then push accepted milestones to the private remote. Recheck `origin` and private visibility before the first build push. This ongoing cadence is explicitly authorized. Review unrelated work before staging; do not use blanket `git add .`.
 
 Each task follows: read brief → focused failing test where meaningful → minimal implementation → targeted checks → fresh review of security-critical changes → commit → ledger entry. Pure UI migration uses visual/build smoke checks, not tests that simply mirror JSX. One implementer owns the main working tree at a time; parallel agents may own disjoint documentation or read-only reviews. Use isolated branches/worktrees for simultaneous code changes and integrate sequentially.
 

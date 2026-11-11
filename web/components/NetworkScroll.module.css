@@ -1,0 +1,120 @@
+.pinArea {
+  min-height: 100dvh;
+}
+
+.stage {
+  display: grid;
+  min-height: 100dvh;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 72px 24px 40px;
+}
+
+.body {
+  max-width: 31ch;
+  margin: 0;
+  font-size: clamp(1.45rem, 1.85vw, 1.95rem);
+  font-weight: 400;
+  line-height: 1.22;
+  color: var(--ink);
+  letter-spacing: -0.035em;
+}
+
+.dim {
+  color: rgba(10, 10, 10, 0.36);
+}
+
+.ctaWrap {
+  margin-top: 46px;
+}
+
+.visual {
+  position: relative;
+  display: flex;
+  min-height: 720px;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  border-top: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, #fff 0%, transparent 24%),
+    linear-gradient(315deg, #fff 0%, transparent 24%),
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.68) 0.75px, transparent 0.75px);
+  background-size: auto, auto, 17.5px 17.5px;
+}
+
+.visual::before,
+.visual::after {
+  position: absolute;
+  pointer-events: none;
+  content: "";
+}
+
+.visual::before {
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, var(--bg-elev) 0%, transparent 16%, transparent 84%, var(--bg-elev) 100%),
+    linear-gradient(180deg, var(--bg-elev) 0%, transparent 18%, transparent 82%, var(--bg-elev) 100%);
+}
+
+.visual::after {
+  inset: 14% 5%;
+  z-index: 0;
+  opacity: 0.72;
+  background: radial-gradient(circle at 50% 46%, rgba(111, 76, 255, 0.12), transparent 58%);
+}
+
+.visual > * {
+  z-index: 1;
+}
+
+@media (min-width: 940px) {
+  .pinArea {
+    min-height: 250dvh;
+  }
+
+  .stage {
+    position: sticky;
+    top: 0;
+    grid-template-columns: 32% 40% 28%;
+    min-height: 100dvh;
+  }
+
+  .copy {
+    align-self: stretch;
+    padding: clamp(92px, 12vh, 122px) clamp(36px, 4vw, 68px) 64px;
+    border-right: 1px solid var(--border);
+  }
+
+  .visual {
+    min-height: 100dvh;
+    border-top: 0;
+    border-right: 1px solid rgba(10, 10, 10, 0.08);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 939px) {
+  .body {
+    max-width: 34ch;
+  }
+}
+
+@media (max-width: 639px) {
+  .copy {
+    padding: 64px 20px 32px;
+  }
+
+  .visual {
+    min-height: 560px;
+  }
+}

@@ -107,8 +107,16 @@ Before saying the UI migration is complete, inspect active content at:
 
 Success means the existing design renders with truthful NEAR content and actual native decisions. It does not require a new dashboard, new design system, another asset, additional facilitators or all 21 old tools.
 
-## Baseline acceptance record
+## Pre-import planning audit
 
 Completed here: source SHA/clean-state check; license inspection; direct file and package-script inventory; docs generator/context tracing; bounded stale-content/workflow review. No secrets were collected. The source reference was not modified.
 
-Not completed: a source import, native implementation, dependency installation, frontend build or visual regression, tool integration, runtime test, chain deployment, external service interaction or working NEAR purchase. The sprint ledger must record these only when they actually happen.
+At the planning audit, source import and every implementation/runtime check were pending. T01 below now records the completed import; native implementation, dependency installation, frontend build/visual checks, tool integration, runtime test, chain deployment and working NEAR purchase remain unverified. The sprint ledger must record these only when they actually happen.
+
+## T01 selective import record
+
+The visual source was imported on 11 November 2026 from the exact upstream commit above. [ui-baseline-manifest.json](ui-baseline-manifest.json) lists every imported path, byte length and SHA-256, plus every exclusion within the selected source roots. It contains **345 imported files** (6,693,319 bytes) and **43 exclusions**. All imported bytes were checked against both the clean reference checkout and its pinned Git objects. `LICENSE` preserves the upstream MIT notice.
+
+The import includes `web/`, the docs application/content and their referenced local assets/configuration. It deliberately excludes the docs environment template, obsolete deployment instructions, historical screenshots/Lighthouse results, and standalone browser/link-audit scripts. No upstream root workspace, `.github` workflow, deployment configuration, signer, Solana execution script, Git metadata or credentials was imported. Existing docs generation scripts remain as inert source for T25 to migrate; no install, lifecycle, build, browser, service or chain command was run in T01.
+
+Before the T01 commit, verify the working copy with `python3 scripts/verify-ui-baseline.py`. After native adaptation starts, verify the preserved import with `python3 scripts/verify-ui-baseline.py --ref upstream-ui-baseline`. The tag is created by the accepting task commit, not by the importer. The manifest is provenance, not NEAR build or runtime evidence. Upstream copy, package scripts and proof claims are still unchanged in this baseline and must not be published as native functionality; their migrations remain T21–T25.

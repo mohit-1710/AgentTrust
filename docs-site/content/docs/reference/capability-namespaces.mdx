@@ -1,0 +1,56 @@
+---
+title: Capability namespaces
+description: The ten canonical v1 capability namespaces seeded on devnet — auto-generated from examples/attestor-demo/devnet-namespaces.json.
+---
+
+The ten canonical v1 capability namespaces seeded on AgentTrust's `validation-registry` on Solana devnet. PolicyVault gates against `capability_hash = SHA-256(name)` per [PolicyAccount byte 135..167](/programs/policy-vault/require-validation-policy).
+
+How to use one in a policy: [Integration → Capability namespaces](/integration-guides/capability-namespaces). How to register your own: [Custom attestor](/integration-guides/custom-attestor).
+
+{/* BEGIN AUTO-GEN: namespaces */}
+
+> Auto-generated from `examples/attestor-demo/devnet-namespaces.json` on 2026-05-07T15:08:37.863Z.
+> Network: `solana-devnet`. Program: `Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`. Count: 10.
+
+| Name | Description | Capability hash (SHA-256, prefix) | PDA |
+|---|---|---|---|
+| `kyc.tier-1.v1` | Identity-verified individual (basic KYC). _(newly-registered)_ | [`366c075140aa…`](https://explorer.solana.com/tx/5jBmV36b89kMxzqPPtzFTWJD12vvB6TznMBGwZWtKNSApfuPzoPmJVAG2ed8bRWMkTfZ6QF3Ks21KESaTxU7Mb1W?cluster=devnet) | [`4ryEbb5iSi…`](https://explorer.solana.com/address/4ryEbb5iSiXHN2bJ59s9Pjdi2xxRkty1WohaRTqUt8wW?cluster=devnet) |
+| `kyc.tier-2.v1` | Identity + address verified. _(newly-registered)_ | [`2ad4289070be…`](https://explorer.solana.com/tx/3tBAqxVnyqDj23P1Jyk1atdunUrsm4M54g4NDUKgAFJyeMLjfbpXe6ZR6QKcBMmRpA4HxfTVbVnD3pavcQtB3R81?cluster=devnet) | [`HdAABUX5oj…`](https://explorer.solana.com/address/HdAABUX5ojFZXocxSbTwvdNLXHGLaHnqCrKSKpeKXGCv?cluster=devnet) |
+| `kyc.tier-3.v1` | Enhanced due diligence (regulated counterparties). _(newly-registered)_ | [`8fdd7707b57b…`](https://explorer.solana.com/tx/3LH2WNYn6ifYaXmF7WPcD5bsJB9T3HT3NgpeX13Jf1jg6eyfjQG8PBRqQjBQxT2HexTgzEvRJjcmonsRPXVmwGMp?cluster=devnet) | [`6gjTXCJE4q…`](https://explorer.solana.com/address/6gjTXCJE4qWybYGjTAg5ckYWBgBtt4ebvr39uU5YK5xL?cluster=devnet) |
+| `audit.smart-contract.v1` | Audit attestation against a deployed program. _(newly-registered)_ | [`e61adaa34c65…`](https://explorer.solana.com/tx/319AFhK4wpWmhauHqsVUoqUdx3gadHcGsMNyAvt7Hgoau7ceAohViHAGRtvLP3PStF1Sqz5UkSCJy11nAqNJrRQa?cluster=devnet) | [`HygALr1ZSq…`](https://explorer.solana.com/address/HygALr1ZSqrYZTLBQUQ97vMSzAiuZRpKYovRhfyGtKkF?cluster=devnet) |
+| `audit.attestor-firm.v1` | Per-firm audit identity (Halborn / OtterSec / etc.). _(newly-registered)_ | [`17926cb4f324…`](https://explorer.solana.com/tx/5KQG73FhBjixhaK3jE3XvsVJh4Xcd8kWMWphwuj9dHkTLTMhxwYB4BMzGw1TF8ZGnY6ZXTLY4CbeBZhF6nTobrNo?cluster=devnet) | [`A5rrMRYxez…`](https://explorer.solana.com/address/A5rrMRYxezaNUnSgqyyNjJUqHf4TH7GKNsvUifWjUESi?cluster=devnet) |
+| `model-card.v1` | LLM model-version provenance attestation. _(newly-registered)_ | [`d90347d0a0a7…`](https://explorer.solana.com/tx/gmHvwe6NBB6vjMNPrMppfm2SVjvhizubUX8pACBJTZZ8rnbRaBFaLYuGqoa4TtApK2JqDFrUggZj8WS87xXGds6?cluster=devnet) | [`DZ7eneZtKs…`](https://explorer.solana.com/address/DZ7eneZtKsN39q771ruHvBXoTUDRzxKqDipTLbeRGa4o?cluster=devnet) |
+| `jurisdiction.v1` | Regulatory-jurisdiction stamp (EU MiCA, US, etc.). _(newly-registered)_ | [`ce2818907881…`](https://explorer.solana.com/tx/5fUkGfziyLWbMeqp6pfZXrWMBf2mc3VzMZEsHUYjsynvANQSzjQtAkakVxXJNvPPQaCBEg8YnErk82VLbSHxSUMV?cluster=devnet) | [`Cd4sp8isN3…`](https://explorer.solana.com/address/Cd4sp8isN3CF8KiRchDNoMhsVERSpswEnufvBR21Jrnu?cluster=devnet) |
+| `compliance.payments.v1` | Payment-network compliance attestation (Mastercard FACT-aligned, etc.). _(newly-registered)_ | [`0a8984a645e7…`](https://explorer.solana.com/tx/5B3ZfMMAjDSyrTnhGzXCCNcdg4yEeRepb8v1d8fK299WiyJpex5RbiW7ahha1VxPJfVSixyfXtb7R4wSFfd11Wm4?cluster=devnet) | [`Cn54CpSdfr…`](https://explorer.solana.com/address/Cn54CpSdfrME7epZ2VTSwhuTbcwH3ZttpcwjZADc5yrZ?cluster=devnet) |
+| `agent-source.v1` | Provenance: which dev shop authored the agent. _(newly-registered)_ | [`2328df178dc6…`](https://explorer.solana.com/tx/52mqFEk5gpytgYjhsq4j7yML4tEcxg7jQhwb5Z6xqmx3cecX8vXP4C5NN6PRyXPSGtnTeSVZ8nBVaaYimU4NP4nH?cluster=devnet) | [`DqSwaqENQh…`](https://explorer.solana.com/address/DqSwaqENQhjPUajxfmzsjTcfTcnNXtNN22f3kYyAHvSJ?cluster=devnet) |
+| `usdc-payment-policy.v1` | USDC payment policy capability — Phase D attestor demo. _(already-registered)_ | `a968ecd0b93d…` | [`34gonn86Fj…`](https://explorer.solana.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR?cluster=devnet) |
+
+> Names are bounded by `MAX_NAME_LEN = 32` per [`programs/validation-registry/src/instructions/register_namespace.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/validation-registry/src/instructions/register_namespace.rs). PDA seeds: `["capability", capability_hash]`.
+
+{/* END AUTO-GEN: namespaces */}
+
+## Reproduce
+
+The seeded namespace set is captured in [`examples/attestor-demo/devnet-namespaces.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/attestor-demo/devnet-namespaces.json) — the source of truth this page is auto-generated from.
+
+Re-run the seed script (idempotent — already-registered namespaces no-op):
+
+```bash
+pnpm --filter ./examples/attestor-demo run seed:namespaces
+```
+
+The script registers any missing namespaces from the canonical v1 set; cost is ~0.0023 SOL per fresh registration.
+
+## Read next
+
+<Cards>
+  <Card title="Capability namespaces (walkthrough)" href="/integration-guides/capability-namespaces">
+    Register a new namespace + gate a policy against it.
+  </Card>
+  <Card title="ValidationRegistry" href="/programs/validation-registry">
+    The program that owns these PDAs.
+  </Card>
+  <Card title="Chained validation" href="/verification/chained-validation">
+    The four-sig devnet trace exercising one of these namespaces (`usdc-payment-policy.v1`).
+  </Card>
+</Cards>

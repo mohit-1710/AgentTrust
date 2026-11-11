@@ -1,0 +1,88 @@
+.rail {
+  --rail-x: clamp(32px, 3.4vw, 58px);
+
+  position: relative;
+  display: none;
+  min-height: 100%;
+  padding: clamp(78px, 12vh, 120px) var(--rail-x);
+  overflow: hidden;
+}
+
+.connector {
+  position: absolute;
+  top: 17%;
+  bottom: 17%;
+  left: var(--rail-x);
+  width: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(10, 10, 10, 0.13) 18%,
+    rgba(111, 76, 255, 0.42) 48%,
+    rgba(10, 10, 10, 0.13) 82%,
+    transparent
+  );
+}
+
+.cards {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(30px, 5vh, 56px);
+}
+
+.card {
+  position: relative;
+  max-width: 330px;
+  padding: 0 0 0 34px;
+}
+
+.card::before {
+  position: absolute;
+  top: 8px;
+  left: -6px;
+  width: 9px;
+  height: 9px;
+  content: "";
+  background: var(--bg-elev);
+  border: 1px solid rgba(111, 76, 255, 0.5);
+  border-radius: 999px;
+  box-shadow: 0 0 0 7px rgba(111, 76, 255, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  color: rgba(10, 10, 10, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.35rem, 1.42vw, 1.8rem);
+  font-weight: 560;
+  line-height: 1.05;
+  color: var(--ink);
+  letter-spacing: -0.045em;
+}
+
+.body {
+  max-width: 29ch;
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.38;
+  color: rgba(10, 10, 10, 0.48);
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 940px) {
+  .rail {
+    display: block;
+  }
+}

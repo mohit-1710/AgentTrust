@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: planning baseline.** The native NEAR implementation has not started. This repository currently contains the frozen scope, architecture, task plan, source research and verification requirements. There is no deployed NEAR contract or passing runtime test claim.
+**Status: implementation started.** The frozen plan is approved, and the selective UI/docs baseline is imported with exact provenance. Native NEAR implementation is next. There is no deployed NEAR contract or passing runtime test claim.
 
 ## Start here
 
@@ -25,13 +25,13 @@ Unknown services deny. One-off approvals, second assets, cross-chain routing, nu
 
 ## Reused baseline and new work
 
-Visual/source reference: [agenttrust-labs/agenttrust at 21a3b111](https://github.com/agenttrust-labs/agenttrust/tree/21a3b111b7677d0b06ab1b063d647e4f52ea3b17). Its Solana implementation and historical verification badges are prior work, not NEAR results. Source has not yet been imported into this implementation tree. The first build task makes a separate selective UI/docs baseline import, preserving license notices and recording paths/hashes.
+Visual/source reference: [agenttrust-labs/agenttrust at 21a3b111](https://github.com/agenttrust-labs/agenttrust/tree/21a3b111b7677d0b06ab1b063d647e4f52ea3b17). Its Solana implementation and historical verification badges are prior work, not NEAR results. The `upstream-ui-baseline` tag preserves 345 selectively imported files with MIT notices and an exact [path/hash manifest](docs/sprint/ui-baseline-manifest.json). Native changes follow in separate task commits.
 
 The older Monad project is a separate legacy repository; it is not the baseline for this NEAR implementation. See the [reuse inventory](docs/sprint/baseline.md).
 
 ## What is mocked or controlled
 
-Nothing is running yet. The planned providers, synthetic invoice dataset and project-operated capability issuer are controlled demonstration components. The issuer's claim is limited to a named conformance suite and time. Core authorization, contract payout, settlement and replay protection must be real in the final demonstration. Testnet activity is not revenue; settled payments are not proof of service quality.
+No product runtime is running yet. The planned providers, synthetic invoice dataset and project-operated capability issuer are controlled demonstration components. The issuer's claim is limited to a named conformance suite and time. Core authorization, contract payout, settlement and replay protection must be real in the final demonstration. Testnet activity is not revenue; settled payments are not proof of service quality.
 
 ## Verification and execution boundary
 

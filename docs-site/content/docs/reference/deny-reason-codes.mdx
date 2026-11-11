@@ -1,0 +1,86 @@
+---
+title: DenyReason codes
+description: All fifteen DenyReason discriminants the gate can return — code, name, originating policy, remediation hint.
+---
+
+`DenyReason` is the enum returned in the `Deny` arm of `GateDecision`. The Borsh wire format follows declaration order, but clients consume the stable numeric `code()` instead — it is decoupled from Borsh field order.
+
+```rust
+pub enum GateDecision {
+    Allow,
+    Deny(DenyReason),
+    RequireValidation([u8; 32]),
+}
+```
+
+Source: [`programs/policy-vault/src/state/decision.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/decision.rs).
+
+## All fifteen codes
+
+| Code | Variant | Originating policy | What triggered it | Remediation |
+|---:|---|---|---|---|
+| 1 | `KillSwitchEngaged` | [KillSwitch](/programs/policy-vault/kill-switch-policy) | Agent's `KillSwitchState.paused == true` | Multisig-call `set_killswitch(paused=false)` |
+| 2 | `SpendingPerTxExceeded` | [Spending](/programs/policy-vault/spending-policy) | `amount > spending_per_tx_max` | Lower the amount or raise the per-tx cap |
+| 3 | `SpendingDailyExceeded` | Spending | `today_used + amount > spending_daily_max` (UTC midnight rollover) | Wait for daily reset or raise the daily cap |
+| 4 | `SpendingWeeklyExceeded` | Spending | `week_used + amount > spending_weekly_max` (ISO Monday rollover) | Wait for weekly reset or raise the weekly cap |
+| 5 | `VelocityWindowExceeded` | [Velocity](/programs/policy-vault/velocity-policy) | `cumulative_amount + amount > velocity_max_in_window` (within sliding window) | Wait for window expiry (`window_secs × tier_decay × 2 slots/sec`) or raise the cap |
+| 6 | `CounterpartyTierBelowMin` | [CounterpartyTier](/programs/policy-vault/counterparty-tier-policy) | Payee's `tier < min_counterparty_tier` (per `gate_mode`) | Build payee reputation via Quantu's `give_feedback`, or lower `min_tier`, or switch from `IMMEDIATE` to `CONFIRMED` |
+| 7 | `CounterpartyRiskAboveMax` | CounterpartyTier | Payee's `risk_score > max_risk_score` (when constraint active) | Use a different payee or relax `max_risk_score` |
+| 8 | `CounterpartyConfidenceBelow` | CounterpartyTier | Payee's `confidence < min_confidence` (basis points; when constraint active) | Wait for more reputation samples on the payee, or relax `min_confidence` |
+| 9 | `AtomStatsWrongOwner` | CounterpartyTier (defensive) | Payee's `AtomStats` PDA is not owned by Quantu's `atom-engine` | Check the program ID; this is fail-loud against tampering or the wrong cluster |
+| 10 | `AtomStatsSchemaMismatch` | CounterpartyTier (defensive) | Size mismatch (`!= 561`), schema-version canary (`byte 560 != 1`), OR tier byte > `ATOM_TIER_MAX = 4` | Quantu may have bumped its layout — check `bfb09ad` pin |
+| 11 | `AttestationMissing` | [RequireValidation](/programs/policy-vault/require-validation-policy) | Attestation PDA's `subject_asset` or `capability_hash` doesn't match the expected values | Re-issue the attestation against the correct subject/capability |
+| 12 | `AttestationExpired` | RequireValidation | `expires_at != 0 AND expires_at <= now_slot` | Refresh the attestation via `respond_to_validation` with a future `expires_at` |
+| 13 | `AttestationRevoked` | RequireValidation | Attestation's `revoked == true` | Re-attest if appropriate, or use a different attestor |
+| 14 | `AttestationAttestorRejected` | RequireValidation | Attestation issued by an attestor not in the policy's `accepted_attestors[]` | Use an attestor on the whitelist, or update the policy's whitelist |
+| 15 | `UnratedTreatmentDeny` | CounterpartyTier (Unrated → Deny resolution) | Payee's `AtomStats` is uninitialised AND policy's `default_unrated_treatment == UNRATED_DENY` | Initialise the payee's `AtomStats` (typically by routing one feedback through them), or change the policy's `default_unrated_treatment` to `UNRATED_ALLOW` or `UNRATED_REQUIRE_VALIDATION` |
+
+## SDK consumption
+
+```ts
+import type { GateDecision, DenyReasonCode } from "@agenttrust-sdk/trustgate";
+import { denyReasonName } from "@agenttrust-sdk/trustgate";
+
+const decision: GateDecision = await gatePayment(/* … */);
+
+if (decision.kind === "Deny") {
+  // decision.reasonCode: DenyReasonCode (number, 1..=15)
+  // decision.reasonName: string (e.g., "CounterpartyTierBelowMin")
+  // Both populated automatically; reasonName == denyReasonName(reasonCode).
+}
+```
+
+The decision union is documented in [SDK → gatePayment](/sdk/gate-payment).
+
+## x402 response shape
+
+For a `Deny`, the SDK's `mountTrustGate` middleware emits:
+
+```http
+HTTP/1.1 402 Payment Required
+X-Agent-Trust-Decision: Deny
+X-Payment-Required: denied
+X-Payment-Reason-Code: 6
+X-Payment-Reason-Name: CounterpartyTierBelowMin
+X-Payment-Network: solana-devnet
+```
+
+Headers are built via `buildHeadersForDecision` in [`trustgate/sdk/src/x402.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/x402.ts).
+
+## MCP tool
+
+The MCP server exposes `agenttrust_explain_decision({ reason_code })` — translates `1..15` into the canonical name + remediation hint. Same data as this page, but tool-shaped for LLM consumption: [MCP → Tools](/mcp/tools#agenttrust_explain_decision).
+
+## Read next
+
+<Cards>
+  <Card title="Composer" href="/programs/policy-vault/composer">
+    The fail-fast order that determines which reason code surfaces.
+  </Card>
+  <Card title="gatePayment" href="/sdk/gate-payment">
+    The SDK call that returns the decision union.
+  </Card>
+  <Card title="Adversarial harness" href="/verification/adversarial-harness">
+    Hostile-scenario tests asserting each defensive reason code.
+  </Card>
+</Cards>

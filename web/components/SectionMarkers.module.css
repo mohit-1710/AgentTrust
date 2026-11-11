@@ -1,0 +1,95 @@
+.markers {
+  position: fixed;
+  top: 174px;
+  right: 24px;
+  z-index: 40;
+  display: none;
+  width: 40px;
+  height: 200px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.list {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.item {
+  position: absolute;
+  top: calc(var(--marker-index) * 20px);
+  right: 0;
+  height: 20px;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 40px;
+  min-height: 20px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.label {
+  position: absolute;
+  top: 2px;
+  right: 48px;
+  z-index: 10;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  letter-spacing: 0;
+  color: var(--ink);
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(10px);
+  transition:
+    opacity 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tick {
+  display: block;
+  width: 12px;
+  height: 2px;
+  background: #cccccc;
+  transition:
+    width 300ms cubic-bezier(0, 0, 0.2, 1),
+    background-color 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.active .tick {
+  width: 24px;
+  background: var(--ink);
+}
+
+@media (min-width: 940px) {
+  .markers {
+    display: block;
+  }
+}
+
+@media (hover: hover) {
+  .link:hover .label,
+  .link:focus-visible .label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .link:hover .tick,
+  .link:focus-visible .tick {
+    width: 24px;
+    background: rgba(10, 10, 10, 0.8);
+  }
+}

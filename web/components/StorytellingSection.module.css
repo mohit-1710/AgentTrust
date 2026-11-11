@@ -1,0 +1,351 @@
+.section {
+  width: 100%;
+  height: auto;
+  min-height: 100dvh;
+  background: var(--bg);
+  scroll-margin-top: 116px;
+}
+
+.shell {
+  max-width: 1920px;
+  padding: 0 20px 40px;
+  margin: 0 auto;
+}
+
+.desktopStage {
+  display: none;
+}
+
+.mobileList {
+  display: grid;
+  gap: 0;
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+
+.mobileCard {
+  position: relative;
+  display: flex;
+  min-height: 460px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 56px 20px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobileCard:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.mobileNumber {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+}
+
+.eyebrow {
+  margin: 0 0 18px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.title,
+.mobileTitle {
+  max-width: 14ch;
+  margin: 0;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 560;
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: -0.05em;
+}
+
+.title {
+  font-size: clamp(2.5rem, 4vw, 4.8rem);
+}
+
+.mobileTitle {
+  font-size: clamp(2.3rem, 9vw, 3.2rem);
+}
+
+.body,
+.mobileBody {
+  max-width: 42ch;
+  margin: 18px 0 0;
+  color: var(--ink);
+  font-size: clamp(1.05rem, 1.35vw, 1.35rem);
+  line-height: 1.32;
+}
+
+.action {
+  margin-top: 28px;
+}
+
+.mobileCard > a {
+  margin-top: 28px;
+}
+
+.copyPanel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(22px);
+  will-change: opacity, transform;
+}
+
+.copyPanelActive {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.copyRule {
+  width: 204px;
+  height: 1px;
+  margin-top: 56px;
+  margin-left: 12px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(10, 10, 10, 0.14),
+    transparent
+  );
+}
+
+.pagination {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+
+.chapterButton {
+  display: grid;
+  grid-template-columns: 16px minmax(60px, 1fr) minmax(190px, 270px);
+  gap: 40px;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  color: rgba(10, 10, 10, 0.42);
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chapterButtonActive {
+  color: var(--ink);
+}
+
+.chapterNumber,
+.chapterLabel {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+}
+
+.chapterNumber {
+  text-align: center;
+}
+
+.chapterRule {
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+}
+
+.chapterLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graphics {
+  position: relative;
+  min-height: calc(100dvh - 56px);
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, var(--bg-elev), transparent 32%),
+    linear-gradient(315deg, var(--bg-elev), transparent 32%),
+    radial-gradient(circle at 50% 55%, rgba(111, 76, 255, 0.12), transparent 32%),
+    radial-gradient(circle at 1px 1px, rgba(10, 10, 10, 0.2) 1px, transparent 1px),
+    var(--bg);
+  background-size: auto, auto, auto, 17.5px 17.5px, auto;
+}
+
+.gridFade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, var(--bg-elev), transparent 18%, transparent 82%, var(--bg-elev)),
+    linear-gradient(180deg, var(--bg-elev), transparent 18%, transparent 82%, var(--bg-elev));
+}
+
+.visualPanel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translateY(28px);
+  transform-origin: center;
+  will-change: opacity, transform;
+}
+
+.visualPanelActive {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.visualMotionLayer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.visualDiagramLayer {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.lottieStack {
+  position: relative;
+  display: block;
+  width: min(100%, 672px);
+  aspect-ratio: 1;
+}
+
+.lottieLayer {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.lottieLayer:first-child {
+  position: relative;
+}
+
+.lottieLayer > div,
+.lottieLayer svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.lottieDotted {
+  z-index: 10;
+}
+
+.lottieGreebles {
+  z-index: 20;
+  pointer-events: none;
+}
+
+@media (min-width: 940px) {
+  .section {
+    height: 300dvh;
+    scroll-margin-top: 56px;
+    border-top: 1px solid var(--border);
+  }
+
+  .shell {
+    height: 300dvh;
+    padding: 0 40px 40px;
+  }
+
+  .desktopStage {
+    position: sticky;
+    top: 56px;
+    display: grid;
+    min-height: calc(100dvh - 56px);
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .mobileList {
+    display: none;
+  }
+
+  .copyColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: calc(100dvh - 56px);
+    padding: 96px 40px;
+    border-left: 1px solid var(--border);
+  }
+
+  .copyStack {
+    position: relative;
+    flex: 1;
+    min-height: 360px;
+    overflow: hidden;
+  }
+
+  .graphics {
+    min-height: calc(100dvh - 56px);
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (hover: hover) {
+  .chapterButton:hover {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 940px) {
+  .chapterButton {
+    grid-template-columns: 16px minmax(40px, 1fr) minmax(160px, 220px);
+    gap: 28px;
+  }
+
+  .copyColumn {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+}

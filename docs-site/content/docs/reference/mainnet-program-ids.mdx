@@ -1,0 +1,100 @@
+---
+title: Mainnet program IDs
+description: Quantu's pinned mainnet program IDs that PolicyVault reads via byte-offset parsers — and AgentTrust's mainnet deployment posture.
+---
+
+AgentTrust's three programs are deployed on Solana **devnet** for v1 (the Frontier 2026 build). Mainnet deployment is post-hackathon. PolicyVault reads Quantu's mainnet program IDs via the byte-offset parser pinned to commit `bfb09ad`.
+
+## Quantu mainnet IDs
+
+| Program | Mainnet ID |
+|---|---|
+| `agent-registry-8004` | `8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ` |
+| `atom-engine` | `AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb` |
+
+These are the addresses Quantu Labs published in their `8004-solana` repository. Both programs are MIT-licensed. AgentTrust pins to commit `bfb09ad` for the byte-offset reads — bumping that commit pin is documented inline at [`programs/policy-vault/src/ext/atom_engine.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/atom_engine.rs).
+
+## TypeScript constants
+
+```ts
+import { MAINNET_QUANTU_IDS } from "@agenttrust-sdk/trustgate";
+
+MAINNET_QUANTU_IDS.agentRegistry8004; // PublicKey
+MAINNET_QUANTU_IDS.atomEngine;        // PublicKey
+```
+
+For devnet:
+
+```ts
+import { DEFAULT_DEVNET_QUANTU_IDS } from "@agenttrust-sdk/trustgate";
+```
+
+Source: [`trustgate/sdk/src/quantu.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/trustgate/sdk/src/quantu.ts).
+
+## AgentTrust mainnet posture
+
+The AgentTrust programs target mainnet redeploy as a post-Frontier deliverable. The byte-offset parsers and the SDK's `ProgramIds` config already accept mainnet overrides — the SDK is mainnet-ready; the programs aren't deployed there yet.
+
+Override the program IDs for a mainnet redeploy:
+
+```ts
+import { mountTrustGate } from "@agenttrust-sdk/trustgate/express";
+import { PublicKey } from "@solana/web3.js";
+
+await mountTrustGate(app, {
+  rpcUrl:             "https://api.mainnet-beta.solana.com",
+  facilitatorKeypair: /* … */,
+  programIds: {
+    policyVault:        new PublicKey("<your mainnet policy_vault>"),
+    trustGate:          new PublicKey("<your mainnet trustgate>"),
+    validationRegistry: new PublicKey("<your mainnet validation_registry>"),
+  },
+  network:            "solana-mainnet",
+  atomicityEnforced:  true,
+});
+```
+
+Each program is `cluster`-agnostic — the build artefact is the same; only the deploy target changes.
+
+## Verifying Quantu's mainnet deployment
+
+```bash
+solana program show 8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ --url mainnet-beta | grep Executable
+solana program show AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb --url mainnet-beta | grep Executable
+```
+
+PolicyVault's mainnet `AtomStats` reads target `AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb`. Devnet uses `AToMufS4QD6hEXvcvBDg9m1AHeCLpmZQsyfYa5h9MwAF` (different ID). The byte layout (561 bytes, schema-version canary at byte 560) is identical across clusters.
+
+Reference: [`programs/policy-vault/src/ext/atom_engine.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/atom_engine.rs).
+
+## Localnet validator clones
+
+For local testing, the Anchor validator clones Quantu's mainnet programs into the localnet:
+
+```toml
+# Anchor.toml
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"
+
+[[test.validator.clone]]
+address = "8oo4dC4JvBLwy5tGgiH3WwK4B9PWxL9Z4XjA2jzkQMbQ"
+
+[[test.validator.clone]]
+address = "AToMw53aiPQ8j7iHVb4fGt6nzUNxUhcPc3tbPBZuzVVb"
+```
+
+`anchor test --validator legacy` then exercises the full flow against real Quantu state without devnet RPC dependencies.
+
+## Read next
+
+<Cards>
+  <Card title="Devnet program IDs" href="/reference/devnet-program-ids">
+    Deployed AgentTrust + Quantu IDs on devnet.
+  </Card>
+  <Card title="Quantu agent registry" href="/reference/quantu-agent-registry">
+    The CPI surface PolicyVault + TrustGate consume.
+  </Card>
+  <Card title="Byte-offset reference" href="/reference/byte-offset-reference">
+    The byte-precise reads PolicyVault performs.
+  </Card>
+</Cards>

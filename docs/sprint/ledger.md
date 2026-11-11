@@ -1,10 +1,10 @@
 # Sprint ledger: docs/sprint/plan.md
 
-Mode: planning; implementation pending user's build instruction. Repository: `mohit-1710/AgentTrust`, private. Initial planning push authorized. Proposed build cadence: accepted task commits pushed to private main. Deadline Nov14 23:59UTC / Nov15 05:29IST; feature freeze Nov14 06:30UTC /12:00IST.
+Mode: implementation authorized 11 November 2026; accepted milestones are committed and pushed regularly. Repository: `mohit-1710/AgentTrust`, private. Build cadence authorized: accepted task commits pushed to private main. Deadline Nov14 23:59UTC / Nov15 05:29IST; feature freeze Nov14 06:30UTC /12:00IST.
 
 P00 done eab313e | research and ignore boundary committed and pushed; remote main/tag verified | checks: research local links/fences, staged whitespace, no reference clones/credentials/workflows tracked | no product/runtime tests
 
-P01 done in the commit containing this entry | architecture, baseline inventory,30-task plan,35-case verification matrix, workflow and project instructions | fresh static review findings incorporated and bounded recheck completed;22 Markdown files passed local path/fence checks; task references/sequences valid; whitespace and credential-pattern checks clean | implementation not started
+P01 done b16c4b2 | architecture, baseline inventory,30-task plan,35-case verification matrix, workflow and project instructions | fresh static review findings incorporated and bounded recheck completed;22 Markdown files passed local path/fence checks; task references/sequences valid; whitespace and credential-pattern checks clean | implementation not started
 
 Ruling: preserve old Monad project as `mohit-1710/AgentTrust-Monad-Legacy`, private and detached | user explicitly authorized rename/privacy; new AgentTrust name needed | same main SHA `ac5638ea69d46aa7e024fd169fc5efbf181da352` verified; local mirror backup ignored | original GitHub fork relationship no longer exists
 
@@ -24,4 +24,8 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T01 when implementation is requested. All T01–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T02. T01 accepted; T02–T30 pending. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+
+Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
+
+T01 done in this task commit | imported345 exact files and43 explicit exclusions, preserved MIT notice | checks: python3 scripts/verify-ui-baseline.py; clean pinned reference; staged whitespace | gate: fresh review spec/quality pass,0 Critical/Important; historical wording fixed | no install/build/runtime execution

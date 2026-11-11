@@ -1,0 +1,76 @@
+.radar {
+  position: absolute;
+  right: 7.2%;
+  bottom: 28%;
+  z-index: 2;
+  width: min(33vw, 420px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+.radarGlow {
+  position: absolute;
+  inset: -18%;
+  border-radius: 999px;
+  opacity: 0.82;
+  background:
+    radial-gradient(circle at 52% 48%, rgba(111, 76, 255, 0.5), transparent 24%),
+    radial-gradient(circle at 50% 50%, rgba(114, 216, 255, 0.34), transparent 48%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.72), transparent 72%);
+  filter: blur(8px);
+}
+
+.radarSvg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.radarRingSoft,
+.radarRingMid,
+.radarRingStrong,
+.radarSpoke,
+.radarTriangle {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.radarRingSoft {
+  stroke: rgba(10, 10, 10, 0.14);
+}
+
+.radarRingMid {
+  stroke: rgba(10, 10, 10, 0.32);
+}
+
+.radarRingStrong,
+.radarSpoke {
+  stroke: rgba(10, 10, 10, 0.82);
+  stroke-width: 2;
+}
+
+.radarTriangle {
+  stroke: rgba(111, 76, 255, 0.72);
+  stroke-width: 1.4;
+}
+
+.radarCore {
+  fill: var(--ink);
+}
+
+@media (max-width: 639px) {
+  .radar {
+    right: -16%;
+    bottom: -7%;
+    width: min(58vw, 226px);
+    opacity: 0.86;
+  }
+
+  .radarGlow {
+    inset: -12%;
+    filter: blur(7px);
+  }
+}

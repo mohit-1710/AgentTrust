@@ -1,6 +1,6 @@
 # AgentTrust NEAR build plan
 
-**State:** scope frozen, 11 November 2026. Planning only; no T-task is implemented or verified. P00/P01 are planning/repository milestones.
+**State:** scope frozen, 11 November 2026. Implementation authorized; progress and actual checks are recorded in the ledger. P00/P01 are planning/repository milestones.
 
 **Goal:** an agent completes a paid service purchase while a native NEAR contract enforces the owner's supplier identity, capability and spending requirements.
 

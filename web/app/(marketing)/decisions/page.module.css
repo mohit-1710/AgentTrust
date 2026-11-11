@@ -1,0 +1,242 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  padding: 5rem 1.5rem 6rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+
+.kicker {
+  color: var(--ink-dim);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  margin: 0 0 1.25rem;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-display), Fraunces, Georgia, serif;
+  font-size: clamp(3rem, 7vw, 5rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin: 0 0 1.5rem;
+}
+
+.subtitle {
+  color: var(--ink-dim);
+  font-size: clamp(1rem, 1.1vw, 1.125rem);
+  line-height: 1.55;
+  margin: 0 0 1.75rem;
+  max-width: 52rem;
+}
+
+.code {
+  background: var(--accent-soft);
+  border-radius: 0.25rem;
+  color: var(--ink);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.875em;
+  padding: 0.1em 0.4em;
+}
+
+.meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.metaItem {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.metaLabel {
+  color: var(--ink-dim);
+}
+
+.metaValue {
+  color: var(--ink);
+}
+
+.dot {
+  border-radius: 999px;
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+.dotLive {
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(31, 122, 61, 0.55);
+  animation: pulse 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.dotIdle {
+  background: var(--ink-dim);
+}
+
+.dotError {
+  background: var(--danger);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(31, 122, 61, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(31, 122, 61, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(31, 122, 61, 0);
+  }
+}
+
+.table {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.tableHead,
+.row {
+  align-items: center;
+  display: grid;
+  grid-template-columns: 12rem 1fr 1fr 1fr 8rem;
+  gap: 1.5rem;
+  padding: 1rem 0.25rem;
+}
+
+.tableHead {
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-dim);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.row {
+  border-bottom: 1px solid var(--border);
+  transition: background 180ms var(--ease-out-strong);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--accent-soft);
+}
+
+.allow,
+.deny {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge {
+  border-radius: 0.25rem;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.5rem;
+}
+
+.allow .badge {
+  background: rgba(31, 122, 61, 0.1);
+  color: var(--success);
+}
+
+.deny .badge {
+  background: rgba(193, 59, 38, 0.1);
+  color: var(--danger);
+}
+
+.reason {
+  color: var(--ink-dim);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+}
+
+.mono {
+  color: var(--ink);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.875rem;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 180ms var(--ease-out-strong);
+}
+
+.mono:hover {
+  border-bottom-color: var(--accent);
+}
+
+.amount {
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.when {
+  color: var(--ink-dim);
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.empty {
+  color: var(--ink-dim);
+  font-size: 0.9375rem;
+  padding: 2.5rem 0.25rem;
+  text-align: center;
+}
+
+.footer {
+  color: var(--ink-dim);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  margin-top: 2.5rem;
+  max-width: 52rem;
+}
+
+.footer p {
+  margin: 0;
+}
+
+@media (max-width: 880px) {
+  .page {
+    padding: 4rem 1rem 4rem;
+  }
+
+  .tableHead {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1.25rem 0.25rem;
+  }
+
+  .when {
+    text-align: left;
+  }
+}

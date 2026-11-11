@@ -1,0 +1,198 @@
+.actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 156px;
+  height: 34px;
+  margin-bottom: 21px;
+  gap: 0;
+  color: var(--ink-dim);
+}
+
+.copyButton,
+.moreButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--ink-dim);
+  font-family: var(--font-geist-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+}
+
+.copyButton {
+  width: 122px;
+  gap: 8px;
+  padding: 6px 12px;
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+}
+
+.moreButton {
+  width: 34px;
+  padding: 0;
+  border-radius: 0 12px 12px 0;
+}
+
+.copyButton:hover,
+.moreButton:hover,
+.copyButton:focus-visible,
+.moreButton:focus-visible,
+.moreButton[aria-expanded='true'] {
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+
+.copyButton:focus-visible,
+.moreButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.copyIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.copyLabel {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.menuChevron {
+  width: 8px;
+  height: 24px;
+  flex: 0 0 auto;
+  transform: rotate(90deg);
+}
+
+.menu {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  z-index: 60;
+  display: inline-flex;
+  width: 277px;
+  max-height: 420px;
+  padding: 4px;
+  overflow-y: auto;
+  flex-direction: column;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--ink-dim);
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0 20px 25px -5px,
+    rgba(0, 0, 0, 0.10) 0 8px 10px -6px;
+  text-rendering: geometricPrecision;
+}
+
+.menu[data-state='closed'] {
+  display: none;
+}
+
+.menuItem {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-family: var(--font-geist-sans);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--accent-soft);
+  color: var(--ink);
+  outline: none;
+}
+
+.menuItem:hover .itemTitle,
+.menuItem:focus-visible .itemTitle {
+  color: var(--accent-deep);
+}
+
+.iconBox {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  color: var(--ink-dim);
+}
+
+.menuItem:hover .iconBox,
+.menuItem:focus-visible .iconBox {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.itemIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.itemText {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: 0 4px;
+}
+
+.itemTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.itemDescription {
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.checkIcon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--accent);
+  opacity: 0;
+}
+
+.menuItem[data-copied='true'] .checkIcon {
+  opacity: 1;
+}

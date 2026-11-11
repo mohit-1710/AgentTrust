@@ -1,0 +1,235 @@
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 370px;
+  padding: 10px;
+  color: var(--ink);
+  font-family: var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+  background:
+    radial-gradient(circle at 74% 18%, rgba(111, 76, 255, 0.13), transparent 34%),
+    radial-gradient(circle at 18% 82%, rgba(10, 10, 10, 0.035), transparent 28%),
+    #fbfaf9;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 rgb(255, 255, 255),
+    inset 0 -1px 0 rgb(255, 255, 255),
+    0 10px 30px rgba(10, 10, 10, 0.04);
+}
+
+.bar {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.dots span:nth-child(1) {
+  background: #ff5f56;
+}
+
+.dots span:nth-child(2) {
+  background: #ffbd2e;
+}
+
+.dots span:nth-child(3) {
+  background: #27c93f;
+}
+
+.title {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink-dim);
+}
+
+.body {
+  position: relative;
+  min-height: 310px;
+  padding: 22px 20px 86px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(10, 10, 10, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 10, 10, 0.045) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.76);
+  background-size: 28px 28px;
+  border: 1px solid var(--border);
+  border-radius: 0 0 8px 8px;
+}
+
+.glow {
+  position: absolute;
+  right: -16%;
+  bottom: -28%;
+  width: 56%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(111, 76, 255, 0.18), transparent 64%);
+  filter: blur(8px);
+  animation: glow 7s var(--ease-editorial) infinite alternate;
+}
+
+.body::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.2) 64%, rgba(111, 76, 255, 0.08) 100%),
+    radial-gradient(circle at 80% 78%, rgba(111, 76, 255, 0.12), transparent 36%);
+}
+
+.line {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 18px;
+  opacity: 0;
+  transform: translate3d(0, 9px, 0);
+  animation: line 8s var(--ease-out-strong) infinite;
+  animation-delay: calc(var(--line-index) * 440ms);
+}
+
+.prompt {
+  color: rgba(10, 10, 10, 0.45);
+}
+
+.default {
+  color: var(--ink);
+}
+
+.muted {
+  color: rgba(10, 10, 10, 0.58);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.success {
+  color: var(--success);
+}
+
+.route {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  left: 22px;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 12px 1fr 12px 1fr 12px;
+  gap: 8px;
+  align-items: center;
+}
+
+.routeNode {
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 999px;
+  box-shadow: 0 0 18px rgba(111, 76, 255, 0.46);
+}
+
+.routeLine {
+  height: 1px;
+  overflow: hidden;
+  background: rgba(10, 10, 10, 0.14);
+}
+
+.routeLine::after {
+  display: block;
+  width: 40%;
+  height: 100%;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(111, 76, 255, 0.8), transparent);
+  animation: routePulse 2.6s linear infinite;
+}
+
+@keyframes line {
+  0%,
+  8% {
+    opacity: 0;
+    transform: translate3d(0, 9px, 0);
+  }
+
+  16%,
+  76% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 0.18;
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes glow {
+  from {
+    transform: translate3d(-4%, 0, 0) scale(0.95);
+  }
+
+  to {
+    transform: translate3d(4%, -4%, 0) scale(1.06);
+  }
+}
+
+@keyframes routePulse {
+  from {
+    transform: translate3d(-110%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(270%, 0, 0);
+  }
+}
+
+@media (min-width: 940px) {
+  .shell {
+    min-height: 430px;
+    padding: 14px;
+  }
+
+  .body {
+    min-height: 360px;
+    padding: 28px 24px 94px;
+  }
+
+  .line {
+    font-size: 13px;
+    line-height: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow,
+  .line,
+  .routeLine::after {
+    animation: none;
+  }
+
+  .line {
+    opacity: 1;
+    transform: none;
+  }
+}

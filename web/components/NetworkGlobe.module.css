@@ -1,0 +1,59 @@
+.globe {
+  position: relative;
+  width: min(34vw, 520px);
+  min-width: 360px;
+  aspect-ratio: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 44px, 0) scale(0.86);
+  transform-origin: 50% 54%;
+}
+
+.wash {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(10, 10, 10, 0.18);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 44% 45%, rgba(255, 255, 255, 0.95), transparent 35%),
+    radial-gradient(circle at 24% 32%, rgba(255, 162, 223, 0.38), transparent 42%),
+    radial-gradient(circle at 30% 78%, rgba(111, 76, 255, 0.48), transparent 44%),
+    radial-gradient(circle at 78% 38%, rgba(118, 216, 255, 0.34), transparent 48%),
+    #f7f6ff;
+  box-shadow: inset 0 0 42px rgba(255, 255, 255, 0.78);
+}
+
+.svg {
+  position: absolute;
+  inset: 7%;
+  width: 86%;
+  height: 86%;
+  overflow: visible;
+}
+
+.arc {
+  fill: none;
+  stroke: rgba(10, 10, 10, 0.28);
+  stroke-dasharray: 12 18;
+  stroke-linecap: round;
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.pillar {
+  fill: rgba(111, 76, 255, 0.12);
+  stroke: rgba(111, 76, 255, 0.5);
+  stroke-width: 1.6;
+  vector-effect: non-scaling-stroke;
+}
+
+.node {
+  fill: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .globe {
+    width: 78vw;
+    min-width: 0;
+  }
+}

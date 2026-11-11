@@ -1,0 +1,49 @@
+.content {
+  position: relative;
+}
+
+.tableWrap {
+  display: none;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 10%) minmax(0, 25%) minmax(0, 25%) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: center;
+  min-height: 3.625rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tableHeading {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  line-height: 1.35;
+  color: rgba(10, 10, 10, 0.5);
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.rows {
+  position: relative;
+}
+
+.mobileCards {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .tableWrap {
+    position: relative;
+    display: block;
+  }
+
+  .mobileCards {
+    display: none;
+  }
+}

@@ -1,0 +1,30 @@
+.note {
+  margin: 28px 0;
+  padding: 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.note > :first-child {
+  margin-top: 0;
+}
+
+.note > :last-child {
+  margin-bottom: 0;
+}
+
+.note p {
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+
+.note p:last-child {
+  margin-bottom: 0;
+}

@@ -1,0 +1,39 @@
+.quote {
+  margin: 40px 0;
+  padding: 28px 24px 24px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+}
+
+.text {
+  margin: 0;
+  font-family: var(--font-fraunces), serif;
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  line-height: 1.25;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+  font-variation-settings: "opsz" 144;
+}
+
+.text > :first-child {
+  margin-top: 0;
+}
+
+.text > :last-child {
+  margin-bottom: 0;
+}
+
+.attribution {
+  display: block;
+  margin-top: 16px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}

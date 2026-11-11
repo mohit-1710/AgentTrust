@@ -2,7 +2,7 @@
 
 Read `docs/sprint/plan.md`, `architecture.md`, `ledger.md` and recent Git history before work. The sprint plan is the scope authority; research files explain decisions and may contain superseded alternatives.
 
-- Current baseline is planning only. Begin product implementation only on the user's build instruction. Preserve the existing website/docs design.
+- Implementation and regular private milestone commits/pushes are authorized. Preserve the existing website/docs design.
 - Resume the first incomplete task. Never mark a task done because code exists; use its acceptance checks and record what actually ran.
 - Native NEAR only for this sprint. No second chain/asset, numeric reputation, one-off approval feature, arbitrary policy framework or dashboard redesign.
 - Refactor touched code only when necessary for the current behavior or a reproduced defect. Reopen scope only with concrete correctness/security/platform evidence; log the smallest change and compensating cut.

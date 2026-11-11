@@ -1,0 +1,65 @@
+<svg width="640" height="420" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .float { animation: float 8s ease-in-out infinite; }
+    .pulse { animation: pulse 4.5s ease-in-out infinite; transform-origin: center; }
+    .dash { stroke-dasharray: 8 14; animation: dash 14s linear infinite; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: .72; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.03); }
+    }
+    @keyframes dash {
+      to { stroke-dashoffset: -120; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .float, .pulse, .dash { animation: none; }
+    }
+  </style>
+  <rect width="640" height="420" fill="#09090B"/>
+  <rect width="640" height="420" fill="url(#ambient)"/>
+  <path d="M-56 132C62 42 147 28 246 72C345 116 416 104 511 35C581 -16 671 -25 728 2" stroke="url(#ribbonA)" stroke-width="84" stroke-linecap="round" opacity=".74"/>
+  <path d="M-70 338C71 260 167 252 284 304C397 354 504 343 668 232" stroke="url(#ribbonB)" stroke-width="96" stroke-linecap="round" opacity=".58"/>
+  <g opacity=".2">
+    <path d="M0 88H640M0 172H640M0 256H640M0 340H640" stroke="#FBFAF9"/>
+    <path d="M98 0V420M222 0V420M346 0V420M470 0V420M594 0V420" stroke="#FBFAF9"/>
+  </g>
+  <g class="float">
+    <rect x="165" y="86" width="310" height="232" rx="26" fill="#111113" stroke="#FBFAF9" stroke-opacity=".16"/>
+    <rect x="190" y="112" width="260" height="44" rx="12" fill="#FBFAF9" fill-opacity=".07" stroke="#FBFAF9" stroke-opacity=".12"/>
+    <circle cx="213" cy="134" r="5" fill="#836EF9"/>
+    <circle cx="232" cy="134" r="5" fill="#FBFAF9" fill-opacity=".38"/>
+    <circle cx="251" cy="134" r="5" fill="#FBFAF9" fill-opacity=".22"/>
+    <text x="213" y="197" fill="#FBFAF9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="2">PAY.SH ADAPTER</text>
+    <text x="213" y="232" fill="#836EF9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="21" font-weight="700" letter-spacing="1">SERVICE-SIGNED</text>
+    <text x="213" y="260" fill="#FBFAF9" fill-opacity=".66" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="1">challenge envelope</text>
+    <path d="M216 286H374" stroke="#FBFAF9" stroke-width="5" stroke-linecap="round"/>
+    <path d="M216 306H326" stroke="#FBFAF9" stroke-opacity=".48" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g class="pulse">
+    <path d="M512 122L574 230H450L512 122Z" fill="#836EF9" fill-opacity=".18" stroke="#9A85FF" stroke-width="4"/>
+    <circle cx="512" cy="205" r="16" fill="#836EF9"/>
+    <path class="dash" d="M475 196C411 162 365 162 309 194C270 216 232 214 190 190" stroke="#FBFAF9" stroke-opacity=".42" stroke-width="2"/>
+  </g>
+  <text x="40" y="58" fill="#FBFAF9" fill-opacity=".76" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="3">/// 001</text>
+  <text x="40" y="366" fill="#FBFAF9" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="650" letter-spacing="-1">Pay.sh integration notes</text>
+  <defs>
+    <radialGradient id="ambient" cx="0" cy="0" r="1" gradientTransform="translate(328 220) rotate(90) scale(310 460)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#31235F"/>
+      <stop offset=".5" stop-color="#111017"/>
+      <stop offset="1" stop-color="#050506"/>
+    </radialGradient>
+    <linearGradient id="ribbonA" x1="-18" y1="136" x2="677" y2="13" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#836EF9" stop-opacity=".18"/>
+      <stop offset=".48" stop-color="#B8AAFF"/>
+      <stop offset="1" stop-color="#4C8BFF"/>
+    </linearGradient>
+    <linearGradient id="ribbonB" x1="-34" y1="322" x2="685" y2="247" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B246D" stop-opacity=".24"/>
+      <stop offset=".52" stop-color="#836EF9"/>
+      <stop offset="1" stop-color="#8FD5FF"/>
+    </linearGradient>
+  </defs>
+</svg>

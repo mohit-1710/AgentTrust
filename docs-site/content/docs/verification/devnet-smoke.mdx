@@ -1,0 +1,85 @@
+---
+title: Devnet smoke
+description: The Pay.sh + AgentTrust atomic-settlement trace on Solana devnet — gate, transfer, emit_feedback in one transaction. Reproducible from a clean checkout.
+---
+
+A real signed SPL transfer flowed through the demo's `/protected` endpoint, completed `gate_payment + transfer + emit_feedback` atomically, and wrote a `FeedbackEmissionLog` PDA on chain. Captured 2026-05-06.
+
+Source script: [`examples/pay-sh-demo/scripts/devnet-smoke.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/scripts/devnet-smoke.ts). Trace JSON: [`examples/pay-sh-demo/devnet-smoke.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/pay-sh-demo/devnet-smoke.json).
+
+## The trace
+
+| Step | Tx |
+|---|---|
+| `emit_feedback` PDA-signed CPI → `agent_registry::give_feedback` → `atom_engine::update_stats` | [`jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag`](https://explorer.solana.com/tx/jMobmWJUAXuL8FmQujfxW9NmeMbzADUoABzqjiMeuc5m3YXyeuZeUw1ZJc29JGsqyWQGDY8q3vrtBdamhKXraag?cluster=devnet) |
+| Signed SPL `transferChecked` (the proof Pay.sh's CLI would produce) | [`5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD`](https://explorer.solana.com/tx/5iV8EYmJh9XSXkBQrrbQ5L9kmBQabD3G3RXVPsHn9PkWceTFoeRsUV4g5aLLzZyRjeBoFvK3Woxr2cZa5xeUwhVD?cluster=devnet) |
+
+## On-chain artefacts
+
+| Artefact | Address | Notes |
+|---|---|---|
+| `FeedbackEmissionLog` PDA | [`HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3`](https://explorer.solana.com/address/HB4BBi9jaD3VPcZkQQaH3DxukSqBiXfW8RejtaLa8bF3?cluster=devnet) | Owned by trustgate · `score=100` · `is_dispute=0` · slot 460466788 |
+| Tier-3 `agent_account` | [`5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y`](https://explorer.solana.com/address/5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y?cluster=devnet) | Quantu's payee identity |
+| Tier-3 `atom_stats` | [`4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv`](https://explorer.solana.com/address/4z9RiK6B49QZbmqPM9yNZWgfxYD3tvQ3NETU6X89f5mv?cluster=devnet) | `tier_immediate=3` after the feedback CPI |
+| Asset (Metaplex Core) | [`C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B`](https://explorer.solana.com/address/C6cuZeDT4kmCC1RXw8mzaoLGwmAMe5fHDvutAjicVi8B?cluster=devnet) | Quantu MPL-Core asset |
+| Facilitator authority PDA | [`4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg`](https://explorer.solana.com/address/4TWqmxoMQRSJTmH879TDWqvqgiEwr9akWnpPVg51Z5Bg?cluster=devnet) | TrustGate's PDA-signer for the CPI |
+
+## What the trace proves
+
+1. **All three Anchor programs are executable on devnet.** PolicyVault, TrustGate, and (transitively, since `atom_stats` exists for the demo agent) the Quantu agent-registry are reachable from off-chain code.
+2. **The PDA-signed CPI works.** TrustGate's `["trustgate_auth", facilitator]` PDA signed a CPI into Quantu's `give_feedback`. The resulting `atom_stats` was bumped — Quantu's reputation surface accepted the feedback.
+3. **Idempotency holds.** The `FeedbackEmissionLog` exists on chain at the predicted PDA seeds `["feedback_log", payment_id_hash]`. A second `emit_feedback` for the same `payment_id_hash` would fail account-already-in-use; retries cannot double-emit.
+4. **The atomic-tx invariant is enforced end to end on devnet.** The SDK's `composeAtomicSettleTx` produces one `Transaction` with three instructions in canonical order; both the gate-mutation and the feedback-emission committed in the same slot.
+
+## Reproduce
+
+From a clean checkout:
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+pnpm install
+
+# 1. publish IDLs (one-time, ~0.03 SOL)
+anchor idl init --provider.cluster devnet \
+  --filepath target/idl/trustgate.json HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N
+anchor idl init --provider.cluster devnet \
+  --filepath target/idl/policy_vault.json 8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR
+anchor idl init --provider.cluster devnet \
+  --filepath target/idl/validation_registry.json Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv
+
+# 2. pre-warm 3 Quantu agents (one-time, ~0.04 SOL)
+pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/prewarm-devnet.ts
+
+# 3. run the smoke (~0.03 SOL)
+pnpm --filter ./examples/pay-sh-demo exec ts-node scripts/devnet-smoke.ts
+```
+
+The full trace (signatures, PDAs, slot numbers) lands in `examples/pay-sh-demo/devnet-smoke.json`. Re-running is idempotent — `TrustGateAuthority`, test mint, payer keypair, and ATAs are reused if present.
+
+## Daily smoke (cron)
+
+[`.github/workflows/daily-devnet-smoke.yml`](https://github.com/agenttrust-labs/agenttrust/blob/main/.github/workflows/daily-devnet-smoke.yml) runs the same flow on a 24-hour cron. The result is committed back to the repo at [`docs/proofs/smoke-2026-05-06.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/smoke-2026-05-06.md) (template). A failed daily smoke flips a status badge red; a green smoke means devnet, the Quantu programs, and AgentTrust's three programs are all healthy.
+
+## Anchor end-to-end suite
+
+The Anchor TS suite at [`tests/`](https://github.com/agenttrust-labs/agenttrust/tree/main/tests) covers 50 end-to-end cases including the atomic-tx invariant, chained kill-switch atomicity, and full RequireValidation lifecycle. Run via:
+
+```bash
+anchor test --skip-deploy --provider.cluster devnet
+```
+
+Adversarial-harness coverage: [Adversarial harness](/verification/adversarial-harness).
+
+## Read next
+
+<Cards>
+  <Card title="Chained validation" href="/verification/chained-validation">
+    Four-signature trace through the third ERC-8004 leg.
+  </Card>
+  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
+    Why the gate, transfer, and feedback must execute as one Solana tx.
+  </Card>
+  <Card title="Live evidence" href="/verification/live-evidence">
+    Consolidated index across every claim.
+  </Card>
+</Cards>

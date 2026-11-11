@@ -1,0 +1,115 @@
+---
+title: Resources
+description: Four MCP resource URIs — devnet program manifest, docs corpus mirror, demo source files. Path-traversal-safe, MIME-typed, MCP-list-friendly.
+---
+
+The MCP server exposes four `resources/list`-able URIs. Resources are read-only by design; writes happen through tools.
+
+Source: [`mcp/src/resources/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/resources).
+
+## URI manifest
+
+| URI scheme | Mime type | Content |
+|---|---|---|
+| `agenttrust://devnet/programs` | `application/json` | Deployed program IDs + Explorer URLs for the active cluster |
+| `agenttrust://docs/<rel-path>` | `text/markdown` | Each MDX page in the docs corpus exposed individually |
+| `agenttrust://examples/pay-sh-demo/<rel-path>` | `text/x-typescript` / `text/markdown` | Pay.sh demo source files |
+| `agenttrust://examples/attestor-demo/<rel-path>` | `text/x-typescript` / `text/markdown` | Attestor demo source files |
+
+## Devnet program manifest
+
+```json
+{
+  "uri": "agenttrust://devnet/programs",
+  "mimeType": "application/json"
+}
+```
+
+Returns:
+
+```json
+{
+  "network": "solana-devnet",
+  "programs": {
+    "policy_vault": {
+      "id": "8Y6fGeNEHgmWmbt8JsRcF72jxbeBfJhomMjG6SuoJQTR",
+      "explorerUrl": "https://explorer.solana.com/address/8Y6f…QTR?cluster=devnet"
+    },
+    "trustgate": {
+      "id": "HF8zHfoyA7b5mhLViopTnRMprc6ZT5KActHTdkFrih2N",
+      "explorerUrl": "https://explorer.solana.com/address/HF8z…ih2N?cluster=devnet"
+    },
+    "validation_registry": {
+      "id": "Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv",
+      "explorerUrl": "https://explorer.solana.com/address/Cx4R…Khtv?cluster=devnet"
+    }
+  }
+}
+```
+
+## Docs corpus mirror
+
+Every MDX page under [`docs-site/content/docs/`](https://github.com/agenttrust-labs/agenttrust/tree/main/docs-site/content/docs) is exposed as an individual resource. Example URIs:
+
+```
+agenttrust://docs/index
+agenttrust://docs/architecture
+agenttrust://docs/programs/policy-vault/index
+agenttrust://docs/sdk/atomic-tx-invariant
+agenttrust://docs/verification/live-evidence
+```
+
+The resource body is the rendered markdown text (frontmatter included). LLM clients use `agenttrust_docs` (a discovery tool with full-text search) to find the right resource, then fetch it via `resources/read`.
+
+## Demo source mirrors
+
+The Pay.sh demo and the attestor demo are bundled in the npm tarball as of 0.2.3. URIs:
+
+```
+agenttrust://examples/pay-sh-demo/README.md
+agenttrust://examples/pay-sh-demo/src/index.ts
+agenttrust://examples/pay-sh-demo/src/middleware.ts
+agenttrust://examples/pay-sh-demo/devnet-counterparties.json
+
+agenttrust://examples/attestor-demo/README.md
+agenttrust://examples/attestor-demo/scripts/devnet-chained-validation.ts
+agenttrust://examples/attestor-demo/devnet-namespaces.json
+```
+
+Use case: an LLM asks "show me the Pay.sh demo source" and the tool returns the actual file contents rather than synthesizing a stale paraphrase from training data.
+
+## Path-traversal safety
+
+All resource URIs go through a path-normalization step before file reads. Probes like `agenttrust://docs/../../etc/passwd` return:
+
+```json
+{
+  "error": {
+    "code":    -32603,
+    "message": "unknown resource URI"
+  }
+}
+```
+
+Same protection on the `examples/` URIs. Source: [`mcp/src/resources/docs.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/resources/docs.ts) — the indexer normalises every path against the corpus root before serving bytes.
+
+Phase M validated this against a deliberate traversal probe — clean error, no escape. Full report: [`docs/proofs/phase-m-mcp-e2e.md`](https://github.com/agenttrust-labs/agenttrust/blob/main/docs/proofs/phase-m-mcp-e2e.md) §M1.4.
+
+## How clients use resources
+
+```ts
+// Pseudocode — actual API depends on the MCP client.
+const list = await mcp.request("resources/list");
+// → [{ uri: "agenttrust://devnet/programs", … }, { uri: "agenttrust://docs/index", … }, …]
+
+const programs = await mcp.request("resources/read", { uri: "agenttrust://devnet/programs" });
+// → { contents: [{ uri, mimeType: "application/json", text: "{ …JSON… }" }] }
+```
+
+Claude Desktop and Cursor surface resources in their model-context UI — the user can attach a resource to the conversation and the LLM reads it directly, no tool round-trip needed.
+
+## Source
+
+- Resource handlers: [`mcp/src/resources/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/src/resources)
+- Server wiring: [`mcp/src/server.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/mcp/src/server.ts)
+- Path-traversal tests: [`mcp/test/resources/`](https://github.com/agenttrust-labs/agenttrust/tree/main/mcp/test/resources)

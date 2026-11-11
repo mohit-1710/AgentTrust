@@ -1,0 +1,42 @@
+# deps
+/node_modules
+
+# generated content
+.source
+
+# test & build
+/coverage
+/.next/
+/out/
+/build
+*.tsbuildinfo
+
+# misc
+.DS_Store
+*.pem
+/.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# others
+.env*.local
+.vercel
+next-env.d.ts
+
+# override the repository root ignore rules inside this workspace
+!/README.md
+!/**/*.md
+!/app/docs/
+!/app/docs/**
+!/app/llms.mdx/
+!/app/llms.mdx/**
+!/app/og/
+!/app/og/**
+!/content/
+!/content/**
+!/components/docs/
+!/components/docs/**
+!/references/
+!/references/**

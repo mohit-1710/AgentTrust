@@ -1,0 +1,52 @@
+<svg width="640" height="420" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .arrow { animation: arrow 3.6s ease-in-out infinite; }
+    .ring { animation: ring 6s ease-in-out infinite; transform-origin: center; }
+    .ledger { animation: ledger 7s linear infinite; }
+    @keyframes arrow {
+      0%, 100% { transform: translateX(0); opacity: .76; }
+      50% { transform: translateX(12px); opacity: 1; }
+    }
+    @keyframes ring {
+      0%, 100% { transform: scale(1); opacity: .28; }
+      50% { transform: scale(1.04); opacity: .46; }
+    }
+    @keyframes ledger {
+      to { stroke-dashoffset: -140; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .arrow, .ring, .ledger { animation: none; }
+    }
+  </style>
+  <rect width="640" height="420" fill="#0B0B0D"/>
+  <rect width="640" height="420" fill="url(#wash)"/>
+  <g opacity=".14">
+    <path d="M0 76H640M0 152H640M0 228H640M0 304H640M0 380H640" stroke="#FBFAF9"/>
+    <path d="M80 0V420M160 0V420M240 0V420M320 0V420M400 0V420M480 0V420M560 0V420" stroke="#FBFAF9"/>
+  </g>
+  <g class="ring">
+    <circle cx="320" cy="192" r="154" stroke="#FBFAF9" stroke-opacity=".28"/>
+    <circle cx="320" cy="192" r="104" stroke="#836EF9" stroke-opacity=".48"/>
+    <circle cx="320" cy="192" r="58" fill="#836EF9" fill-opacity=".16" stroke="#FBFAF9" stroke-opacity=".3"/>
+  </g>
+  <path d="M116 192H248M392 192H524" stroke="#FBFAF9" stroke-opacity=".34" stroke-width="3"/>
+  <path class="arrow" d="M246 192H394M394 192L360 158M394 192L360 226" stroke="#8F78FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="74" y="142" width="142" height="100" rx="8" fill="#FBFAF9" fill-opacity=".1" stroke="#FBFAF9" stroke-opacity=".22"/>
+  <rect x="424" y="142" width="142" height="100" rx="8" fill="#FBFAF9" fill-opacity=".1" stroke="#FBFAF9" stroke-opacity=".22"/>
+  <rect x="238" y="278" width="164" height="58" rx="8" fill="#18181B" stroke="#836EF9" stroke-opacity=".62"/>
+  <path class="ledger" d="M102 174H188M102 204H168M452 174H538M452 204H508M266 302H374M266 318H326" stroke="#FBFAF9" stroke-width="4" stroke-linecap="round" stroke-dasharray="24 16"/>
+  <path d="M320 82L384 192H256L320 82Z" fill="#836EF9" fill-opacity=".18" stroke="#8F78FF" stroke-width="4"/>
+  <circle cx="320" cy="192" r="18" fill="#836EF9"/>
+  <text x="105" y="126" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">GATE</text>
+  <text x="437" y="126" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">TRANSFER</text>
+  <text x="263" y="360" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">FEEDBACK</text>
+  <text x="40" y="58" fill="#FBFAF9" fill-opacity=".76" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="3">/// 003</text>
+  <text x="40" y="366" fill="#FBFAF9" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="650" letter-spacing="-1">Atomic settlement notes</text>
+  <defs>
+    <radialGradient id="wash" cx="0" cy="0" r="1" gradientTransform="translate(320 190) rotate(90) scale(294 430)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#312363"/>
+      <stop offset=".54" stop-color="#111114"/>
+      <stop offset="1" stop-color="#050506"/>
+    </radialGradient>
+  </defs>
+</svg>

@@ -1,0 +1,87 @@
+---
+title: Chained validation
+description: The four-signature RequireValidation → respond → Allow trace that proves the third ERC-8004 leg actually closes the loop on Solana devnet.
+---
+
+Four signatures prove the third ERC-8004 leg closes the loop end to end. Subject = Quantu tier-3 agent the Pay.sh smoke also used; capability = `usdc-payment-policy.v1`; attestor identity reused from `examples/attestor-demo/attestor-keypair.json` (Phase D). Captured 2026-05-06.
+
+Source script: [`examples/attestor-demo/scripts/devnet-chained-validation.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/attestor-demo/scripts/devnet-chained-validation.ts). Trace JSON: [`examples/attestor-demo/devnet-chained-validation.json`](https://github.com/agenttrust-labs/agenttrust/blob/main/examples/attestor-demo/devnet-chained-validation.json).
+
+## The four signatures
+
+| Step | Decision | Tx |
+|---:|---|---|
+| 1 | `gate_payment` (no attestation account) → `RequireValidation` | [`3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh`](https://explorer.solana.com/tx/3oKW7QugBLJ7kH2QbLLWEuEn3MyNmLWCj3XovCSdDQNmq5HriwNKvPMUR9TQByZPBAPbvprDfdeYDZvh7ofntRRh?cluster=devnet) |
+| 2 | `request_validation` opens the request | [`2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF`](https://explorer.solana.com/tx/2KbXYCF67D2f2fKHk5yTzrkFBr1mV47Q3Yb1veH5e3PX4PuLa66suodAUc7uTBnr6Y44NGV1TfHHMtAZiFSnbbRF?cluster=devnet) |
+| 3 | `respond_to_validation` (creates `ValidationAttestation` PDA `8YKq…xt2q`) | [`67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp`](https://explorer.solana.com/tx/67CzMS9GEtUBesNznKpT2UWqvjEBzhgZd7AVkhXKQ5SoqRoBotcaYf1sTF8sHxj55TNT9k847nj7FQdrwAqKussp?cluster=devnet) |
+| 4 | `gate_payment` (with attestation) → `Allow` | [`dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC`](https://explorer.solana.com/tx/dEXkCEeSn8uiVAa14u7EusdFufSuUQttmcTdLHMSq5J3VSARM4KMRCfwpRSkVmYBc1yRQuyvPMCebifCf1dmrmC?cluster=devnet) |
+
+## On-chain artefacts
+
+| Artefact | Address |
+|---|---|
+| Subject `agent_account` (Quantu tier-3 demo agent) | [`5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y`](https://explorer.solana.com/address/5PfaofvEUf3adtJwMho7zzbfvgxwxbvp2V5moqhtLK8y?cluster=devnet) |
+| `CapabilityNamespace` for `usdc-payment-policy.v1` | [`34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR`](https://explorer.solana.com/address/34gonn86FjxzXZMGd43RSvQVyH1r6PrGV9xnHXjjkEwR?cluster=devnet) |
+| Attestor's `AttestorProfile` | [`GTzWJzV5htNi1Ntqwq2e2ydu9h4rArnKQwzv2sJjC9zP`](https://explorer.solana.com/address/GTzWJzV5htNi1Ntqwq2e2ydu9h4rArnKQwzv2sJjC9zP?cluster=devnet) |
+| `ValidationRequest` (step 2's output) | [`GnbrSzWsDw1rehCrFJ4ckiM9JJJeAHdjfNDt7QQy7vhV`](https://explorer.solana.com/address/GnbrSzWsDw1rehCrFJ4ckiM9JJJeAHdjfNDt7QQy7vhV?cluster=devnet) |
+| `ValidationAttestation` (step 3's output — the headline read target) | [`C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY`](https://explorer.solana.com/address/C6Yr7oKcZ6sDVibR35SWbFnGCXyfQjLeRCiPbjxYq6vY?cluster=devnet) |
+
+The `ValidationAttestation` PDA is what PolicyVault's `RequireValidation` policy reads at fixed byte offsets via [`policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs). After step 3 creates this PDA for `(subject, capability, attestor) = (5PfaofvE…, sha256(usdc-payment-policy.v1), GTzWJzV5…)`, a subsequent `gate_payment` call that passes this attestation account through the `validation_attestation` slot turns a `RequireValidation` decision into `Allow`.
+
+## What the trace proves
+
+1. **The third ERC-8004 leg is real on Solana.** Identity (Quantu) + Reputation (Quantu) + Validation (AgentTrust) all wire together.
+2. **The complete `RequireValidation` round-trip works.** PolicyVault emits `capabilityHash` → attestor responds → policy now allows. Each step is a separate on-chain tx; AgentTrust composes the PDAs without trusting any off-chain coordination.
+3. **The byte-offset parser reads the right fields.** PolicyVault's `RequireValidation` policy reads `subject_asset` at byte 8, `capability_hash` at byte 40, `attestor` at byte 72, `expires_at` at byte 208, `revoked` at byte 216 — exactly the offsets [`policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs) declares. The Phase F evidence reports verified each parsed value matches the on-chain raw bytes.
+4. **The Phase D demo capability hash is consistent end to end.** `sha256("usdc-payment-policy.v1") = a968ecd0b93d9bfe57aa62c56d1e439717cf51d1dfe0ec413267834f2ca08375` — the same digest that policy-vault's `required_capability_hash` stores, that `CapabilityNamespace` keys against, that `ValidationAttestation.capability_hash` carries.
+
+## Reproduce
+
+```bash
+git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
+pnpm install
+
+pnpm --filter ./examples/attestor-demo run chained
+```
+
+Cost: ~0.012 SOL devnet total across the four txs. Output JSON: `examples/attestor-demo/devnet-chained-validation.json`.
+
+For the full lifecycle including revocation:
+
+```bash
+REVOKE=1 pnpm --filter ./examples/attestor-demo run chained
+```
+
+`REVOKE=1` runs the optional fifth step — `revoke_validation` sets `revoked=true` on the attestation PDA in place. A subsequent `gate_payment` call returns `Deny(AttestationRevoked)` (DenyReason code 13).
+
+## How a facilitator drives this in production
+
+The Pay.sh adapter ([`trustgate/server/src/facilitators/pay-sh/`](https://github.com/agenttrust-labs/agenttrust/tree/main/trustgate/server/src/facilitators/pay-sh)) already surfaces `capabilityHash` in its `formatChallenge` response when the policy gate returns `RequireValidation`. A facilitator that hits this branch:
+
+1. Sees `decision.kind = "RequireValidation"` + `capabilityHash` in the x402 `/verify` response body (header `X-Capability-Required: <hex>`).
+2. Looks up the attestor service that handles that capability (typically discovered out-of-band via a registry or hard-coded contract).
+3. Submits the claim payload off chain; the attestor responds on chain via `respond_to_validation`.
+4. Re-submits the payment to the SERVICE; the new `/verify` call includes the `validation_attestation` PDA in the gate_payment account list, the policy reads it, and the decision flips to `Allow`.
+
+The script demonstrates steps 3-4 working end to end on devnet. Steps 1-2 are business logic the SERVICE owns. Walkthrough: [Custom attestor](/integration-guides/custom-attestor).
+
+## Validated by Kani
+
+- [`validation_expiry_correct`](/verification/kani-proofs#4-validation_expiry_correct) — an expired attestation cannot produce `Allow`.
+- [`gate_payment_strict_correctness`](/verification/kani-proofs#6-gate_payment_strict_correctness-phase-j5) — strict handler returns `Ok(())` if and only if the lazy composer returns `Allow`.
+
+If a future change broke the policy's expiry semantics or the `RequireValidation` arm slipped into `Ok`, both proofs fail loud. Plus the Anchor end-to-end suite covers the full lifecycle in [`tests/validation-registry.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/validation-registry.spec.ts).
+
+## Read next
+
+<Cards>
+  <Card title="Devnet smoke" href="/verification/devnet-smoke">
+    The Pay.sh + AT atomic-settlement trace.
+  </Card>
+  <Card title="Custom attestor" href="/integration-guides/custom-attestor">
+    Build the other side — register, respond, revoke.
+  </Card>
+  <Card title="Capability namespaces" href="/reference/capability-namespaces">
+    Every seeded v1 namespace with PDA + Explorer URL.
+  </Card>
+</Cards>

@@ -1,0 +1,81 @@
+---
+title: AgentTrust
+description: Three Anchor programs that complete the third leg of ERC-8004 on Solana — the policy, settlement, and feedback layer for x402 facilitators.
+---
+
+Quantu Labs shipped two of the three ERC-8004 legs on Solana — agent identity (`agent-registry-8004`) and reputation (`atom-engine`). The third leg, capability validation, was archived in v0.5.0 pending a redesign. AgentTrust ships that third leg, plus a policy engine that reads Quantu's reputation tier byte by byte, plus a facilitator-side program that emits feedback through Quantu's existing CPI surface.
+
+<KaniProofBadge />
+
+## Hit it now
+
+Three live paths against the hosted devnet build. No clone, no setup.
+
+```bash
+# 1. See an x402 challenge from a real facilitator
+curl -i https://demo.agenttrust.tech/protected
+
+# 2. Install the SDK
+pnpm add @agenttrust-sdk/trustgate
+
+# 3. Wire the MCP server into Claude Desktop / Cursor
+npx -y @agenttrust-sdk/mcp
+```
+
+## What's deployed
+
+<ProgramIdsTable />
+
+[SDK on npm](https://www.npmjs.com/package/@agenttrust-sdk/trustgate) ·
+[MCP on npm](https://www.npmjs.com/package/@agenttrust-sdk/mcp) ·
+[Repo](https://github.com/agenttrust-labs/agenttrust) ·
+[Hosted demo](https://demo.agenttrust.tech) ·
+[Hosted facilitator](https://api.agenttrust.tech) ·
+[Hosted MCP](https://mcp.agenttrust.tech)
+
+## The three programs
+
+**PolicyVault** is the decision engine. Five orthogonal policy kinds — `KillSwitch`, `Spending`, `Velocity`, `CounterpartyTier`, `RequireValidation` — composed under one `gate_payment` instruction with fail-fast semantics. The composer returns `Allow`, `Deny(reason)`, or `RequireValidation(capability_hash)`. `CounterpartyTier` reads byte 551 of Quantu's `AtomStats` through a manual byte-offset parser pinned to commit `bfb09ad` (zero Cargo dep on Quantu's crate, schema-version canary at byte 560 catches drift).
+
+**TrustGate** is the facilitator-side program. One PDA per facilitator (`TrustGateAuthority`) signs the CPI into Quantu's `agent-registry-8004::give_feedback`. `FeedbackEmissionLog` is the per-payment idempotency receipt — Anchor's `init` constraint fails on the second tx with the same `payment_id_hash`, so retries cannot double-emit. The TypeScript SDK, [`@agenttrust-sdk/trustgate`](https://www.npmjs.com/package/@agenttrust-sdk/trustgate), mounts on any Express app in five lines.
+
+**ValidationRegistry** productizes the third leg. Five instructions — `register_namespace`, `register_attestor`, `request_validation`, `respond_to_validation`, `revoke_validation` — over four PDAs. The v1 sybil-resistance model is downstream-consumer filtering: PolicyVault stores a per-policy `accepted_attestors[]` array; only attestations from those keys flip the gate to `Allow`. Permissionless registration plus opinionated downstream filtering is the only model that scales with the number of facilitators.
+
+## How they compose
+
+```
+x402 facilitator (Pay.sh, Dexter, atxp, MCPay)
+        │
+        ▼  POST /verify | /settle | /dispute
+TrustGate ─CPI─► agent-registry-8004::give_feedback
+   │
+   │ reads
+   ▼
+PolicyVault ─reads─► AtomStats (Quantu)        ◀── byte 551 (tier)
+   │
+   └─reads─► ValidationAttestation              ◀── byte 8 / 40 / 72 / 208 / 216
+              (ValidationRegistry)
+```
+
+The full wiring story is on [Architecture](/architecture). Byte-precise PDA layouts, instruction signatures, and deny-reason codes live under [Programs](/programs/policy-vault).
+
+## Foundation alignment
+
+Pay.sh is the Solana Foundation's first x402 facilitator, [launched 2026-05-05 with Google Cloud](https://solana.com/news/solana-foundation-launches-pay-sh-in-collaboration-with-google-cloud). AgentTrust ships day-one Pay.sh integration as the canonical adapter — Dexter, atxp, and MCPay share the same five-method `FacilitatorAdapter` contract, so adding a fifth facilitator stays under a hundred lines. Walkthrough: [Pay.sh adapter](/integration-guides/pay-sh-adapter).
+
+## Where to next
+
+<Cards>
+  <Card title="Quickstart" href="/getting-started/quickstart">
+    Hit the live demo, install the SDK, wire the MCP server.
+  </Card>
+  <Card title="Architecture" href="/architecture">
+    The wiring diagram, the FacilitatorAdapter pattern, the atomic-tx invariant.
+  </Card>
+  <Card title="Live evidence" href="/verification/live-evidence">
+    Seven Kani proofs, devnet smoke traces, the chained-validation 4-sig trace, every claim with an Explorer URL.
+  </Card>
+  <Card title="MCP server" href="/mcp">
+    Twenty-one tools that expose every SDK surface to Claude Desktop and Cursor.
+  </Card>
+</Cards>
