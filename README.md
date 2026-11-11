@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Invoice codecs, owner/session and registry methods, policy gates, payment dispatch/private callbacks and owner withdrawals pass local checks: 96 pure Rust tests, 150 TypeScript tests and WASM compilation, plus five isolated RPC-error regression tests. The user-run native runtime harness is prepared; the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
+**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Invoice codecs, owner/session and registry methods, policy gates, payment dispatch/private callbacks and owner withdrawals pass local checks. The invoice audit engine and signed supplier/conformance validator are also implemented: 96 pure Rust tests, 283 TypeScript tests and WASM compilation, plus five isolated RPC-error regression tests. The user-run native runtime harness is prepared; the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 

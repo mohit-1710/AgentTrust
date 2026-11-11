@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T13 integration and user-run native evidence. T01–T12 accepted locally; T13–T30 pending; T15,T16,T24 reviewed and pushed on isolated branches, T13/T14 preparations in isolated worktrees. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: inspect the user-run T13 native evidence when provided; finish T14 SDK review, then T17 paid HTTP flow. T01–T12 and T15 accepted locally; T13/T16 prepared and integrated, T14/T24/T25 in isolated worktrees. T13 runtime gates remain open. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -89,3 +89,9 @@ T13 preparation integrated 594b981 | separate user-run harness, explicit FINAL r
 Ruling: freeze a clean native-runtime-candidate-1 checkout for the user-run handoff while independent SDK/docs preparation continues | keep source/production/fault artifacts stable during capture | no deployment or Sandbox execution by agent; capture must be inspected and cannot complete absent cases
 
 T13 source audit: nearcore2.14 can route a zero-congestion-gas Data receipt ahead of a buffered Action refund under the documented conditions | generation order is insufficient proof of liquid backing | docs/runtime-refund-order.md records primary sources and inference limits; retain actual-balance guard and empirical gap
+
+T13 user-run handoff prepared c4a3dde, tag native-runtime-candidate-1 | clean detached checkout with separate hashed production/fault WASMs and pinned downloaded Sandbox binary; helper syntax checked, not executed | user notified of exact local command; capture and incomplete-case review pending | frozen checkout/artifacts remain unchanged while independent work continues
+
+T15 done cc4ee45 | integrated reviewed invoice audit engine, independent output checker and four manually checked golden fixtures from sprint/t15 | 64 focused tests; integrated214TS tests and typecheck passed | gate: fresh spec/quality pass, no findings | exact integer totals include valid duplicates, totals are not payable amounts; no provider runtime claim
+
+T16 preparation integrated 5ee0b54 | signed identity challenge, fixed-fixture conformance route logic and scoped validator assertion/evidence draft | 69 focused tests; integrated283TS tests and typecheck passed | gate: fresh spec/quality pass, no findings | live HTTP route and credential issuance remain T17/T18; no runtime attestation claim
