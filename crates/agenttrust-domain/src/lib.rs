@@ -1,6 +1,7 @@
 //! Pure protocol values and calculations. No chain runtime, database or network.
 
 pub mod codec;
+pub mod policy;
 pub mod types;
 
 #[cfg(test)]

@@ -21,6 +21,8 @@ pub enum AuthorityError {
     StorageCredit,
     ArithmeticOverflow,
     InvalidDeposit,
+    InvalidTrust,
+    IdentityChanged,
 }
 impl AuthorityError {
     pub fn code(self) -> &'static str {
@@ -40,6 +42,8 @@ impl AuthorityError {
             Self::StorageCredit => "STORAGE_CREDIT",
             Self::ArithmeticOverflow => "ARITHMETIC_OVERFLOW",
             Self::InvalidDeposit => "INVALID_DEPOSIT",
+            Self::InvalidTrust => "INVALID_TRUST",
+            Self::IdentityChanged => "IDENTITY_CHANGED",
         }
     }
 }

@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation started.** The frozen plan is approved, and the selective UI/docs baseline is imported with exact provenance. The pinned Rust/TypeScript workspace passes its initial pure tests and compiles a read-only NEAR WASM probe. Rust and TypeScript invoice/identity codecs match independent byte vectors, with local Ed25519 field-mutation and signature-domain checks. Owner/profile/session methods and minimal state views now compile and pass pure authority tests. Funding and actor-paid storage accounting are implemented and pass pure tests. Versioned service identities and issuer-scoped capability credentials are implemented. Ordered payment decisions, dispatch and native runtime proof remain pending. There is no deployed NEAR contract or passing runtime test claim.
+**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Shared invoice codecs and native owner/session, funding and registry methods pass pure tests and WASM compilation. Payment enforcement/settlement, the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 

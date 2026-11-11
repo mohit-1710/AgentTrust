@@ -1,6 +1,6 @@
 use crate::{AgentTrustCore, AgentTrustCoreExt};
 use agenttrust_domain::{
-    owner::{AccountLedger, ActorState, OwnerPolicy, Profile, Session},
+    owner::{AccountLedger, ActorState, OwnerPolicy, Profile, Session, TrustEntry},
     types::{Hash32, U64String, U128String},
 };
 use near_sdk::{AccountId, env, near, serde::Serialize};
@@ -32,6 +32,14 @@ pub struct SessionView {
     pub owner_id: AccountId,
     #[serde(flatten)]
     pub session: Session,
+}
+
+#[derive(Serialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct TrustEntryView {
+    pub owner_id: AccountId,
+    #[serde(flatten)]
+    pub trust: TrustEntry,
 }
 
 /// Observed backing inputs only, not a payment authorization or runtime proof.

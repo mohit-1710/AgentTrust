@@ -1,7 +1,7 @@
 use crate::{
     AgentTrustCore, AgentTrustCoreExt,
     authority::{must, require_funding, require_management},
-    views::{AccountLedgerView, OwnerPolicyView, ProfileView, SessionView},
+    views::{AccountLedgerView, OwnerPolicyView, ProfileView, SessionView, TrustEntryView},
 };
 use agenttrust_domain::{
     accounting::{AggregateLiabilities, charge_actor_storage, credit_deposit},
@@ -150,5 +150,51 @@ impl AgentTrustCore {
         let session = must(actor.revoke_session(&session_id));
         self.save_actor_charging_growth(owner_id.clone(), actor, storage_before);
         SessionView { owner_id, session }
+    }
+}
+
+#[near]
+impl AgentTrustCore {
+    #[payable]
+    pub fn set_service_trust(
+        &mut self,
+        service_id: AccountId,
+        service_version: u32,
+        allowed_profile_ids: Vec<ProfileId>,
+        expires_at_ns: Option<U64String>,
+        active: bool,
+    ) -> TrustEntryView {
+        let (owner_id, mut actor) = self.managed_actor();
+        let service = self
+            .services
+            .get(&service_id)
+            .unwrap_or_else(|| env::panic_str("UNKNOWN_SERVICE"));
+        let storage_before = env::storage_usage();
+        let trust = must(actor.set_service_trust(
+            service,
+            service_version,
+            allowed_profile_ids,
+            expires_at_ns,
+            active,
+            env::block_timestamp(),
+        ));
+        self.save_actor_charging_growth(owner_id.clone(), actor, storage_before);
+        TrustEntryView { owner_id, trust }
+    }
+
+    #[payable]
+    pub fn block_service(&mut self, service_id: AccountId, blocked: bool) {
+        let (owner_id, mut actor) = self.managed_actor();
+        let storage_before = env::storage_usage();
+        must(actor.block_service(service_id, blocked));
+        self.save_actor_charging_growth(owner_id, actor, storage_before);
+    }
+
+    #[payable]
+    pub fn block_payout(&mut self, payout_account: AccountId, blocked: bool) {
+        let (owner_id, mut actor) = self.managed_actor();
+        let storage_before = env::storage_usage();
+        must(actor.block_payout(payout_account, blocked));
+        self.save_actor_charging_growth(owner_id, actor, storage_before);
     }
 }

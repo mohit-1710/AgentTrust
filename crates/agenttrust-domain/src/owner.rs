@@ -1,15 +1,18 @@
 //! Bounded owner settings over ordinary values; no storage or chain runtime.
 use crate::{
     authority::AuthorityError,
-    types::{AccountId, Hash32, ProfileId, U64String, U128String},
+    registry::ServiceIdentity,
+    types::{AccountId, Hash32, ProfileId, PublicKey32, U64String, U128String},
 };
 use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub const MAX_PROFILES: usize = 4;
 pub const MAX_SESSIONS: usize = 8;
 pub const MAX_ACCEPTED_ISSUERS: usize = 4;
+pub const MAX_TRUST_ENTRIES: usize = 32;
+pub const MAX_BLOCK_ENTRIES: usize = 32;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(deny_unknown_fields)]
@@ -73,6 +76,18 @@ pub struct AccountLedger {
     pub storage_charged_bytes: U64String,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, BorshSerialize, BorshDeserialize)]
+pub struct TrustEntry {
+    pub service_id: AccountId,
+    pub service_version: u32,
+    pub payout_account: AccountId,
+    pub invoice_key: PublicKey32,
+    pub endpoint_hash: Hash32,
+    pub allowed_profile_ids: Vec<ProfileId>,
+    pub expires_at_ns: Option<U64String>,
+    pub active: bool,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 pub struct ActorState {
     pub owner_id: AccountId,
@@ -82,6 +97,10 @@ pub struct ActorState {
     pub sessions: BTreeMap<Hash32, Session>,
     /// Includes revoked credentials; no automatic record pruning.
     pub issued_credential_count: u32,
+    /// Inactive approvals remain retained; blocks contain only active memberships.
+    pub trusted_services: BTreeMap<AccountId, TrustEntry>,
+    pub blocked_services: BTreeSet<AccountId>,
+    pub blocked_payouts: BTreeSet<AccountId>,
 }
 
 pub struct SessionRegistration {
@@ -109,6 +128,9 @@ impl ActorState {
             profiles: BTreeMap::new(),
             sessions: BTreeMap::new(),
             issued_credential_count: 0,
+            trusted_services: BTreeMap::new(),
+            blocked_services: BTreeSet::new(),
+            blocked_payouts: BTreeSet::new(),
         }
     }
 
@@ -257,4 +279,100 @@ fn next_revision(revision: u32) -> Result<u32, AuthorityError> {
     revision
         .checked_add(1)
         .ok_or(AuthorityError::RevisionOverflow)
+}
+
+impl ActorState {
+    pub fn set_service_trust(
+        &mut self,
+        service: &ServiceIdentity,
+        service_version: u32,
+        allowed_profile_ids: Vec<ProfileId>,
+        expires_at_ns: Option<U64String>,
+        active: bool,
+        now_ns: u64,
+    ) -> Result<TrustEntry, AuthorityError> {
+        if service.version != service_version || (active && !service.active) {
+            return Err(AuthorityError::IdentityChanged);
+        }
+        if allowed_profile_ids.is_empty()
+            || allowed_profile_ids.len() > MAX_PROFILES
+            || allowed_profile_ids.iter().enumerate().any(|(index, id)| {
+                !self.profiles.contains_key(id) || allowed_profile_ids[..index].contains(id)
+            })
+            || (active && expires_at_ns.is_some_and(|expiry| expiry.0 <= now_ns))
+        {
+            return Err(AuthorityError::InvalidTrust);
+        }
+        let entry = TrustEntry {
+            service_id: service.service_id.clone(),
+            service_version,
+            payout_account: service.payout_account.clone(),
+            invoice_key: service.invoice_key,
+            endpoint_hash: service.endpoint_hash,
+            allowed_profile_ids,
+            expires_at_ns,
+            active,
+        };
+        if self.trusted_services.get(&service.service_id) == Some(&entry) {
+            return Ok(entry);
+        }
+        if !self.trusted_services.contains_key(&service.service_id)
+            && self.trusted_services.len() >= MAX_TRUST_ENTRIES
+        {
+            return Err(AuthorityError::Capacity);
+        }
+        let revision = next_revision(self.policy.revision)?;
+        self.trusted_services
+            .insert(service.service_id.clone(), entry.clone());
+        self.policy.revision = revision;
+        Ok(entry)
+    }
+
+    pub fn block_service(
+        &mut self,
+        service_id: AccountId,
+        blocked: bool,
+    ) -> Result<(), AuthorityError> {
+        set_block_membership(
+            &mut self.blocked_services,
+            &mut self.policy,
+            service_id,
+            blocked,
+        )
+    }
+
+    pub fn block_payout(
+        &mut self,
+        payout_account: AccountId,
+        blocked: bool,
+    ) -> Result<(), AuthorityError> {
+        set_block_membership(
+            &mut self.blocked_payouts,
+            &mut self.policy,
+            payout_account,
+            blocked,
+        )
+    }
+}
+
+fn set_block_membership(
+    entries: &mut BTreeSet<AccountId>,
+    policy: &mut OwnerPolicy,
+    account_id: AccountId,
+    blocked: bool,
+) -> Result<(), AuthorityError> {
+    if entries.contains(&account_id) == blocked {
+        return Ok(());
+    }
+    if blocked && entries.len() >= MAX_BLOCK_ENTRIES {
+        return Err(AuthorityError::Capacity);
+    }
+    let revision = next_revision(policy.revision)?;
+    if blocked {
+        entries.insert(account_id);
+    } else {
+        entries.remove(&account_id);
+    }
+    policy.revision = revision;
+    Ok(())
 }

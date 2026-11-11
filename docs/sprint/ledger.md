@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T08. T01–T07 accepted; T08–T30 pending; T15 is reviewed in its isolated worktree awaiting later integration. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T09. T01–T08 accepted; T09–T30 pending; T15 reviewed and T24 preparing in isolated worktrees for later integration. P01 completion is evidenced by its Git commit; the next real milestone may record that hash here. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -60,4 +60,8 @@ T15 preparation ready in isolated sprint/t15 |64 audit/checker tests,22Rust+189T
 
 Burn check after T06: six accepted local milestones are within their initial preparation timeboxes; no cut justified | keep original allowances for unresolved runtime, HTTP integration, UI/docs and handoffs rather than extrapolating codec speed | feature freeze unchanged; no deployment or native runtime gate passed
 
-T07 done in this task commit | versioned merchant-owned service identities, issuer-scoped credential issue/revoke/renew and bounded views/index | red:12 registry stubs failed; green:43Rust+125TS tests, typecheck/fmt,214,839-byte WASM | gate: fresh spec/quality pass, no findings | revoke retains assertion revision; renewal increments; all writes charged to responsible actor after flush; no runtime claim
+T07 done f2f7bc0 | versioned merchant-owned service identities, issuer-scoped credential issue/revoke/renew and bounded views/index | red:12 registry stubs failed; green:43Rust+125TS tests, typecheck/fmt,214,839-byte WASM | gate: fresh spec/quality pass, no findings | revoke retains assertion revision; renewal increments; all writes charged to responsible actor after flush; no runtime claim
+
+Ruling: prepare T24 documentation content in isolated sprint/t24 while core proceeds | frozen semantics and current ABI support independent prose migration | preserve design, account for all44 inherited pages, keep unsupported history outside active search/assistant corpus; integrate/render later, no completion claim yet
+
+T08 done in this task commit | ordered pure policy evaluator and native exact-service trust/block management | red:21 evaluator/list stubs failed; green:64Rust+125TS tests, typecheck/fmt,254,138-byte WASM | gate: fresh security-focused spec/quality pass, no findings | consistent storage/backing projection; inactive trust retained, blocks active-only; actual dispatch and runtime pending
