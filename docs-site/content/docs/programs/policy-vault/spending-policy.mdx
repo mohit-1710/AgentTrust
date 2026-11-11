@@ -1,90 +1,36 @@
 ---
-title: Spending policy
-description: Per-transaction, daily (UTC midnight), and weekly (ISO Monday) limits with anchor-rollover math.
+title: "Spending and backing"
+description: "Exact native amounts, owner-wide budgets and separately funded storage."
 ---
 
-Spending is the second policy in the composer. Pure arithmetic — no foreign PDA reads. Three constraints in order: per-tx max, daily max, weekly max.
+> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
 
-Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs).
+The sole payment asset is native `NEAR`. One NEAR equals `10^24` yoctoNEAR. JSON amounts are unsigned decimal strings; neither the contract nor client converts money through a JavaScript floating-point number.
 
-## State (subset of `PolicyAccount`)
+## Owner-wide daily limit
 
-```rust
-pub spending_per_tx_max: u64,    // off 50..58
-pub spending_daily_max: u64,     // off 58..66
-pub spending_weekly_max: u64,    // off 66..74
-pub spending_today_used: u64,    // off 74..82  — anchor-relative counter
-pub spending_week_used: u64,     // off 82..90  — anchor-relative counter
-pub spending_today_anchor: u64,  // off 90..98  — day index since 1970-01-01
-pub spending_week_anchor: u64,   // off 98..106 — week index since 1970-01-05 (Mon)
+For a new payment, daily usage is:
+
+```text
+settled amounts dispatched in the current UTC day
++ all unresolved payment reservations, including earlier days
++ the proposed amount
 ```
 
-Per-policy snapshots are extracted via `From<&PolicyAccount> for SpendingState`. The composer never mutates these fields directly — `apply_deltas` does, only on the `Allow` branch.
+That sum must not exceed the owner's cap. The exact cap is allowed; one yoctoNEAR more is denied. Each session also has a per-purchase cap. All sessions share the owner-wide counters.
 
-## Decision order
+The original dispatch day stays with each payment. Successful settlement moves its reservation into that day's settled bucket; a definitive transfer failure restores the owner's available claim once. Failure still consumes a dispatched attempt. Midnight and policy edits cannot erase unresolved exposure.
 
-```rust
-1. amount == 0           → Allow (no-op deltas)
-2. amount > per_tx_max   → Deny(SpendingPerTxExceeded)              code 2
-3. today_used + amount > daily_max  → Deny(SpendingDailyExceeded)   code 3
-4. week_used  + amount > weekly_max → Deny(SpendingWeeklyExceeded)  code 4
-5. else                  → Allow with new today/week counters + anchors
-```
+## Storage and available funds
 
-All comparisons use `checked_add`; overflow returns `Deny(SpendingDailyExceeded)` (the daily check is the first to overflow under realistic configs).
+`deposit(storage_credit_yocto)` splits attached funds before pricing an actor's initial record. Record growth is charged to that actor's storage credit, not to spendable principal or another tenant. Management's one-yocto deposits are not credited as spendable funds. This prototype does not refund previously charged credit when a record shrinks.
 
-## Anchor rollover
+Before an outflow, the actual contract balance must cover conservative post-operation storage, operating/nonspendable liabilities, unused storage credits and all available claims. Do not subtract already-dispatched pending principal a second time from the runtime balance. Actual serialization, promise deduction and refund timing require runtime evidence.
 
-`today_anchor` is `floor(unix_ts / 86_400)` — the day index since the Unix epoch. `week_anchor` is `floor((unix_ts - 4 × 86_400) / (7 × 86_400))` — the week index since Monday 1970-01-05 (the first Monday after the Unix epoch, which was a Thursday).
+A pending or unknown outcome is never refundable merely because time passed. Withdrawal is designed to send only the owner's available principal to that same owner, using the same asynchronous discipline.
 
-When the cluster's current `unix_ts` falls into a new day, the policy treats `today_used_effective = 0` (rollover); the same logic applies to weekly. The new anchor is written back along with the new counter on `Allow`.
+Demonstration settings in the plan are 1 NEAR funding, 0.01 NEAR purchase cap and 0.05 NEAR daily cap. They are example settings, not production recommendations or dollar limits.
 
-```rust
-let today_used_effective = if state.today_anchor == today_anchor_now {
-    state.today_used
-} else {
-    0
-};
-```
+## Source and verification
 
-The week anchor is biased to ISO Monday — `1970-01-05` was a Monday; subsequent weeks roll at Monday 00:00 UTC. The day anchor uses pure UTC midnight.
-
-## Pure decision function
-
-```rust
-pub fn evaluate(state: SpendingState, amount: u64, unix_ts: i64) -> SpendingOutcome;
-
-pub enum SpendingOutcome {
-    Allow(SpendingDeltas),
-    Deny(DenyReason),
-}
-
-pub struct SpendingDeltas {
-    pub new_today_used:  u64,
-    pub new_week_used:   u64,
-    pub new_today_anchor: u64,
-    pub new_week_anchor: u64,
-}
-```
-
-The composer applies deltas via `spending::apply_deltas(account, &deltas)` only when every policy returns `Allow`. The deltas are computed but never written if a later policy denies — that is the rule that makes `velocity_counter_le_limit` (Kani #2) inductive.
-
-## Formal verification
-
-The Spending policy is exercised by the composer-level `gate_payment_strict_correctness` proof (Kani #6, 258 sub-checks). Spending-specific behaviour is covered by the 14 in-module unit tests, including:
-
-- `happy_path_writes_amount_to_both_counters`
-- `deny_per_tx_exceeded` / `deny_daily_exceeded_with_existing_usage` / `deny_weekly_exceeded_with_existing_usage`
-- `rollover_resets_daily_when_anchor_changes` / `rollover_resets_weekly_when_anchor_changes`
-- `overflow_is_treated_as_daily_exceeded`
-- `boundary_amount_at_daily_max_allows`
-- `negative_unix_ts_clamps_to_zero_anchors`
-
-Source: [`programs/policy-vault/src/policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs) — 301 lines including tests.
-
-## Source
-
-- Policy module: [`policies/spending.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/spending.rs)
-- Composer: [`policies/composer.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/composer.rs)
-- State: [`state/policy_account.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/state/policy_account.rs)
-- Init instruction: [`instructions/init_policy.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/instructions/init_policy.rs)
+[Funding/accounting code](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/accounting.rs) · [Native storage pricing](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/owner.rs) · [Payment accounting design](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md)

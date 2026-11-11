@@ -1,83 +1,32 @@
 ---
-title: RequireValidation policy
-description: Gate against a ValidationAttestation PDA — capability hash, expiry, revocation, and per-policy attestor whitelist.
+title: "Required capability"
+description: "A profile can require an accepted issuer’s assertion for the exact service version."
 ---
 
-RequireValidation is the fifth and last policy. Reads one `ValidationAttestation` PDA from AgentTrust's `validation-registry` program, then checks subject, capability, revocation, expiry, and an optional per-policy attestor whitelist.
+> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
 
-Source: [`programs/policy-vault/src/policies/require_validation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs). Parser: [`programs/policy-vault/src/ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs).
+A required profile pins this shape:
 
-## Reads from `ValidationAttestation`
-
-| Offset | Width | Field |
-|---:|---:|---|
-| `8`   | Pubkey | `subject_asset` |
-| `40`  | [u8; 32] | `capability_hash` |
-| `72`  | Pubkey | `attestor` |
-| `208` | u64 LE | `expires_at` (0 = never expires) |
-| `216` | bool | `revoked` |
-
-Account size: `VALIDATION_ATTESTATION_SIZE = 290`. The remaining bytes (signed message hash, claim URI hash, claim payload hash, issued_at, revocation reason hash, bump) are not read by the policy in v1 — they live on the PDA for audit-trail integrity but the parser only loads what the gate decides on.
-
-ValidationRegistry pinned program ID (devnet): [`Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv`](https://explorer.solana.com/address/Cx4RFa6ysw3qXYhugPkF8pFSWBkmKq59h2dWgF2tKhtv?cluster=devnet).
-
-## Policy state (subset of `PolicyAccount`)
-
-```rust
-pub required_capability_hash: [u8; 32],   // off 135..167 — zeros = policy not enabled
-pub accepted_attestors: [Pubkey; 2],      // off 167..231 — both zeros = permissionless
-```
-
-The `required_capability_hash` is the SHA-256 of a UTF-8 capability name (e.g., `kyc.tier-1.v1` → `366c075140aa…ddc42`). When zero, the policy is effectively a pass-through. When set, every payment to this `(agent, policy_id)` requires an attestation matching that hash.
-
-`accepted_attestors` is a 2-slot whitelist. Both zeros = permissionless (any registered attestor's signature flips the gate to `Allow`). Otherwise only attestations from those keys count.
-
-## Decision
-
-```
-1. required_capability_hash == 0      → Allow (policy not configured)
-2. attestation == None                → RequireValidation(required_capability_hash)
-3. view.subject_asset != payee_asset  → Deny(AttestationMissing)             code 11
-4. view.capability_hash != required   → Deny(AttestationMissing)             code 11
-5. view.revoked                        → Deny(AttestationRevoked)            code 13
-6. view.expires_at != 0 AND
-   view.expires_at <= now_slot         → Deny(AttestationExpired)            code 12
-7. !permissionless AND attestor not in whitelist
-                                       → Deny(AttestationAttestorRejected)   code 14
-8. else                                → Allow
-```
-
-`expires_at == 0` is the "never expires" sentinel. `expires_at == now_slot` is treated as expired (the playbook bound: `expires_at > now` ⇒ not expired; equality fails).
-
-When the attestation account is uninitialised (no rent or empty data), the policy returns `RequiresAttestation(capability_hash)` and the composer surfaces `GateDecision::RequireValidation(hash)` to the facilitator. The facilitator routes the user through the off-chain attestation flow → `request_validation` → attestor responds → `respond_to_validation` writes the PDA → re-submit payment → gate now reads the new attestation and returns `Allow`. End-to-end devnet trace: [Verification → Chained validation](/verification/chained-validation).
-
-## Three-way outcome
-
-```rust
-pub enum RequireValidationOutcome {
-    Allow,
-    Deny(DenyReason),
-    RequiresAttestation([u8; 32]),  // composer maps to RequireValidation
+```ts
+interface CapabilityRequirement {
+  capability_namespace: "invoice.audit";
+  capability_version: 1;
+  conformance_suite_version: number;
+  conformance_suite_hash: Hash32;
+  accepted_issuers: AccountId[];
 }
 ```
 
-This is the only policy that returns a non-`Allow`/`Deny` shape. The composer's job is to bubble `RequiresAttestation(hash)` up as `GateDecision::RequireValidation(hash)` so the facilitator's `formatChallenge` can include the capability hash in the x402 response headers (`X-Capability-Required`).
+The namespace and version together identify `invoice.audit.v1`. Suite version is a nonzero u32. The issuer set contains 1–4 unique accounts. An empty required issuer set is invalid; `null` is the separate, explicit no-requirement choice.
 
-## Per-policy attestor filtering
+For a new payment, the credential must match the selected issuer/ID/revision, service ID and identity version, capability namespace/version and pinned suite version/hash. Its dates must be valid and it must not be revoked. The run's `evidence_manifest_hash` is a separate commitment, not a substitute for the suite identity.
 
-The v1 sybil-resistance model is "permissionless registration plus opinionated downstream filtering". Anyone can register as an attestor or a capability namespace. PolicyVault decides per-policy which attestors it trusts via `accepted_attestors[]`. A policy that gates against `audit.smart-contract.v1` might only accept attestations from Halborn or OtterSec; a policy that gates against `kyc.tier-1.v1` might accept any registered KYC attestor.
+A worker cannot escape the requirement by putting a different profile in the invoice. Its session is bound to exactly one owner-assigned profile/revision. An owner trust entry also cannot override required validation.
 
-The trade-off is local trust over global gatekeeping — the only model that scales with the number of facilitators. Ten canonical v1 namespaces are already seeded on devnet: [Reference → Capability namespaces](/reference/capability-namespaces).
+The response is `require_validation` with a typed reason when this evidence is missing or unsuitable. That is a refusal to dispatch; it is not an automatic request to an issuer, payment authorization or owner approval prompt.
 
-## Formal verification
+The issuer's assertion is limited to the named tested fixture behavior and service identity. It does not guarantee arbitrary output quality, honest future behavior or delivery.
 
-- `validation_expiry_correct` (Kani #4, 85 sub-checks, 0.23 s) — an expired attestation (`expires_at != 0 AND expires_at <= now_slot`) cannot produce `Allow` from `require_validation::evaluate`. Subject + capability + revocation are forced equal so expiry is the deciding gate. Closes the obvious time-of-check / time-of-use stale-attestation hole.
+## Source and verification
 
-In-module tests cover the zero-hash pass-through, missing-attestation `RequiresAttestation`, wrong-subject and wrong-capability denials, revocation, expiry boundaries (`expires_at == now`, `expires_at == 0`, `expires_at > now`), and whitelist with both 1-slot and 2-slot configurations.
-
-## Source
-
-- Policy module: [`policies/require_validation.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/policies/require_validation.rs)
-- ValidationAttestation parser: [`ext/validation_registry.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/ext/validation_registry.rs)
-- Kani proof: [`proofs/inv_validation_expiry_correct.rs`](https://github.com/agenttrust-labs/agenttrust/blob/main/programs/policy-vault/src/proofs/inv_validation_expiry_correct.rs)
-- ValidationRegistry program: [ValidationRegistry](/programs/validation-registry)
+[Profile configuration](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/owner.rs) · [Credential records](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/registry.rs) · [Admission design](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md)

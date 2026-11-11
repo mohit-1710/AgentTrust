@@ -1,12 +1,9 @@
 {
-  "title": "MCP server",
+  "title": "Local MCP",
   "pages": [
     "index",
     "install",
-    "tools",
-    "resources",
-    "prompts",
-    "hosted-endpoint"
+    "tools"
   ],
   "defaultOpen": true
 }

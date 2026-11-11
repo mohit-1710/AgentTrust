@@ -1,31 +1,23 @@
 ---
-title: Verification
-description: Every load-bearing claim in AgentTrust has an independently checkable artifact — a Kani proof, a devnet tx signature, a localnet test, a cron job. This section indexes them.
+title: "Verification"
+description: "Each claim needs evidence from the lane that can establish it."
 ---
 
-If you're a judge with five minutes, start with [Live evidence](/verification/live-evidence) — every claim with a clickable Explorer URL.
+| Lane | Establishes | Does not establish |
+|---|---|---|
+| Pure Rust | Canonical values, policy/arithmetic and ordinary-value transitions. | Actual native access-key or receipt behavior. |
+| Pure TypeScript/HTTP | Byte agreement, parsing, schemas, request/receipt binding and retry logic. | An actual chain payout. |
+| WASM build | Target compilation and required host imports/exports. | Contract execution or safe custody. |
+| UI/docs | Rendering, truthful data/copy and active corpus correctness. | Payment settlement. |
+| Native runtime | Real key restrictions, storage/balance behavior and receipt/callback ordering. | A publicly hosted complete product by itself. |
+| Live task | Actual configured service purchase, final state and checked useful output. | General service quality or production security. |
 
-If you're a developer debugging a specific property, jump straight to the relevant per-claim page below.
+Current results live in [implementation status](/reference/changelog) and the sprint ledger. No historical proof badge or fixture screenshot is treated as a native run.
 
-## Pages
+The standing rules make database-writing Sandbox execution user-run. Default local tests and builds must not launch it, deploy, fund accounts or pay. A prepared harness and a passing compilation do not satisfy a runtime gate.
 
-<Cards>
-  <Card title="Live evidence" href="/verification/live-evidence">
-    Consolidated index — Kani 7/7 + 662 sub-checks, devnet smoke, chained validation, capability namespaces, daily-smoke cron. Every claim with an Explorer URL.
-  </Card>
-  <Card title="Kani proofs" href="/verification/kani-proofs">
-    Seven machine-checked invariants over the pure-Rust composer. Per-harness deep-dive: file path, sub-check count, time, what it proves, what it doesn't.
-  </Card>
-  <Card title="Devnet smoke" href="/verification/devnet-smoke">
-    The Pay.sh + AgentTrust atomic-settlement trace on Solana devnet — gate, transfer, emit_feedback CPI, all in one tx, with reproduction commands.
-  </Card>
-  <Card title="Chained validation" href="/verification/chained-validation">
-    The four-signature RequireValidation → respond → Allow trace that proves the third ERC-8004 leg actually closes the loop.
-  </Card>
-  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
-    Three layers of proof — compile-time literal-type guard, runtime throw, composer structure — plus the on-chain Kani strict-correctness binding.
-  </Card>
-  <Card title="Adversarial harness" href="/verification/adversarial-harness">
-    Fourteen hostile-scenario assertions in tests/adversarial.spec.ts that exercise the gate against malformed PDAs, replayed proofs, and corrupted state.
-  </Card>
-</Cards>
+The final demo must include actual supplier refusal, successful native purchase, useful output, identity/credential changes blocking a fresh attempt and exact retry without another payout. Controlled providers, the project-operated issuer and any recorded playback must be disclosed.
+
+## Source and verification
+
+[Verification matrix](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md) · [Task evidence](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md)

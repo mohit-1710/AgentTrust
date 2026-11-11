@@ -1,5 +1,9 @@
 {
-  "title": "SDK",
-  "pages": ["index", "gate-payment", "mount-trustgate", "exports-reference"],
+  "title": "Native SDK",
+  "pages": [
+    "index",
+    "exports-reference",
+    "gate-payment"
+  ],
   "defaultOpen": true
 }

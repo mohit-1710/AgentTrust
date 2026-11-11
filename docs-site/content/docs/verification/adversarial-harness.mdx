@@ -1,88 +1,25 @@
 ---
-title: Adversarial harness
-description: Fourteen hostile-scenario assertions that exercise the gate against malformed PDAs, replayed proofs, and corrupted state.
+title: "Adversarial cases"
+description: "Authority, identity, limits and retry failures to verify before claiming a complete flow."
 ---
 
-The adversarial harness sits alongside the Anchor end-to-end suite. While the e2e tests cover the happy + edge paths a normal integration would hit, the adversarial harness exercises the failure modes a hostile caller would try.
+The acceptance matrix requires at least these failure classes:
 
-Source: [`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts). Run via `anchor test --skip-deploy --provider.cluster localnet`.
+- Arbitrary first caller, relayed context, wrong worker account/key and attempted owner-management bypass.
+- Revoked/expired sessions, stale policy/profile revisions and attempts to choose a weaker profile.
+- Forged or changed invoice fields, wrong network/core and changed service payout/key/endpoint/version.
+- Explicit service/payout blocks, unknown service, purchase/day/dispatch limits and insufficient funds/storage/backing.
+- Missing, wrong-issuer, wrong-subject/scope/suite/revision, expired or revoked credentials.
+- Concurrent reservations, midnight/policy edits, definitive transfer failure and callback duplication.
+- Successful transfer with failed callback, unresolved outcome, same-ID changed content and restart after lost broadcast response.
+- Pending/wrong receipt attempts to obtain content, or settled receipt reuse with changed CSV.
 
-## The fourteen scenarios
+Pure tests cover deterministic logic where possible. Actual protocol key restrictions and host receipt/refund behavior require the separate native runtime lane. The HTTP/MCP route also needs its own schema/retry and final-receipt checks.
 
-Each scenario constructs a hostile input and asserts the program rejects it with a typed error rather than producing an `Allow` or silently mutating state.
+A simulated or preview refusal is not an executed on-chain rejection. Store provenance for each observation; link a real rejection receipt only when one exists.
 
-| # | Scenario | Expected behaviour |
-|---:|---|---|
-| 1 | Forged `AtomStats` — wrong owner program | `Deny(AtomStatsWrongOwner)` (code 9) |
-| 2 | Forged `AtomStats` — schema-version canary mismatch | `Deny(AtomStatsSchemaMismatch)` (code 10) |
-| 3 | Forged `AtomStats` — tier byte > `ATOM_TIER_MAX = 4` | `Deny(AtomStatsSchemaMismatch)` (code 10) |
-| 4 | Forged `AtomStats` — undersized buffer | `Deny(AtomStatsSchemaMismatch)` (code 10) |
-| 5 | Replayed `payment_id_hash` | `account-already-in-use` on `FeedbackEmissionLog` init; whole tx reverts |
-| 6 | Self-pay attempt — facilitator signing as both payer and payee | `Deny` from facilitator-signer-mismatch check |
-| 7 | Wrong attestor — attestation issued by a key not in `accepted_attestors[]` | `Deny(AttestationAttestorRejected)` (code 14) |
-| 8 | Stale attestation — `expires_at <= now_slot` (and != 0) | `Deny(AttestationExpired)` (code 12) |
-| 9 | Revoked attestation — `revoked == true` | `Deny(AttestationRevoked)` (code 13) |
-| 10 | Wrong subject — attestation's `subject_asset` doesn't match the payee | `Deny(AttestationMissing)` (code 11) |
-| 11 | Wrong capability — attestation's `capability_hash` doesn't match `required_capability_hash` | `Deny(AttestationMissing)` (code 11) |
-| 12 | Multisig threshold bypass attempt — fewer distinct signers than `threshold` | `ThresholdNotMet` (Anchor error) |
-| 13 | Multisig duplicate-signer attempt — same key signing twice | counted as one (pubkey-dedup); `ThresholdNotMet` if remaining distinct count is below threshold |
-| 14 | Velocity counter manipulation — `now_slot < window_start_slot` (clock-skew or replay) | `saturating_sub` clamps elapsed to 0; window NOT expired; cumulative correctly preserved |
+This inventory is a required test contract, not a claim that every case is already passing. See [current status](/reference/changelog).
 
-## What the harness covers that Kani doesn't
+## Source and verification
 
-Kani's bounded model checker proves the pure-Rust composer's safety invariants over symbolic state. The adversarial harness covers the on-chain Anchor wrapper that Kani doesn't:
-
-- account-validation checks (owner mismatch, size mismatch, schema-version canary)
-- the `init`-only `FeedbackEmissionLog` + replay mechanism (Anchor's `account-already-in-use` semantics)
-- the Anchor-handler's signer constraints (facilitator self-pay, attestor key validation)
-- end-to-end on-chain tx behaviour the bounded composer can't see (idempotency, atomic revert)
-
-The two together cover both the in-program decision logic (Kani) and the surrounding Anchor wrapper (adversarial harness). Either alone leaves gaps.
-
-## Why localnet, not devnet
-
-Adversarial scenarios sometimes require constructing accounts the real Quantu programs would never produce (forged `AtomStats` with bad schema versions, forged `ValidationAttestation` PDAs with wrong owner). On localnet, the test fixture writes those raw bytes directly. On devnet, the only way to construct such an account is to compromise the real program — which we obviously can't do in CI.
-
-Localnet also produces deterministic timing for slot-based assertions (clock-skew test #14). Devnet cluster-time variance would make that test flaky.
-
-## Reproduce
-
-```bash
-git clone https://github.com/agenttrust-labs/agenttrust && cd agenttrust
-pnpm install
-anchor build
-anchor test --provider.cluster localnet --validator legacy --skip-build \
-  --grep "adversarial"
-```
-
-Expected: 14 / 14 passing in ~30 s.
-
-## Where it complements other layers
-
-- **PolicyVault unit tests (113 cases).** Cover normal paths through every policy module.
-- **Anchor TS e2e suite (50 cases).** Cover the Anchor wrapper happy paths against real (or cloned) Quantu state.
-- **Kani proofs (7 / 662 sub-checks).** Cover the pure-Rust composer's safety invariants over symbolic state.
-- **Adversarial harness (14 cases).** Cover the failure modes a hostile caller would try.
-- **MCP protocol conformance (21 cases).** Cover the MCP wire protocol shape.
-- **Adapter contract conformance (per-adapter test suites).** Cover the `FacilitatorAdapter` contract.
-
-The combination — 113 + 50 + 662 sub-checks + 14 + 21 + per-adapter — is what underwrites the v1 safety claim.
-
-## Source
-
-- Test file: [`tests/adversarial.spec.ts`](https://github.com/agenttrust-labs/agenttrust/blob/main/tests/adversarial.spec.ts)
-- Helper fixtures: [`tests/helpers/`](https://github.com/agenttrust-labs/agenttrust/tree/main/tests/helpers)
-
-## Read next
-
-<Cards>
-  <Card title="Kani proofs" href="/verification/kani-proofs">
-    The other side of the invariant proof — pure-Rust over symbolic state.
-  </Card>
-  <Card title="Atomic-tx invariant" href="/verification/atomic-tx-invariant">
-    The biggest scenario the harness covers — split-tx state corruption.
-  </Card>
-  <Card title="DenyReason codes" href="/reference/deny-reason-codes">
-    The 15 reason codes the harness asserts against.
-  </Card>
-</Cards>
+[Acceptance matrix](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md) · [Authority tests](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/tests/authority.rs) · [Codec tests](https://github.com/mohit-1710/AgentTrust/blob/main/packages/near-sdk/test/codec.test.ts)
