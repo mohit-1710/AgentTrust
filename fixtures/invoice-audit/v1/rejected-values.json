@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "capability": "invoice.audit.v1",
+  "input_hash": "vHwwUWDLNrMuLxtwgsCx6fOQ7MpnNV7rOYWGdvgrGSg=",
+  "row_count": 9,
+  "accepted_row_count": 1,
+  "rejected_row_count": 8,
+  "duplicate_groups": [],
+  "rejected_rows": [
+    {
+      "row_index": 1,
+      "codes": [
+        "EMPTY_VENDOR_ID",
+        "EMPTY_INVOICE_ID",
+        "NEGATIVE_AMOUNT",
+        "UNSUPPORTED_CURRENCY"
+      ]
+    },
+    {
+      "row_index": 2,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 3,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 4,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 5,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 6,
+      "codes": [
+        "INVALID_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 7,
+      "codes": [
+        "NEGATIVE_AMOUNT"
+      ]
+    },
+    {
+      "row_index": 9,
+      "codes": [
+        "COLUMN_COUNT"
+      ]
+    }
+  ],
+  "currency_totals": [
+    {
+      "currency": "USD",
+      "amount": "0.00",
+      "row_count": 1
+    }
+  ],
+  "totals_basis": "all_valid_rows_including_duplicates",
+  "totals_are_payable": false
+}

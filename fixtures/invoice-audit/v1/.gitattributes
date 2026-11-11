@@ -1,0 +1,2 @@
+# Hashes bind raw input bytes. Preserve CRLF/BOM and intentional final blank rows.
+*.csv -text whitespace=-blank-at-eof,cr-at-eol
