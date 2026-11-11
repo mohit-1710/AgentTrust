@@ -19,12 +19,15 @@ The runtime package is its own Cargo workspace and lockfile. `near-workspaces = 
 
 Do not use `--all-features` or enable default near-workspaces features. Its install feature can download a Sandbox binary during compilation. The runtime launcher requires an existing executable absolute path and sets `NEAR_SANDBOX_BIN_PATH`; it does not install one. Obtain a compatible official nearcore Sandbox binary separately and retain its release checksum. The harness records the exact executable SHA-256 and node-reported version. A nearcore version supporting `tx_status` and `wait_until: FINAL` is required; 2.14 is the inspected API baseline.
 
-For deterministic callback-failure evidence, build the alternate WASM separately after the T11 feature is integrated:
+For deterministic callback-failure evidence, build and inspect the alternate WASM separately:
 
 ```sh
 cargo build --locked --target wasm32-unknown-unknown --release \
   -p agenttrust-core --features runtime-test-callback-failure \
   --target-dir target/runtime-fault
+node scripts/check-wasm.mjs \
+  target/runtime-fault/wasm32-unknown-unknown/release/agenttrust_core.wasm \
+  --runtime-test-callback-failure
 ```
 
 This default-off artifact panics in the payment callback after authorization/lookup and before writes. It must never overwrite or be presented as the production artifact. There is no production fault endpoint, admin resolver or refund shortcut. The runner hashes both files, refuses identical hashes, observes the deployed code hash, and labels injected-failure evidence.
@@ -61,6 +64,8 @@ The runner reads the production artifact from `target/wasm32-unknown-unknown/rel
 | `callback_failure` | Separately hashed injected build pays the recipient but fails callback, keeps the reservation pending/debited, and does not repay on exact retry. Observed Sandbox clock advancement produces only `needs_reconciliation`, with no fund release. |
 | `refund_gap` | **Unavailable in this runner.** A final failed transaction does not prove rejection during a real intermediate no-surplus refund gap. |
 | `midnight_and_edits` | **Not run by this runner.** Pure original-day accounting tests do not prove a delayed native callback crossing midnight. |
+
+The [pinned nearcore source analysis](runtime-refund-order.md) explains why receipt generation order does not rule out the refund gap; it is not a runtime reproduction.
 
 The harness deliberately exits **2 (incomplete)** while those last cases remain unresolved, even when all implemented cases pass. Exit 1 means a failed assertion/fatal setup or execution error; exit 0 requires every required case to report passed. Do not delete missing cases or replace them with passing assertions to make the command green. More V03/V04 variants (relay predecessor, expiry/revocation/profile downgrade), full V08–V11 trust/credential runtime mutation coverage, exact boundary/rate/capacity/storage exhaustion and complete withdrawal-failure coverage remain on the verification matrix. This first harness is concrete evidence preparation, not completion of G2/G3.
 

@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Invoice codecs, owner/session and registry methods, policy gates, payment dispatch/private callbacks and owner withdrawals pass local checks: 96 pure Rust tests, 125 TypeScript tests and WASM compilation. The native runtime harness, complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
+**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Invoice codecs, owner/session and registry methods, policy gates, payment dispatch/private callbacks and owner withdrawals pass local checks: 96 pure Rust tests, 150 TypeScript tests and WASM compilation, plus five isolated RPC-error regression tests. The user-run native runtime harness is prepared; the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 
@@ -10,6 +10,7 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 - [Architecture](docs/sprint/architecture.md): authority, state, interfaces, settlement and custody.
 - [Reuse baseline](docs/sprint/baseline.md): exactly what the existing AgentTrust provides.
 - [Sprint ledger](docs/sprint/ledger.md): completed work and material decisions.
+- [Runtime runbook](docs/runtime-runbook.md): explicit user-run capture, evidence inspection and remaining cases.
 - [Verification matrix](docs/sprint/verification.md): each claim and the evidence required.
 - [Commit and scope policy](docs/sprint/workflow.md): real incremental history and change control.
 - [Planning review](docs/sprint/review.md): material findings, incorporated fixes and remaining runtime gates.
