@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Shared invoice codecs and native owner/session, funding and registry methods pass pure tests and WASM compilation. Payment enforcement/settlement, the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
+**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. Shared invoice codecs, owner/session and registry methods, policy gates and payment reservation accounting pass pure tests and WASM compilation. Native transfer/callback integration, the complete SDK/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 

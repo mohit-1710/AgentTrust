@@ -1,6 +1,7 @@
 //! Bounded owner settings over ordinary values; no storage or chain runtime.
 use crate::{
     authority::AuthorityError,
+    policy::{DAY_NS, UsageSnapshot},
     registry::ServiceIdentity,
     types::{AccountId, Hash32, ProfileId, PublicKey32, U64String, U128String},
 };
@@ -76,6 +77,33 @@ pub struct AccountLedger {
     pub storage_charged_bytes: U64String,
 }
 
+/// Owner-wide usage survives policy, profile and session changes. Every day
+/// bucket is created by a retained payment, so at most 128 can exist.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, BorshSerialize, BorshDeserialize)]
+pub struct UsageLedger {
+    pub settled_by_dispatch_day: BTreeMap<u64, U128String>,
+    pub minute_bucket: U64String,
+    pub dispatched_in_minute: u32,
+    /// Shared by payments and owner withdrawals.
+    pub outstanding_transfers: u32,
+    /// Payments only, including terminal records; there is no pruning.
+    pub retained_payments: u32,
+}
+impl UsageLedger {
+    pub fn snapshot(&self, now_ns: u64) -> UsageSnapshot {
+        UsageSnapshot {
+            settled_current_day_yocto: self
+                .settled_by_dispatch_day
+                .get(&(now_ns / DAY_NS))
+                .map_or(0, |amount| amount.0),
+            minute_bucket: self.minute_bucket.0,
+            dispatched_in_minute: self.dispatched_in_minute,
+            outstanding_transfers: self.outstanding_transfers,
+            retained_payments: self.retained_payments,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, BorshSerialize, BorshDeserialize)]
 pub struct TrustEntry {
     pub service_id: AccountId,
@@ -92,6 +120,7 @@ pub struct TrustEntry {
 pub struct ActorState {
     pub owner_id: AccountId,
     pub ledger: AccountLedger,
+    pub usage: UsageLedger,
     pub policy: OwnerPolicy,
     pub profiles: BTreeMap<ProfileId, Profile>,
     pub sessions: BTreeMap<Hash32, Session>,
@@ -119,6 +148,7 @@ impl ActorState {
         Self {
             owner_id,
             ledger: AccountLedger::default(),
+            usage: UsageLedger::default(),
             policy: OwnerPolicy {
                 revision: 0,
                 paused: true,
