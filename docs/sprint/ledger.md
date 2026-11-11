@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: T10. T01–T09 accepted; T10–T30 pending; T15 and T24 reviewed and pushed on isolated branches for later integration. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: T11. T01–T10 accepted; T11–T30 pending; T15 and T24 reviewed and pushed on isolated branches, T12 pure accounting and T13/T16 preparations in isolated worktrees. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -66,8 +66,12 @@ Ruling: prepare T24 documentation content in isolated sprint/t24 while core proc
 
 T08 done 410799b | ordered pure policy evaluator and native exact-service trust/block management | red:21 evaluator/list stubs failed; green:64Rust+125TS tests, typecheck/fmt,254,138-byte WASM | gate: fresh security-focused spec/quality pass, no findings | consistent storage/backing projection; inactive trust retained, blocks active-only; actual dispatch and runtime pending
 
-T09 done in this task commit | immutable payment evidence, owner-wide reservations, original-day settlement and exactly-once failure restoration | red:10 reservation stubs failed; green:74Rust+125TS tests, typecheck/fmt,263,334-byte WASM | gate: fresh spec/quality pass, no findings |24 conservation sequences, concurrent caps, midnight,128 retained records and actual-balance refund gap covered in pure transitions; host dispatch/callback/runtime remain pending
+T09 done 66b99c5 | immutable payment evidence, owner-wide reservations, original-day settlement and exactly-once failure restoration | red:10 reservation stubs failed; green:74Rust+125TS tests, typecheck/fmt,263,334-byte WASM | gate: fresh spec/quality pass, no findings |24 conservation sequences, concurrent caps, midnight,128 retained records and actual-balance refund gap covered in pure transitions; host dispatch/callback/runtime remain pending
 
 T15 preparation pushed 0c3ca7e on sprint/t15 | reviewed pure CSV audit and independent output checker | integrate at its dependency gate and rerun integrated checks; no HTTP/payment claim
 
 T24 preparation pushed 2aec257 on sprint/t24 |34 native MDX pages,11 byte-preserved archives and44-page migration inventory | fresh content/spec review passed; mapping/hash/link/navigation/AST checks passed | reconcile snapshot at integration; generators/assistant/search/render verification remain T25
+
+T10 done in this task commit | authoritative worker admission, registry-key host signature call, immutable retries, priced reservation/index and actual-balance guard before one explicit native Promise transfer | red:9 admission stubs failed; green:83Rust+125TS tests, typecheck/fmt,338,837-byte WASM with required host imports/exports | gate: fresh spec/quality pass, no findings | receipt-local observations and diagnostic views added; T11 callback intentionally absent, intermediate artifact must not be deployed or run
+
+Ruling: T12 pure withdrawal accounting and T13 runtime harness may prepare independently while T10 completes; T16 consumes reviewed audit fixtures in its own worktree | no overlapping main implementation, no runtime/issuance execution | integrate and review each task separately; preparation is not a passed gate

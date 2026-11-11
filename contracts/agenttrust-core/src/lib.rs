@@ -1,5 +1,6 @@
-//! Native owner/session authority and actor-funded ledger. Payments follow in later tasks.
+//! Native actor-funded vault with authoritative payment admission and dispatch.
 use agenttrust_domain::{
+    accounting::PaymentRecord,
     owner::ActorState,
     registry::{Credential, ServiceIdentity},
     types::{Hash32, U128String},
@@ -10,7 +11,9 @@ use near_sdk::{
 };
 
 pub mod authority;
+mod events;
 mod owner;
+mod payments;
 mod registry;
 mod views;
 
@@ -25,6 +28,8 @@ pub struct AgentTrustCore {
     services: LookupMap<AccountId, ServiceIdentity>,
     service_ids: Vector<AccountId>,
     credentials: LookupMap<(AccountId, Hash32), Credential>,
+    payments: LookupMap<(AccountId, Hash32), PaymentRecord>,
+    payment_ids: LookupMap<AccountId, Vec<Hash32>>,
 }
 
 #[near]
@@ -45,6 +50,8 @@ impl AgentTrustCore {
             services: LookupMap::new(b"services:v1".to_vec()),
             service_ids: Vector::new(b"service-ids:v1".to_vec()),
             credentials: LookupMap::new(b"credentials:v1".to_vec()),
+            payments: LookupMap::new(b"payments:v1".to_vec()),
+            payment_ids: LookupMap::new(b"payment-ids:v1".to_vec()),
         }
     }
 }

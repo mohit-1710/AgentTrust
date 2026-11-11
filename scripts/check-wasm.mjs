@@ -6,12 +6,12 @@ const bytes = await readFile(path);
 const module = new WebAssembly.Module(bytes);
 const imports = WebAssembly.Module.imports(module);
 const exports = WebAssembly.Module.exports(module);
-for (const name of ["current_account_id", "predecessor_account_id", "signer_account_id", "signer_account_pk", "attached_deposit", "account_balance", "storage_usage", "read_register", "value_return", "storage_read", "storage_write"]) {
+for (const name of ["current_account_id", "predecessor_account_id", "signer_account_id", "signer_account_pk", "attached_deposit", "account_balance", "storage_usage", "read_register", "value_return", "storage_read", "storage_write", "ed25519_verify", "promise_batch_create", "promise_batch_action_transfer", "promise_batch_then", "promise_batch_action_function_call"]) {
   if (!imports.some((item) => item.module === "env" && item.name === name)) {
     throw new Error(`Missing NEAR host import env.${name}; check cfg(near).`);
   }
 }
-for (const name of ["new", "deposit", "get_account", "set_policy", "set_profile", "register_session", "revoke_session", "get_config", "get_policy", "get_session", "set_service", "issue_credential", "revoke_credential", "get_service", "get_credential", "set_service_trust", "block_service", "block_payout"]) {
+for (const name of ["new", "deposit", "get_account", "set_policy", "set_profile", "register_session", "revoke_session", "get_config", "get_policy", "get_session", "set_service", "issue_credential", "revoke_credential", "get_service", "get_credential", "set_service_trust", "block_service", "block_payout", "execute_payment", "get_payment"]) {
   if (!exports.some((item) => item.name === name && item.kind === "function")) {
     throw new Error(`Missing native contract export ${name}.`);
   }

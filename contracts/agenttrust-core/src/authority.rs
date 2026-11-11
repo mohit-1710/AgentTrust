@@ -1,11 +1,8 @@
 //! Only this boundary constructs authority context from native host values.
-use agenttrust_domain::{
-    authority::{self as domain, AuthorityError, CallContext},
-    owner::Session,
-};
+use agenttrust_domain::authority::{self as domain, AuthorityError, CallContext};
 use near_sdk::{AccountId, env};
 
-struct RuntimeContext {
+pub(crate) struct RuntimeContext {
     current_account: AccountId,
     predecessor: AccountId,
     signer: AccountId,
@@ -13,7 +10,7 @@ struct RuntimeContext {
     attached_deposit_yocto: u128,
 }
 impl RuntimeContext {
-    fn capture() -> Self {
+    pub(crate) fn capture() -> Self {
         Self {
             current_account: env::current_account_id(),
             predecessor: env::predecessor_account_id(),
@@ -22,7 +19,7 @@ impl RuntimeContext {
             attached_deposit_yocto: env::attached_deposit().as_yoctonear(),
         }
     }
-    fn as_context(&self) -> CallContext<'_> {
+    pub(crate) fn as_context(&self) -> CallContext<'_> {
         CallContext {
             current_account: &self.current_account,
             predecessor: &self.predecessor,
@@ -50,15 +47,4 @@ pub fn require_funding() -> AccountId {
 pub fn require_management() -> AccountId {
     let context = RuntimeContext::capture();
     must(domain::management_actor(&context.as_context()))
-}
-
-/// T10 dispatch must call this before its exact-payment lookup, then evaluate
-/// active session/profile/policy rules only for a genuinely new payment.
-pub fn require_worker(owner_id: &AccountId, session: &Session) {
-    let context = RuntimeContext::capture();
-    must(domain::authenticate_worker(
-        &context.as_context(),
-        owner_id,
-        session,
-    ));
 }

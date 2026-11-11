@@ -21,3 +21,5 @@ pub mod owner;
 pub mod accounting;
 
 pub mod registry;
+
+pub mod payments;

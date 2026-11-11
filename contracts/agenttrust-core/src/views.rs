@@ -1,6 +1,8 @@
 use crate::{AgentTrustCore, AgentTrustCoreExt};
 use agenttrust_domain::{
     owner::{AccountLedger, ActorState, OwnerPolicy, Profile, Session, TrustEntry},
+    payments::PaymentView,
+    policy::DAY_NS,
     types::{Hash32, U64String, U128String},
 };
 use near_sdk::{AccountId, env, near, serde::Serialize};
@@ -60,13 +62,35 @@ pub struct AccountLedgerView {
     #[serde(flatten)]
     pub ledger: AccountLedger,
     pub vault: VaultSnapshot,
+    pub usage: AccountUsageView,
+}
+
+#[derive(Serialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct AccountUsageView {
+    pub current_day: U64String,
+    pub settled_current_day_yocto: U128String,
+    pub dispatch_minute: U64String,
+    pub dispatched_in_minute: u32,
+    pub outstanding_transfers: u32,
+    pub retained_payments: u32,
 }
 
 impl AgentTrustCore {
     pub(crate) fn account_ledger_view(&self, actor: &ActorState) -> AccountLedgerView {
+        let now_ns = env::block_timestamp();
+        let usage = actor.usage.snapshot(now_ns);
         AccountLedgerView {
             account_id: actor.owner_id.clone(),
             ledger: actor.ledger.clone(),
+            usage: AccountUsageView {
+                current_day: U64String(now_ns / DAY_NS),
+                settled_current_day_yocto: U128String(usage.settled_current_day_yocto),
+                dispatch_minute: U64String(usage.minute_bucket),
+                dispatched_in_minute: usage.dispatched_in_minute,
+                outstanding_transfers: usage.outstanding_transfers,
+                retained_payments: usage.retained_payments,
+            },
             vault: VaultSnapshot {
                 total_available_yocto: U128String(self.total_available_yocto),
                 total_storage_credit_yocto: U128String(self.total_storage_credit_yocto),
@@ -85,6 +109,12 @@ impl AgentTrustCore {
         self.actors
             .get(&account_id)
             .map(|actor| self.account_ledger_view(actor))
+    }
+
+    pub fn get_payment(&self, owner_id: AccountId, payment_id: Hash32) -> Option<PaymentView> {
+        self.payments
+            .get(&(owner_id, payment_id))
+            .map(|record| PaymentView::new(record.clone(), env::block_timestamp()))
     }
 
     pub fn get_config(&self) -> CoreConfig {
