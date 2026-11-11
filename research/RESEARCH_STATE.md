@@ -2,7 +2,7 @@
 
 Updated: 11 November 2026.
 
-Current objective: adapt the chosen AgentTrust product to native NEAR while preserving its existing UI and documentation design; decide exact gates and trust-list semantics, and develop the strongest credible hackathon strategy. This replaces earlier unapproved idea rankings. Current request is research and decisions, not implementation.
+Current objective: the user has chosen this direction and authorized private repository setup plus a frozen technical build plan. Preserve the existing UI/docs design. This turn remains planning, not implementation. The research decisions feed [the sprint plan](../docs/sprint/plan.md) and [architecture](../docs/sprint/architecture.md), which now control implementation scope.
 
 Entry point: [AgentTrust NEAR study](agenttrust-near/README.md). Canonical product decisions: [feature specification](agenttrust-near/09-feature-spec.md). Competition/demo: [strategy](agenttrust-near/10-competitive-strategy.md). Architecture/accounting: [blueprint](agenttrust-near/05-blueprint.md).
 
@@ -16,4 +16,4 @@ Outstanding empirical work: no implementation, tests, chain writes/deployments, 
 
 Standing constraints: no database/AWS/Terraform writes except applicable user-defined exceptions; no external-shared document writes; no messages/posts/submission. Sandbox persists database state and has not been executed. Only local research files were created. No remote repository, commit or publication was created for this study.
 
-Research deliverable is complete. Next action when implementation is requested: native contract/key-boundary work and permitted verification, then service/capability binding, the paid-service loop and existing UI/docs migration. Event deadline: 15 November 2026 05:29 IST (14 November 23:59 UTC); suggested feature freeze 14 November noon IST. Reread rules before publication/submission.
+Research deliverable is complete. Private repository `mohit-1710/AgentTrust` created; older project renamed `AgentTrust-Monad-Legacy`, detached and made private with its main commit preserved. Plan selects strict unknown denial and excludes one-off approval/FT from the committed first version. All implementation tasks are pending; next is T01 selective visual baseline import, then T02 toolchain/compatibility and the native core. Event deadline: 15 November 2026 05:29 IST (14 November 23:59 UTC); feature freeze 14 November noon IST. Reread rules before publication/submission.

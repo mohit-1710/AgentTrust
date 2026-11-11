@@ -3,6 +3,7 @@
 /.claude/
 /.sprint/
 /.gstack/
+/.agenttrust/
 .DS_Store
 
 # Credentials and local environment

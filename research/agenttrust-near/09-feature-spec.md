@@ -2,6 +2,8 @@
 
 Recommended scope, 11 November 2026. Research and design only; no implementation, contract execution or test results are claimed. This is the **current product specification** and supersedes the initial recommendation in [05](05-blueprint.md) to preserve all five old gate implementations. The custody, restricted-key and asynchronous settlement requirements in 05 still apply. [07](07-existing-gates-and-lists.md) traces what AgentTrust actually implements; [08](08-gate-design-review.md) records the design challenge; [10](10-competitive-strategy.md) explains the competitive choice.
 
+Planning freeze: [the sprint plan](../../docs/sprint/plan.md) and [architecture](../../docs/sprint/architecture.md) turn these recommendations into the implementation contract. They select strict unknown-service denial and put one-off approvals/second assets outside the committed first version. The optional features discussed below remain rationale, not a requirement to implement them during this sprint.
+
 ## Product promise and boundary
 
 **An agent may buy only from a service the owner permits, with the evidence that purchase requires, within a bounded allowance.** The payment contract enforces that permission even when the agent ignores the SDK or follows a malicious instruction.
