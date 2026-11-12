@@ -3,17 +3,18 @@ title: "Custom HTTP 402 purchase"
 description: "A signed native-NEAR quote and final settled receipt gate the paid audit response."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+> These routes are implemented and locally checked. Native payment and deployment evidence remain separate gates; see [implementation status](/reference/changelog).
 
 The first adapter uses a custom AgentTrust HTTP 402 protocol. It does not claim standard x402-exact compliance or support for third-party facilitator adapters.
 
-## Planned routes
+## Routes
 
 | Route | Purpose |
 |---|---|
 | `POST /v1/identity-challenge` | Return a descriptor signed for a fresh validator nonce. |
 | `POST /v1/conformance` | Run a named committed public fixture only. |
 | `POST /v1/invoice-audit` | Return a signed quote without a receipt, or the real report for a matching settled receipt. |
+| `GET /health` | Report public configured identity with `chain_verification: not_checked`; no RPC or payment readiness claim. |
 
 The request supplies exact CSV content and public owner/session/payment/profile/policy context. Those fields bind the purchase; they are not server-granted authority. Raw CSV is bounded at 64 KiB and hashed without newline or whitespace normalization.
 
@@ -23,7 +24,7 @@ The SDK resolves only configured service/version origins and rejects cross-origi
 
 The seller independently checks final settled state and the full invoice/request binding before returning the paid report. A transaction hash, HTTP 200, optimistic inclusion or pending record is insufficient. Identical input can retrieve the already-purchased report after quote expiry. Changed input needs a distinct authorized purchase; retrieval failure never means pay again.
 
-The service is designed to recompute output without storing uploaded data in an application database. Request privacy and deployment behavior require their own verification; do not infer them from the contract.
+The service recomputes output without storing uploaded data in an application database. Request privacy and deployment behavior require their own verification; do not infer them from the contract. The [provider runbook](https://github.com/mohit-1710/AgentTrust/blob/main/examples/invoice-audit/README.md) specifies the compiled CLI and complete configuration.
 
 ## Source and verification
 

@@ -43,7 +43,7 @@ Uncertainty, pending, not-found, retrieval failure, errors, malformed output or 
 
 Do not delete the journals, change CSV/IDs, or create a new job to work around an uncertain outcome. Changing the job's fixed config is a conflict. An unavailable/corrupt job record stops the buyer before dispatch. There is no reset or reconciliation authority in this CLI.
 
-The current CLI checks its worker credentials and, in `near-ai` mode, model credentials/catalog readiness before loading a saved terminal outcome. Those prerequisites are still required for CLI replay, even though a terminal replay makes no new inference or payment call. If they are unavailable, the saved checked report remains in its private outcome file; use the separate T18 keyless observation/recovery commands to inspect the original payment. This startup limitation never authorizes a replacement purchase.
+The current CLI checks its worker credentials and, in `near-ai` mode, model credentials/catalog readiness before loading a saved terminal outcome. Those prerequisites are still required for CLI replay, even though a terminal replay makes no new inference or payment call. If they are unavailable, the saved checked report remains in its private outcome file. Use keyless MCP `get_payment` with the original payment ID to inspect chain state. T18 `resume` applies only when the original CSV and payment ID match its fixed demo configuration. This startup limitation never authorizes a replacement purchase.
 
 ## Records and verification
 

@@ -7,7 +7,7 @@ Use an authorized checkout of `mohit-1710/AgentTrust`. The repository is private
 
 ## Pin the tools
 
-Use Node **24.22.2**, pnpm **10.33.0** and Rust **1.97.1** with `wasm32-unknown-unknown`. The root toolchain files and lockfiles are the source of truth. `scripts/env.sh` uses installed tools or the local ignored tool directory; it does not install tools itself.
+Use Node **24.22.2**, pnpm **10.33.0**, Rust **1.97.1** with `wasm32-unknown-unknown`, and an OpenSSL CLI supporting `req -addext` for the local TLS tests. The root toolchain files and lockfiles are the source of truth. `scripts/env.sh` uses installed tools or the local ignored tool directory; it does not install tools itself.
 
 From the repository root:
 
@@ -32,7 +32,7 @@ This explicitly generates native docs blocks and the Fumadocs collection, checks
 
 The owner must fund spendable principal and separate storage credit, configure a policy/profile, explicitly trust the intended service version, register a session and install its restricted protocol key. Merchants and issuers need their own funded storage accounts. These roles must not share the worker process's key material.
 
-Runtime preparation, actual testnet setup, live purchases and hosted surfaces remain separate gates. The T13 harness and evidence checker are prepared; no runtime gate has passed. The testnet demo commands still fail explicitly as not ready. Do not substitute a passing unit test for a missing runtime result.
+The testnet setup/capture commands and bounded buyer are implemented with explicit execution flags. They have passed local tests, not actual native or model execution. Follow the [testnet runbook](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-demo-runbook.md) and [buyer runbook](https://github.com/mohit-1710/AgentTrust/blob/main/examples/buyer-agent/README.md) for their prerequisites and role separation. No runtime gate has passed. Do not substitute a passing unit test for a missing runtime result.
 
 The standing execution rules keep database-writing Sandbox work user-run. Read the [runtime runbook](https://github.com/mohit-1710/AgentTrust/blob/main/docs/runtime-runbook.md) and its open coverage gaps; no runtime, funding or deployment command is part of the local commands above.
 
