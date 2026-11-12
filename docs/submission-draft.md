@@ -1,6 +1,6 @@
 # Submission preparation
 
-**Draft only, 13 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The dated public decision feed still shows r2. Two fresh local-model/MCP operator rehearsals, [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md), each captured a separate settled 0.002 NEAR purchase, direct refusals, an exact retry and checked output. Native Sandbox evidence supports 20 of 21 case groups; the refund-gap, browser visual QA, video, public source release and submission remain open.
+**Draft only, 13 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The public decision feed shows dated on-chain decisions, while the paid workflow remains local. Two fresh local-model/MCP operator rehearsals, [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md), each captured a separate settled 0.002 NEAR purchase, direct refusals, an exact retry and checked output. Native Sandbox evidence supports 20 of 21 case groups; the refund-gap, browser visual QA, video, public source release and submission remain open.
 
 ## Intended project and tracks
 
