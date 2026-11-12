@@ -1,5 +1,7 @@
 //! USER-RUN ONLY. Starting this binary creates a Sandbox database and local chain.
 //! Compile with cargo check; never include it in the default test/build workspace.
+mod helper_cases;
+mod matrix;
 mod rpc_rejections;
 use agenttrust_domain::{codec, types::InvoiceV1};
 use anyhow::{Context, Result, bail, ensure};
@@ -25,6 +27,15 @@ const REQUIRED_CASES: &[(&str, &[&str])] = &[
     ("initialization_authority", &["V01"]),
     ("restricted_key", &["V02"]),
     ("actual_signer", &["V03", "V04"]),
+    ("session_and_profile_changes", &["V03", "V04"]),
+    ("exact_limits_and_preview", &["V12", "V14"]),
+    ("fixed_minute_rate", &["V14"]),
+    ("trust_and_identity_changes", &["V08", "V09"]),
+    ("credential_changes", &["V10", "V11"]),
+    ("actor_capacity_and_storage", &["V22"]),
+    ("relay_predecessor", &["V03"]),
+    ("transfer_capacity", &["V22"]),
+    ("withdrawal_failure", &["V21"]),
     ("signed_dispatch", &["V06", "V16"]),
     ("replay_conflict", &["V20"]),
     ("concurrent_cap", &["V12", "V13"]),
@@ -293,12 +304,32 @@ async fn actor(h: &mut Harness, label: &str, core: &AccountId, storage: u128) ->
             "deposit",
             a.call(core, "deposit")
                 .args_json(json!({"storage_credit_yocto":storage.to_string()}))
-                .deposit(NearToken::from_near(2)),
+                .deposit(NearToken::from_yoctonear((storage + NEAR).max(2 * NEAR))),
         )
         .await?;
     ensure!(success(&raw) && failures(&raw).is_empty(), "deposit failed");
     h.actor(label, &a);
     Ok(a)
+}
+struct OwnerSetup {
+    storage: u128,
+    daily: u128,
+    purchase: u128,
+    session_lifetime_ns: u64,
+    requirement: Value,
+    worker_allowance: NearToken,
+}
+impl OwnerSetup {
+    fn standard(daily: u128) -> Self {
+        Self {
+            storage: NEAR / 4,
+            daily,
+            purchase: NEAR / 10,
+            session_lifetime_ns: 86_400_000_000_000,
+            requirement: Value::Null,
+            worker_allowance: NearToken::from_millinear(50),
+        }
+    }
 }
 async fn owner(
     h: &mut Harness,
@@ -308,19 +339,29 @@ async fn owner(
     byte: u8,
     daily: u128,
 ) -> Result<Fixture> {
-    let account = actor(h, label, core, NEAR / 4).await?;
-    h.manage(&account,core,"set_policy",json!({"expected_revision":0,"daily_cap_yocto":daily.to_string(),"max_dispatches_per_minute":5,"paused":false})).await?;
+    owner_with(h, label, core, service, byte, OwnerSetup::standard(daily)).await
+}
+async fn owner_with(
+    h: &mut Harness,
+    label: &str,
+    core: &AccountId,
+    service: &AccountId,
+    byte: u8,
+    setup: OwnerSetup,
+) -> Result<Fixture> {
+    let account = actor(h, label, core, setup.storage).await?;
+    h.manage(&account,core,"set_policy",json!({"expected_revision":0,"daily_cap_yocto":setup.daily.to_string(),"max_dispatches_per_minute":5,"paused":false})).await?;
     h.manage(
         &account,
         core,
         "set_profile",
-        json!({"profile_id":"audit","expected_revision":null,"requirement":null}),
+        json!({"profile_id":"audit","expected_revision":null,"requirement":setup.requirement}),
     )
     .await?;
     let key = SecretKey::from_random(KeyType::ED25519);
     let session_id = id(byte);
     let now = h.timestamp().await?;
-    h.manage(&account,core,"register_session",json!({"session_id":session_id,"public_key":key.public_key().to_string(),"profile_id":"audit","profile_revision":1,"purchase_cap_yocto":(NEAR/10).to_string(),"expires_at_ns":(now+86_400_000_000_000).to_string()})).await?;
+    h.manage(&account,core,"register_session",json!({"session_id":session_id,"public_key":key.public_key().to_string(),"profile_id":"audit","profile_revision":1,"purchase_cap_yocto":setup.purchase.to_string(),"expires_at_ns":(now+setup.session_lifetime_ns).to_string()})).await?;
     h.manage(&account,core,"set_service_trust",json!({"service_id":service,"service_version":1,"allowed_profile_ids":["audit"],"expires_at_ns":null,"active":true})).await?;
     let key_tx = account
         .batch(account.id())
@@ -329,7 +370,7 @@ async fn owner(
             AccessKey::function_call_access(
                 core,
                 &["execute_payment"],
-                Some(NearToken::from_millinear(50)),
+                Some(setup.worker_allowance),
             ),
         )
         .transact_async()
@@ -409,7 +450,12 @@ fn rejection(raw: &Value, code: &str) -> bool {
     returned(raw).is_ok_and(|r| r["kind"] == "rejected" && r["decision"]["code"] == code)
 }
 
-async fn run(h: &mut Harness, wasm: &[u8], fault: Option<&[u8]>) -> Result<()> {
+async fn run(
+    h: &mut Harness,
+    wasm: &[u8],
+    fault: Option<&[u8]>,
+    helper: Option<&[u8]>,
+) -> Result<()> {
     let core_account = h
         .worker
         .root_account()?
@@ -611,7 +657,7 @@ async fn run(h: &mut Harness, wasm: &[u8], fault: Option<&[u8]>) -> Result<()> {
         )
         .await?;
     let untouched = payment(h, &core, &buyer, 10).await?;
-    h.case("actual_signer",start,vec![("same account wrong actual key rejected",!success(&wrong_key)||rejection(&wrong_key,"UNAUTHORIZED")),("different actual owner rejected",!success(&wrong_owner)||rejection(&wrong_owner,"UNAUTHORIZED")),("no payment allocated",untouched.is_null())],&["Relayed predecessor and expired/revoked session scenarios remain separate required runtime extensions."]);
+    h.case("actual_signer",start,vec![("same account wrong actual key rejected",!success(&wrong_key)||rejection(&wrong_key,"UNAUTHORIZED")),("different actual owner rejected",!success(&wrong_owner)||rejection(&wrong_owner,"UNAUTHORIZED")),("no payment allocated",untouched.is_null())],&["Relayed predecessor is covered by the separate optional helper case; session/profile mutations are exercised separately."]);
     let start = h.start();
     let before = h.balance(recipient.id()).await?;
     let before_ledger = ledger(h, &core, &buyer).await?;
@@ -854,7 +900,21 @@ async fn run(h: &mut Harness, wasm: &[u8], fault: Option<&[u8]>) -> Result<()> {
         )
         .await?;
     let wr = ledger(h, &core, &buyer).await?;
-    h.case("withdrawal",start,vec![("dispatch returns pending",withdrawn["state"]=="pending"),("withdrawal reaches owner success",view["state"]=="succeeded"&&view["owner_id"]==buyer.owner.id().as_str()&&view["payout_account"]==buyer.owner.id().as_str()),("available debited once",decimal(&wb["available_yocto"])?.checked_sub(decimal(&wa["available_yocto"])?)==Some(NEAR/100)&&wa["available_yocto"]==wr["available_yocto"]),("retry returns original success",repeat["state"]=="succeeded")],&["Owner balance delta includes transaction gas; immutable owner destination and transfer receipt must be inspected. A deleted-owner failure scenario is not implemented."]);
+    h.case("withdrawal",start,vec![("dispatch returns pending",withdrawn["state"]=="pending"),("withdrawal reaches owner success",view["state"]=="succeeded"&&view["owner_id"]==buyer.owner.id().as_str()&&view["payout_account"]==buyer.owner.id().as_str()),("available debited once",decimal(&wb["available_yocto"])?.checked_sub(decimal(&wa["available_yocto"])?)==Some(NEAR/100)&&wa["available_yocto"]==wr["available_yocto"]),("retry returns original success",repeat["state"]=="succeeded")],&["Owner balance delta includes transaction gas; immutable owner destination and transfer receipt must be inspected. The deleted-owner failure scenario is covered by the separate optional helper case."]);
+    if let Some(helper) = helper {
+        helper_cases::run(
+            h,
+            &core,
+            merchant.id(),
+            &merchant_key,
+            recipient.id(),
+            helper,
+        )
+        .await?;
+    }
+    matrix::run(h, &core, merchant.id(), &merchant_key, recipient.id()).await?;
+    let retained_capacity =
+        matrix::retained_capacity(h, &core, merchant.id(), &merchant_key, recipient.id()).await?;
     if let Some(fault) = fault {
         let start = h.start();
         let deploy = core_account
@@ -905,6 +965,16 @@ async fn run(h: &mut Harness, wasm: &[u8], fault: Option<&[u8]>) -> Result<()> {
         let timed_out = payment(h, &core, &buyer, 50).await?;
         let after_timeout = ledger(h, &core, &buyer).await?;
         h.case("callback_failure",start,vec![("payee credited",decimal(&after["amount"])?.checked_sub(decimal(&before["amount"])?)==Some(NEAR/100)),("callback failure observed",failures(&paid).iter().any(|r|r["outcome"]["executor_id"]==core.as_str())),("reservation remains pending",original["state"]=="pending"),("available claim stays debited",decimal(&lb["available_yocto"])?.checked_sub(decimal(&la["available_yocto"])?)==Some(NEAR/100)),("retry does not pay again",returned(&retry)?["duplicate"]==true&&after["amount"]==end["amount"]),("timeout is diagnostic only",timed_out["state"]=="pending"&&timed_out["display_state"]=="needs_reconciliation"&&after_timeout["available_yocto"]==la["available_yocto"]&&after_timeout["pending_payment_yocto"]==la["pending_payment_yocto"])],&["Injected failure uses a separately hashed default-off build. It does not establish production callback failure frequency or historical recovery."]);
+        matrix::pending_capacity(
+            h,
+            &core_account,
+            merchant.id(),
+            &merchant_key,
+            recipient.id(),
+            wasm,
+            retained_capacity,
+        )
+        .await?;
     }
     Ok(())
 }
@@ -924,9 +994,17 @@ async fn main() -> Result<()> {
         "USER-RUN ONLY: use the reviewed scripts/run-runtime.mjs launcher; this creates a Sandbox database"
     );
     ensure!(
-        args.len() == 3 || args.len() == 4,
-        "expected --user-run <production.wasm> <output-directory> [fault.wasm]"
+        args.len() >= 3 && args.len() % 2 == 1,
+        "expected --user-run <production.wasm> <output-directory> [--fault-wasm path] [--helper-wasm path]"
     );
+    let mut options = BTreeMap::new();
+    for pair in args[3..].chunks_exact(2) {
+        ensure!(
+            ["--fault-wasm", "--helper-wasm"].contains(&pair[0].as_str())
+                && options.insert(pair[0].as_str(), pair[1].as_str()).is_none(),
+            "invalid or duplicate runtime option"
+        );
+    }
     let binary = std::env::var("NEAR_SANDBOX_BIN_PATH").context(
         "explicit existing NEAR_SANDBOX_BIN_PATH required; automatic installation prohibited",
     )?;
@@ -935,7 +1013,23 @@ async fn main() -> Result<()> {
         "Sandbox binary must be an existing absolute path"
     );
     let wasm = fs::read(&args[1])?;
-    let fault = args.get(3).map(fs::read).transpose()?;
+    let fault = options.get("--fault-wasm").map(fs::read).transpose()?;
+    let helper = options.get("--helper-wasm").map(fs::read).transpose()?;
+    if let Some(ref bytes) = helper {
+        ensure!(
+            hash(bytes) != hash(&wasm)
+                && fault
+                    .as_ref()
+                    .is_none_or(|fault| hash(bytes) != hash(fault)),
+            "helper artifact must differ from production and callback-fault builds"
+        );
+        ensure!(
+            bytes
+                .windows(b"AGENTTRUST_RUNTIME_HELPER_ONLY".len())
+                .any(|window| window == b"AGENTTRUST_RUNTIME_HELPER_ONLY"),
+            "missing runtime helper artifact marker"
+        );
+    }
     if let Some(ref bytes) = fault {
         ensure!(
             hash(bytes) != hash(&wasm),
@@ -976,7 +1070,7 @@ async fn main() -> Result<()> {
         .timeout(Duration::from_secs(40))
         .redirect(reqwest::redirect::Policy::none())
         .build()?;
-    let manifest = json!({"schema_version":1,"kind":"agenttrust_native_runtime","status":"incomplete","captured_at":chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs,true),"git_commit":commit,"working_tree_dirty":dirty,"environment":{"kind":"sandbox","protocol_network":"near:testnet","rpc_url":worker.rpc_addr()},"toolchain":toolchain,"production_wasm_sha256":hash(&wasm),"fault_wasm_sha256":fault.as_ref().map(|b|hash(b)),"sandbox_binary_sha256":hash(&fs::read(&binary)?),"command":command,"exit_status":2,"actors":[],"artifacts":[],"cases":cases,"limitations":["Local Sandbox evidence is not testnet evidence, a production custody audit, or an independent proof of provider quality.","The read-only checker verifies capture structure and local artifact integrity; it does not make RPC responses into a light-client proof."]});
+    let manifest = json!({"schema_version":2,"kind":"agenttrust_native_runtime","status":"incomplete","captured_at":chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs,true),"git_commit":commit,"working_tree_dirty":dirty,"environment":{"kind":"sandbox","protocol_network":"near:testnet","rpc_url":worker.rpc_addr()},"toolchain":toolchain,"production_wasm_sha256":hash(&wasm),"fault_wasm_sha256":fault.as_ref().map(|b|hash(b)),"helper_wasm_sha256":helper.as_ref().map(|b|hash(b)),"sandbox_binary_sha256":hash(&fs::read(&binary)?),"command":command,"exit_status":2,"actors":[],"artifacts":[],"cases":cases,"limitations":["Local Sandbox evidence is not testnet evidence, a production custody audit, or an independent proof of provider quality.","The read-only checker verifies capture structure and local artifact integrity; it does not make RPC responses into a light-client proof."]});
     let mut h = Harness {
         worker,
         rpc,
@@ -988,7 +1082,7 @@ async fn main() -> Result<()> {
     h.artifact("node-status", "node_status", &status)?;
     h.manifest["environment"]["reported_chain_id"] = status["result"]["chain_id"].clone();
     h.manifest["environment"]["node_version"] = status["result"]["version"].clone();
-    if let Err(error) = run(&mut h, &wasm, fault.as_deref()).await {
+    if let Err(error) = run(&mut h, &wasm, fault.as_deref(), helper.as_deref()).await {
         h.manifest["fatal_error"] = json!(error.to_string());
     }
     h.save()?;

@@ -8,6 +8,7 @@ const usage = `USER-RUN ONLY: creates a local NEAR Sandbox database and test acc
 Usage: pnpm verify:runtime -- --user-run --sandbox-bin /absolute/near-sandbox
        [--wasm target/wasm32-unknown-unknown/release/agenttrust_core.wasm]
        [--fault-wasm target/runtime-fault/wasm32-unknown-unknown/release/agenttrust_core.wasm]
+       [--helper-wasm target/runtime-helper/wasm32-unknown-unknown/release/agenttrust_runtime_helper.wasm]
        [--output artifacts/local/runtime/<new-directory>]
 No binary download, remote deployment or real account key is used.
 Exit 0: every required case reported passed; 1: failure; 2: incomplete evidence.
@@ -18,7 +19,7 @@ if (args[0] !== '--user-run') { console.error(usage); process.exit(2); }
 const values = new Map();
 for (let index = 1; index < args.length; index += 2) {
   const key = args[index]; const value = args[index + 1];
-  if (!['--sandbox-bin','--wasm','--fault-wasm','--output'].includes(key) || !value || value.startsWith('--') || values.has(key)) throw new Error('Invalid or duplicate runtime argument');
+  if (!['--sandbox-bin','--wasm','--fault-wasm','--helper-wasm','--output'].includes(key) || !value || value.startsWith('--') || values.has(key)) throw new Error('Invalid or duplicate runtime argument');
   values.set(key,value);
 }
 if (!values.has('--sandbox-bin') || !path.isAbsolute(values.get('--sandbox-bin'))) throw new Error('An existing absolute --sandbox-bin is required; automatic installation is disabled');
@@ -30,6 +31,8 @@ if (!(await stat(sandbox)).isFile()) throw new Error('Sandbox binary must be a r
 const production = await realpath(path.resolve(values.get('--wasm') ?? 'target/wasm32-unknown-unknown/release/agenttrust_core.wasm'));
 const fault = values.has('--fault-wasm') ? await realpath(path.resolve(values.get('--fault-wasm'))) : undefined;
 if (fault === production) throw new Error('Fault and production WASM must be separate artifacts');
+const helper = values.has('--helper-wasm') ? await realpath(path.resolve(values.get('--helper-wasm'))) : undefined;
+if (helper && (helper === production || helper === fault)) throw new Error('Helper WASM must be separate from production and fault artifacts');
 const output = path.resolve(values.get('--output') ?? `artifacts/local/runtime/${new Date().toISOString().replaceAll(':','-')}`);
 if (!output.startsWith(path.join(root,'artifacts/local/runtime')+path.sep)) throw new Error('Output must stay below ignored artifacts/local/runtime/');
 for (let current = path.dirname(output); current !== root; current = path.dirname(current)) {
@@ -37,7 +40,8 @@ for (let current = path.dirname(output); current !== root; current = path.dirnam
 }
 try { await access(output); throw new Error('Output already exists; recorded evidence is never overwritten'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
 const binaryArgs = ['run','--locked','--manifest-path','tests/runtime/Cargo.toml','--','--user-run',production,output];
-if (fault) binaryArgs.push(fault);
+if (fault) binaryArgs.push('--fault-wasm',fault);
+if (helper) binaryArgs.push('--helper-wasm',helper);
 console.log('Starting user-run Sandbox; no runtime success is implied until the evidence is inspected.');
 const child = spawnSync('cargo',binaryArgs,{stdio:'inherit',env:{...process.env,NEAR_SANDBOX_BIN_PATH:sandbox,AGENTTRUST_RUNTIME_COMMAND:`pnpm verify:runtime ${args.map(arg=>JSON.stringify(arg)).join(' ')}`}});
 if (child.error) throw child.error;
