@@ -184,7 +184,7 @@ async fn relay(
             AccessKey::function_call_access(
                 relay.id(),
                 &["forward_payment"],
-                Some(NearToken::from_millinear(50)),
+                Some(STANDARD_WORKER_ALLOWANCE),
             ),
         )
         .transact_async()

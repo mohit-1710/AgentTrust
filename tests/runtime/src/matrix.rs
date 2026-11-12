@@ -334,7 +334,7 @@ async fn minute_rate(
                 AccessKey::function_call_access(
                     core,
                     &["execute_payment"],
-                    Some(NearToken::from_millinear(50)),
+                    Some(STANDARD_WORKER_ALLOWANCE),
                 ),
             )
             .transact_async()
@@ -380,7 +380,7 @@ async fn minute_rate(
             worker
                 .call(core, "execute_payment")
                 .args_json(json!({"quote":q,"credential":null}))
-                .max_gas()
+                .gas(RUNTIME_CALL_GAS)
                 .transact_async()
                 .await?,
         );

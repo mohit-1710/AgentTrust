@@ -10,7 +10,7 @@ use near_workspaces::{
     Account, AccountId, Worker,
     network::Sandbox,
     operations::{CallTransaction, TransactionStatus},
-    types::{AccessKey, KeyType, NearToken, SecretKey},
+    types::{AccessKey, Gas, KeyType, NearToken, SecretKey},
 };
 use rpc_rejections::{KeyRejection, rejection_evidence};
 use serde_json::{Value, json};
@@ -24,9 +24,11 @@ use std::{
 
 const NEAR: u128 = 1_000_000_000_000_000_000_000_000;
 const STANDARD_WORKER_ALLOWANCE: NearToken = NearToken::from_millinear(500);
-// max_gas() attaches 300 Tgas. Cover protocol88's observed 1e9 yocto/gas floor plus 1 Tgas fee headroom.
+const RUNTIME_CALL_GAS: Gas = Gas::from_tgas(300);
+// Pin fixture gas: near-workspaces max_gas() is 1000 Tgas. Include 1 Tgas fee headroom.
 const _: () = assert!(
-    STANDARD_WORKER_ALLOWANCE.as_yoctonear() >= 301_000_000_000_000u128 * 1_000_000_000
+    STANDARD_WORKER_ALLOWANCE.as_yoctonear()
+        >= (RUNTIME_CALL_GAS.as_gas() as u128 + 1_000_000_000_000) * 1_000_000_000
         && STANDARD_WORKER_ALLOWANCE.as_yoctonear() <= NEAR / 2
 );
 const REQUIRED_CASES: &[(&str, &[&str])] = &[
@@ -144,21 +146,23 @@ impl Harness {
         Ok(reference)
     }
     async fn rpc(&self, method: &str, params: Value) -> Result<Value> {
-        Ok(self
+        let response = self
             .rpc
             .post(self.worker.rpc_addr())
             .json(
                 &json!({"jsonrpc":"2.0","id":"agenttrust-runtime","method":method,"params":params}),
             )
             .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?)
+            .await?;
+        let status = response.status();
+        let raw: Value = response.json().await?;
+        ensure!(status.is_success(), "RPC HTTP {status} for {method}: {raw}");
+        Ok(raw)
     }
     async fn final_tx(&mut self, label: &str, submitted: TransactionStatus) -> Result<Value> {
         let started = Instant::now();
         let params = json!({"tx_hash":submitted.hash().to_string(),"sender_account_id":submitted.sender_id(),"wait_until":"FINAL"});
+        self.manifest["unresolved_submission"] = json!({"step":label,"transaction":params});
         loop {
             let raw = self.rpc("tx_status", params.clone()).await?;
             if raw["result"]["final_execution_status"] == "FINAL" {
@@ -171,6 +175,7 @@ impl Harness {
                     "transaction signer mismatch"
                 );
                 self.artifact(label, "final_transaction", &raw)?;
+                self.manifest["unresolved_submission"] = Value::Null;
                 return Ok(raw);
             }
             // Deliberately do not fall back to INCLUDED/EXECUTED or broadcast_tx_commit.
@@ -184,7 +189,7 @@ impl Harness {
         }
     }
     async fn call(&mut self, label: &str, call: CallTransaction) -> Result<Value> {
-        let pending = call.max_gas().transact_async().await?;
+        let pending = call.gas(RUNTIME_CALL_GAS).transact_async().await?;
         self.final_tx(label, pending).await
     }
     async fn manage(
@@ -781,7 +786,7 @@ async fn run(
             AccessKey::function_call_access(
                 &core,
                 &["execute_payment"],
-                Some(NearToken::from_millinear(50)),
+                Some(STANDARD_WORKER_ALLOWANCE),
             ),
         )
         .transact_async()
@@ -817,13 +822,13 @@ async fn run(
         cap.worker
             .call(&core, "execute_payment")
             .args_json(json!({"quote":qa,"credential":null}))
-            .max_gas()
+            .gas(RUNTIME_CALL_GAS)
             .transact_async(),
         sibling
             .worker
             .call(&core, "execute_payment")
             .args_json(json!({"quote":qb,"credential":null}))
-            .max_gas()
+            .gas(RUNTIME_CALL_GAS)
             .transact_async()
     );
     let a = h.final_tx("concurrent-a", a?).await?;
