@@ -38,7 +38,7 @@ Never put R/L into default install/build/test scripts, postinstall hooks, GitHub
 | V14 | Five dispatches fill fixed-minute count; failure retains count; denials/previews/replays do not charge it | D,R | T08,T09,T13 |
 | V15 | Policy/profile edit and midnight never reset pending liabilities or charge callback to wrong day | D,R | T09,T11,T13 |
 | V16 | Available claims/storage credits/operating funds backed under actual Promise deduction and final serialized storage | D,R | T06,T10,T13 |
-| V17 | Definitive failure restores claim once; until actual refund returns, backing rule blocks new transfer | D,R | T09,T11,T13 |
+| V17 | Definitive failure restores claim once; an uncredited refund cannot support a new outflow, and an otherwise eligible outflow in a no-surplus gap refuses as `INSUFFICIENT_BACKING` | D,R | T09,T11,T13 |
 | V18 | Transfer success + callback failure stays pending/reserved; timeout never refunds/resends | D,R,L | T11,T13,T17 |
 | V19 | Private/fake/repeated callbacks cannot double-finalize or fabricate success | D,R | T11,T13 |
 | V20 | Same owner/paymentID/tuple returns original operation; changed tuple conflicts across restart, including SDK changed CSV/service arguments | D,T,R,L | T10,T13,T17,T19 |
