@@ -1,12 +1,14 @@
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { nearAiDriver } from "../src/model.js";
 import { runBuyer, type Driver, type ProposedCall } from "../src/loop.js";
+import { digest } from "../src/journal.js";
 import { parseBuyerConfig } from "../src/config.js";
 import { parseMcpConfig } from "../../../packages/mcp/src/config.js";
 import { auditCsv } from "../../invoice-audit/src/audit.js";
+import { loadConformanceSuite } from "../../invoice-audit/src/conformance.js";
 import { block, context, csv, hash, payment, quote, service, transaction } from "../../invoice-audit/test/paid-fixtures.js";
 const names = ["list_services", "get_service", "get_policy", "preview_payment", "pay_service", "get_payment"];
 const paths: string[] = [];
@@ -14,6 +16,7 @@ afterEach(async () => { await Promise.all(paths.splice(0).map((p) => rm(p, { rec
 const a = { service_id: service.service_id, payment_id: context.payment_id }, b = { service_id: "second.testnet", payment_id: hash(3) };
 const pay = (c = a): ProposedCall => ({ name: "pay_service", arguments: { serviceId: c.service_id, paymentId: c.payment_id, csvUtf8: csv } });
 const denied = (c = a, origin = "preview") => ({ kind: "denied", origin, payment_id: c.payment_id, decision: { kind: "deny", code: "UNKNOWN_SERVICE" } });
+const missing = () => ({ kind: "denied", origin: "preview", payment_id: a.payment_id, decision: { kind: "require_validation", code: "MISSING", requirement: { capability_namespace: "invoice.audit", capability_version: 1, conformance_suite_version: 1, conformance_suite_hash: loadConformanceSuite().hash, accepted_issuers: ["issuer.testnet"] } } });
 const paid = (c = a) => ({ kind: "paid", payment: payment(quote({ service_id: c.service_id, payment_id: c.payment_id })), block, transaction, receipt_ids: ["1".repeat(32)], report: auditCsv(csv), output_check: { ok: true } });
 const driver = (calls: ProposedCall[]): Driver => ({ next: vi.fn(async () => ({ call: calls.shift() })) as Driver["next"] });
 async function setup(results: unknown[] = [], calls = [pay()]) {
@@ -26,6 +29,58 @@ async function setup(results: unknown[] = [], calls = [pay()]) {
 it("permits a separately identified alternative only after definitive refusal, then stops on checked report", async () => {
   const s = await setup([denied(), paid(b)], [pay(), pay(b), pay()]);
   expect(await runBuyer(s)).toMatchObject({ kind: "paid", report: auditCsv(csv) }); expect(s.client.callTool).toHaveBeenCalledTimes(2);
+});
+it("does not let a model pay the alternative before the first supplier is refused", async () => {
+  const s = await setup([paid(b)], [pay(b)]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect(await runBuyer(s)).toMatchObject({ kind: "stopped", reason: "attempt_boundary_violation" });
+  expect(s.client.callTool).not.toHaveBeenCalled();
+});
+it.each([denied(), { kind: "failed", payment: payment(quote(), "failed"), block, transaction }])("does not let a model pay B after A ends without MISSING %#", async (first) => {
+  const s = await setup([first, paid(b)], [pay(), pay(b)]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect(await runBuyer(s)).toMatchObject({ kind: "stopped", reason: "first_candidate_not_missing" });
+  expect(s.client.callTool).toHaveBeenCalledTimes(1);
+});
+it("lets a model pay B after a validated first-supplier MISSING refusal", async () => {
+  const s = await setup([missing(), paid(b)], [pay(), pay(b)]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect(await runBuyer(s)).toMatchObject({ kind: "paid", report: auditCsv(csv) });
+  expect(s.client.callTool).toHaveBeenCalledTimes(2);
+});
+it("revalidates the saved first-supplier outcome before a model can resume with B", async () => {
+  const s = await setup([denied()], [pay()]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect(await runBuyer(s)).toMatchObject({ kind: "stopped", reason: "first_candidate_not_missing" });
+  s.client.callTool.mockClear(); s.driver = driver([pay(b)]);
+  expect(await runBuyer(s)).toMatchObject({ kind: "stopped", reason: "first_candidate_not_missing" });
+  expect(s.client.callTool).not.toHaveBeenCalled();
+});
+it("resumes B with the original ID after revalidating saved A MISSING", async () => {
+  const s = await setup([missing(), paid(b)], [pay()]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect((await runBuyer(s)).kind).toBe("stopped");
+  s.client.callTool.mockClear();
+  s.driver = { next: async (history) => {
+    expect(JSON.parse(history[1]!.content!)).toMatchObject({ completed_payment_ids: [a.payment_id], recorded_first_missing: true });
+    return { call: pay(b) };
+  } };
+  expect(await runBuyer(s)).toMatchObject({ kind: "paid", report: auditCsv(csv) });
+  expect(s.client.callTool).toHaveBeenCalledTimes(1);
+  expect(s.client.callTool.mock.calls[0]![0].arguments.paymentId).toBe(b.payment_id);
+});
+it("rejects an old or edited first selection that points to B", async () => {
+  const s = await setup([missing()], [pay()]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect((await runBuyer(s)).kind).toBe("stopped");
+  const record = join(s.config.job_directory, `${digest(s.config.job_id)}.selection-0.json`);
+  await writeFile(record, JSON.stringify({ candidate: 1 }));
+  s.client.callTool.mockClear(); s.driver = driver([pay(b)]);
+  expect(await runBuyer(s)).toMatchObject({ kind: "stopped", reason: "invalid_job_record" });
+  expect(s.client.callTool).not.toHaveBeenCalled();
+});
+it("rejects a malformed saved MISSING denial before any resumed model call", async () => {
+  const s = await setup([missing()], [pay()]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  expect(await runBuyer(s)).toMatchObject({ kind: "stopped" });
+  const record = join(s.config.job_directory, `${digest(s.config.job_id)}.outcome-0.json`);
+  await writeFile(record, JSON.stringify({ ...missing(), decision: { ...missing().decision, requirement: { ...missing().decision.requirement, injected: true } } }));
+  s.client.callTool.mockClear(); s.driver = driver([pay(b)]);
+  expect((await runBuyer(s)).kind).toBe("stopped");
+  expect(s.client.callTool).not.toHaveBeenCalled();
 });
 it.each([{ kind: "uncertain", payment_id: a.payment_id, reason: "pending" }, { kind: "retrieval_failed" }, { kind: "denied", origin: "invented", payment_id: a.payment_id }, null])("stops on uncertain/retrieval/malformed result without alternative %#", async (result) => {
   const s = await setup([result, paid(b)], [pay(), pay(b)]); expect((await runBuyer(s)).kind).toBe("stopped"); expect(s.client.callTool).toHaveBeenCalledTimes(1);
@@ -100,7 +155,7 @@ it("rejects false error envelopes even when they contain a plausible paid result
 });
 
 it("runs mocked Cloud tool responses through the host with a redacted actual-driver trace", async () => {
-  const s = await setup([denied(), paid(b)]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
+  const s = await setup([missing(), paid(b)]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
   s.driver = nearAiDriver(s.config, "model-test-secret"); let turn = 0;
   vi.stubGlobal("fetch", async (_url: unknown, init?: RequestInit) => {
     expect((await readdir(s.config.job_directory)).some((f) => f.endsWith(".context.json"))).toBe(true);

@@ -211,7 +211,7 @@ If the key was already saved at `.agenttrust/near-ai-api-key`, use this alternat
 )
 ```
 
-This can incur model charges. The prepared job allows eight model/tool steps and 1,024 output tokens per request; these limits are not a dollar cap. Inspect `kind: paid`, the checked output and actual model/tool trace with received model responses. `recorded_replay` or zero model responses does not prove a fresh model-driven run. The jobs and redacted trace files remain under the private demo directory; [buyer documentation](../examples/buyer-agent/README.md) explains their bindings and limits. Never run either buyer concurrently with T18, the other buyer or another worker. Stop here if the model job or any attempted scripted job is pending, uncertain or otherwise unresolved.
+This can incur model charges. The prepared job allows eight model/tool steps and 1,024 output tokens per request; these limits are not a dollar cap. Inspect `kind: paid`, the checked output and actual model/tool trace with received model responses. In this two-candidate model job, provider A's `pay_service` result must be a validated `MISSING` refusal before the model may pay B; any other first outcome stops the job. `recorded_replay` or zero model responses does not prove a fresh model-driven run. The jobs and redacted trace files remain under the private demo directory; [buyer documentation](../examples/buyer-agent/README.md) explains their bindings and limits. Never run either buyer concurrently with T18, the other buyer or another worker. Stop here if the model job or any attempted scripted job is pending, uncertain or otherwise unresolved.
 
 ## 5. Run the state-changing negative cases last
 
