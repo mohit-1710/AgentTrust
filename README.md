@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation in progress.** The UI/docs baseline is preserved in a tagged import. The native policy/vault core, bounded public views, local SDK, invoice audit engine and signed supplier/conformance validator pass local checks: 99 pure Rust tests, 340 TypeScript tests and WASM compilation, plus five isolated RPC-error regression tests. The user-run native runtime harness is prepared; the paid HTTP/MCP flow and surface migration are in progress. No contract has been deployed, and no native runtime test is claimed passed.
+**Status: implementation in progress.** The native policy/vault core, local SDK, paid HTTP flow and invoice audit service pass local checks: 99 pure Rust tests and 436 TypeScript tests, plus five isolated RPC-error regression tests. The website and documentation now describe the native NEAR implementation while preserving the upstream design. Two local HTTPS providers have passed signed-quote checks; native-chain execution remains unverified. MCP and the buyer loop are being integrated. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 
@@ -11,6 +11,7 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 - [Reuse baseline](docs/sprint/baseline.md): exactly what the existing AgentTrust provides.
 - [Sprint ledger](docs/sprint/ledger.md): completed work and material decisions.
 - [Runtime runbook](docs/runtime-runbook.md): explicit user-run capture, evidence inspection and remaining cases.
+- [Local demo environment](docs/local-demo.md): reproducible website, docs and two HTTPS providers without cloud hosting.
 - [Verification matrix](docs/sprint/verification.md): each claim and the evidence required.
 - [Commit and scope policy](docs/sprint/workflow.md): real incremental history and change control.
 - [Planning review](docs/sprint/review.md): material findings, incorporated fixes and remaining runtime gates.
@@ -32,12 +33,12 @@ The older Monad project is a separate legacy repository; it is not the baseline 
 
 ## What is mocked or controlled
 
-No product runtime is running yet. The planned providers, synthetic invoice dataset and project-operated capability issuer are controlled demonstration components. The issuer's claim is limited to a named conformance suite and time. Core authorization, contract payout, settlement and replay protection must be real in the final demonstration. Testnet activity is not revenue; settled payments are not proof of service quality.
+The providers, synthetic invoice dataset and project-operated capability issuer are controlled demonstration components. Local HTTP/HTTPS and stdio tests use explicit mock RPC or no RPC; they are not native payment evidence. The issuer's claim is limited to a named conformance suite and time. Core authorization, contract payout, settlement and replay protection must be real in the final demonstration. Testnet activity is not revenue; settled payments are not proof of service quality.
 
 A successful transfer followed by a failed callback can leave funds reserved indefinitely. The 120-second reconciliation label is diagnostic only; this prototype has no automatic refund, resend or administrative resolver. Storage shrinkage does not refund previously charged credit.
 
 ## Verification and execution boundary
 
-Run `. scripts/env.sh`, `pnpm check:fast` and `pnpm build:contract` for the implemented local checks. See [toolchain setup and results](docs/sprint/toolchain.md). Future runtime/UI commands fail explicitly until their owning tasks implement them. No runtime/deployment command is implied by reading this repository. Ordinary pure in-memory tests and builds will be separate from database-writing Sandbox/integration operations. The standing database/AWS/Terraform restrictions apply; restricted execution is prepared for the user to run themselves. No cloud infrastructure, production deployments, public release or event submission is part of this planning baseline.
+Run `. scripts/env.sh`, `pnpm check:fast` and `pnpm build:contract` for the implemented local checks. `pnpm build:services` and `pnpm build:surfaces` compile the provider and existing website/docs. See [toolchain setup and results](docs/sprint/toolchain.md) and the [ledger](docs/sprint/ledger.md) for actual verification. Native runtime and testnet commands require separate explicit user-run execution; unavailable commands fail with their owning task. No runtime/deployment command is implied by reading this repository. Ordinary in-memory tests and builds are separate from database-writing Sandbox/integration operations. No cloud infrastructure, production deployment, public release or event submission has been performed.
 
 Event deadline: **14 November 2026, 23:59 UTC / 15 November 2026, 05:29 IST**. The repository is private during preparation and must be made public before submission through a later explicit release action. [Official rules](https://nearhackathon.com/HACKATHON.md).
