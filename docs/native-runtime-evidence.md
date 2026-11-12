@@ -1,6 +1,6 @@
 # Native Sandbox evidence — 12 November 2026
 
-**Latest: execution evidence supports 20 of 21 case groups; the native gate remains incomplete.** The broad capture below passes 19 groups. The later [standalone V15 capture](#later-standalone-v15-capture-midnight-and-owner-edits) supplies the midnight/edit proof. Refund-gap evidence and clean midnight-launcher termination remain open.
+**Latest: execution evidence supports 20 of 21 case groups; the native gate remains incomplete.** The broad capture below passes 19 groups. The later [standalone V15 capture](#later-standalone-v15-capture-midnight-and-owner-edits) supplies the midnight/edit proof, and the [clean rerun](#clean-launcher-rerun) completes with outer exit 0. Refund-gap evidence remains open.
 
 Capture `fixed-gas-20261112T163836Z` finished at **16:44:11 UTC** with exit **2**, 116 passing case assertions, no fatal error and no unresolved submission locator. Its `refund_gap` is explicitly `unavailable`; its `midnight_and_edits` is `not_run`. Neither historical status is rewritten by the separate capture.
 
@@ -92,7 +92,7 @@ Expected exit: **2**, because the native gate is incomplete. This command does n
 
 ## Later standalone V15 capture: midnight and owner edits
 
-**The separate native fixture passed V15; its outer launcher exit is still unresolved.** Capture `midnight-inclusion-20261112T165320Z` completed at **16:56:04 UTC**, reporting fixture exit 0 and **15 passing assertions**. Independent read-only review verified all **163 unique artifact hashes** and 41 conditions derived directly from the raw receipts, block headers and stored state. This supplies the midnight evidence missing from the historical 19-of-21 capture above; that capture's manifest and results remain unchanged.
+**The separate native fixture passed V15; this original outer launcher failed.** Capture `midnight-inclusion-20261112T165320Z` completed at **16:56:04 UTC**, reporting fixture exit 0 and **15 passing assertions**. Independent read-only review verified all **163 unique artifact hashes** and 41 conditions derived directly from the raw receipts, block headers and stored state. This supplies the midnight evidence missing from the historical 19-of-21 capture above; that capture's manifest and results remain unchanged. A later clean launcher result is recorded below.
 
 | Item | Recorded value |
 | --- | --- |
@@ -127,4 +127,22 @@ The earlier standalone attempts remain failures, without rewriting their artifac
 - `midnight-20261112T163957Z`, source `81cffe9`: four artifacts, HTTP 408 during setup, no midnight assertions.
 - `midnight-polling-20261112T164601Z`, source `72b7022`: 147 artifacts; the callback crossed midnight, but the owner edit committed after settlement. Three of 13 assertions failed and no replay ran.
 
-**Acceptance boundary:** the native V15 evidence is accepted. The Node launcher subsequently reported a generic failure and remained alive after the fixture finished; clean command termination is not yet established. The separate no-surplus **refund-gap evidence remains open**, so the full native gate is still incomplete. This result also does not establish model execution, two complete rehearsals or browser verification. See the [standalone fixture runbook](runtime-midnight-fixture.md) for its bounded user-run procedure.
+**Acceptance boundary:** the native V15 evidence is accepted. This original Node launcher subsequently reported a generic failure and remained alive after the fixture finished; it did not establish clean command termination. The separate no-surplus **refund-gap evidence remains open**, so the full native gate is still incomplete. This result also does not establish model execution, two complete rehearsals or browser verification. See the [standalone fixture runbook](runtime-midnight-fixture.md) for its bounded user-run procedure.
+
+## Clean launcher rerun
+
+Capture `midnight-reaped-20261112T171500Z` completed at **17:18:17 UTC** from clean `cc4f02d7e9aad079cad3f05a2dfb8c18e51a7bfd`, tagged `native-midnight-candidate-3`. Both the native fixture and the outer command exited **0**. All **15 native assertions passed** and all **163 artifact hashes matched** in independent review. The production WASM, runtime lock and Rust fixture binary are unchanged from the accepted V15 proof.
+
+| Item | Recorded value |
+| --- | --- |
+| Manifest SHA256 | `c5ec300a36bab1498d1ec66f2a2a56a67946f1a2c5871832d46d4ee803dccf12` |
+| Launcher SHA256 | `515afbe4a099eeda4d99a7c8e1e6e135bef9eb5d0a2d36dc72ddf7a5b118c24d` |
+| Dispatch | 12 November, 23:59:58.947779 UTC |
+| Committed owner edit | 13 November, 00:00:00.957731 UTC |
+| Settlement callback | 13 November, 00:00:02.970032 UTC |
+
+Independent raw review binds canonical blocks 12148–12151, the committed 0.03 NEAR pending balance during the edit, original-day-only accounting, one native payout and the exact replay's unchanged payment, ledger and recipient balance.
+
+The launcher recorded `MIDNIGHT_OWNED_GROUP_OBSERVED_ABSENT_AFTER_EPERM`: after the direct child exited, bounded read-only probes observed the owned group disappear. That terminal observation, not the permission error itself, permits success. A subsequent process inspection found no remaining fixture, Sandbox or launcher. Fourteen isolated process cases and a real owned zombie/reaping test also passed independent review; persistent permission errors and unrelated failures remain nonzero.
+
+The preceding `f64571b` capture, `midnight-cleanup-20261112T170430Z`, remains separately retained: 163 verified hashes, 15 native assertions, fixture exit 0, outer exit **1** with `EPERM`. Its manifest SHA256 is `25ddfd8466a06abaee2858997207968e867e205283d2928d65f10b9e7d19e365`. No earlier capture or outer result was rewritten. This clean rerun closes launcher termination; it does not close refund-gap coverage or either actual-model rehearsal.

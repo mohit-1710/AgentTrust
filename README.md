@@ -6,7 +6,7 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 
 Local checks cover 99 pure Rust tests and 672 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks. Its actual testnet decision feed returned both settled payments and all three verified refusals; browser interaction remains untested.
 
-The [native execution evidence](docs/native-runtime-evidence.md) supports 20 of 21 case groups: the broad Sandbox run passes 19 groups, and a separate midnight run proves owner edits preserve pending funds, settlement charges the original day and exact replay adds no payout. The refund-gap case remains open. The midnight launcher's cleanup issue is tracked separately; distinct callback-fault and helper builds in the broad run are disclosed.
+The [native execution evidence](docs/native-runtime-evidence.md) supports 20 of 21 case groups: the broad Sandbox run passes 19 groups, and a separate midnight run proves owner edits preserve pending funds, settlement charges the original day and exact replay adds no payout. The latest midnight command completes with exit 0 and observed process-group cleanup. The refund-gap case remains open; distinct callback-fault and helper builds in the broad run are disclosed.
 
 ## Start here
 
