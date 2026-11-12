@@ -18,7 +18,7 @@ async function files(dir) {
 }
 const active = (await files(activeRoot)).filter((file) => file.endsWith('.mdx'));
 const archived = (await files(archiveRoot)).filter((file) => file.endsWith('.mdx'));
-assert.equal(active.length, 34);
+assert.equal(active.length, 37);
 assert.equal(archived.length, 11);
 const baseline = JSON.parse(await read(path.join(repoRoot, 'docs/sprint/ui-baseline-manifest.json'))).files;
 const originals = baseline.filter((entry) => entry.path.startsWith('docs-site/content/docs/') && entry.path.endsWith('.mdx'));

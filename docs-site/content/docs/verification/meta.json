@@ -3,6 +3,9 @@
   "pages": [
     "index",
     "live-evidence",
+    "testnet-r2",
+    "testnet-r3",
+    "testnet-r4",
     "devnet-smoke",
     "chained-validation",
     "atomic-tx-invariant",

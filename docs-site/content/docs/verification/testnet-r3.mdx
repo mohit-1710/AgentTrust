@@ -1,0 +1,75 @@
+---
+title: "Testnet r3: first actual-model purchase rehearsal"
+description: "Dated local-model, MCP and native NEAR proof."
+---
+
+**12 November 2026, 23:35–23:40 UTC.** This is the first complete fresh operator sequence with an actual local model, the restricted MCP worker, two controlled HTTPS providers and native NEAR testnet settlement. It includes direct contract refusals, one direct paid audit and exact retry, a separate model-requested paid audit, credential revocation and identity rotation. It is one rehearsal; the second fresh run and the separate native refund-order runtime case are outside this record.
+
+## Source and controlled environment
+
+| Item | Observed value |
+| --- | --- |
+| Captured source commit / working tree | 9338803431ecce07bb62945cd0ddecc0bf0a9d87 / clean |
+| Network / RPC | near:testnet / https://test.rpc.fastnear.com |
+| Core / owner | core.agenttrust-2ae097b8b3780f87dc41fbba.testnet / owner.agenttrust-2ae097b8b3780f87dc41fbba.testnet |
+| Issuer | issuer.agenttrust-2ae097b8b3780f87dc41fbba.testnet |
+| Controlled provider A / B | service-a.agenttrust-2ae097b8b3780f87dc41fbba.testnet / service-b.agenttrust-2ae097b8b3780f87dc41fbba.testnet |
+| Production WASM SHA-256 | f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f |
+| Final on-chain core code hash | HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS |
+| Deployment transaction | 7wQbzydJNXwAFj665ZTxH3niq6RaH9hhRR9ybsp4bf5Q |
+| Restricted worker public key | ed25519:Fwejjnx6GdC9q5WxmyS6SmWjF62koFFt6rv3fq8Jsw7X |
+
+All 23 dated r3 manifests share that source commit and report a clean working tree. Their 218 referenced artifacts passed the repository's read-only hash and structure checker: 21 step captures are marked passed; validation and the saved identity quote are correctly marked prepared. The faucet's first result was uncertain, so the operator observed the original claim without resending; that observation found a 10 NEAR parent account but does not prove the helper's original grant response. Five child-account creations reached FINAL success.
+
+The worker key is a NEAR function-call key restricted to this core's execute_payment method, with a finite 0.5 NEAR gas allowance. The owner session purchase cap was 0.01 NEAR; policy had a 0.05 NEAR daily cap, a five-dispatches-per-minute limit and two specifically trusted service identities. Provider B passed four controlled invoice-audit conformance fixtures and a signed identity check. The project-operated issuer then issued its version-1 credential in FINAL transaction BsHJXT7wx7XfpNXfnALe3uFE8CYW5wJd3b3xqASzYiJF. Provider A intentionally had no credential.
+
+## Direct native calls
+
+| Capture | FINAL transaction | Contract result and provider payout |
+| --- | --- | --- |
+| r3-16-missing | CvgJwgmjgW5VRRWnokyepH2ksdPSjfntrtFVpgKeoE7M | Executed MISSING credential rejection; payment absent before/after; zero provider payout. |
+| r3-17-purchase | 6EtHNNTPSEGb5DCQuMcEc8SfV4BiubqTxyZNA57uZmWP | Settled 0.002 NEAR to B, final payment view and independently checked audit report. |
+| r3-18-retry | 9NCPQkPu85DBFfeQ5SXNCL9EgrxtaQb8bf3UPaBXKvKE | Exact original ID, signed quote and credential returned duplicate:true; settled record unchanged and zero additional provider payout. |
+| r3-20-revoked | DdpNTbjsYssUrhxtQyqf4JAq69B8n1UZw3Bmduz5xSeb | Executed REVOKED credential rejection; payment absent before/after; zero provider payout. |
+| r3-23-identity-refusal | EZE6dc3YxB2CwjZpJH629n5M6Wx1WPrC6ZqoRFJ3sCc6 | Executed IDENTITY_CHANGED rejection of the preserved old quote; payment absent before/after; zero provider payout. |
+
+The direct purchase's payment ID was ycSR5GztcGFKWLB9fQBajgi1xUrEhqpiDq7qUcTZkEM= and invoice hash was +WLc+HTV5KOYd9grDe0B6QqFBwiS7HBpfvqjSJgTIlM=. Receipt 3qAjEPbEKcGDTAL1XTJbXJe1MiKMMRfKA6ta3x9okj7b transferred exactly 2000000000000000000000 yoctoNEAR from the core to B; receipt CAXRxME9ukBgea7KN2QSns7jrShSgAW8njZHt5U7h5sN ran the private self-callback. The retry used identical saved-attempt bytes (SHA-256 f456c266a0d9cbf68e9099d7d3c4e3f1c3ac1871b5551d8db6c64b630076ceb1), returned duplicate:true, preserved the byte-identical settled payment view and had no second core-to-B transfer.
+
+The issuer revoked B's original credential in FINAL transaction DVT3GuanosMpJ2RTDu3YB5ZoaUVMLhYGmLT9fqNW9ANF. B then rotated its registry identity to version 2 and a new payout account in FINAL transaction EH9CFvKk7HJys7M7qGFSJRMx8jKs3yhfHinfpXwRgQcb. The saved identity quote and attempted quote bytes were identical (SHA-256 4c02d1135cf9968a38341c1e4a8b4f059b66c79180d6a84e07b2e7a89831aff4). Its rejecting core receipt executed at block height 277431983, 108.153 seconds before the old quote expired. That quote carried no credential, so this demonstrates identity-check precedence rather than a valid credential surviving rotation.
+
+These rejections are successful FINAL NEAR transactions whose contract returns contain refusal decisions; they are not failed transactions. The zero-payout statements concern service transfers, not network gas.
+
+## Actual local-model and MCP purchase
+
+The initial model run, 5b96f4ca-8f54-4d25-8c88-b120b217ea8a, ran from 23:39:03.857 to 23:39:19.977 UTC with an installed local Ollama qwen3:4b-instruct model. Five actual model responses requested get_policy, list_services, get_service, pay_service for A and pay_service for B, in that order. The local model was offered five task-usable tools; its pay_service schema exposed only the supplier currently allowed by the host. The host supplied the precommitted payment ID and exact original CSV from the job context, marked both fields as host-bound in the trace, and independently checked every tool result.
+
+The A model attempt returned a validated **preview MISSING** credential refusal without submitting a chain transaction. It is distinct from the executed r3-16 rejection above. Only then did the model request B. B's separate payment ID was sWtsZC9W/TgDvpXUC3HQ6II3hkkpwn5zZPK/FeDzUK4=, invoice hash 1q44jjpxtqEAQIovCz+m0a/6beHugZquTxDbk+w1Ipg= and FINAL transaction CpsFoiCWPHYRxmXqfdowa7jPAGJhQJx7AZ8srmfZRiGs. Receipt C2DaLwdbo94uxeHpvJxqVkSzrvNAvMY4AtucDorBw3dE transferred exactly 0.002 NEAR from the core to B; receipt 2AyyRP1aXysd6LbcBxys77vbft89kJPsG1422Ju9r41T invoked the private self-callback. The saved outcome records final block height 277431863, settled state and a checked report bound to request hash b6yhwgU63NdqCBcY+nLV0iOcPGeCZDWa8pGNPQQ00B4=.
+
+The report matches the committed mixed-validity golden: 15 rows, 8 accepted, 7 rejected and one duplicate vendor/invoice group. Valid-row totals are EUR 3.23, INR 10000000000000000.00 and USD 19.25; these include valid duplicate rows and are not payable totals. Its compact JSON SHA-256 is 47fb746c242a16e629e9cb553702ec8e289afdd57b57265a22ac2c6fe1be565a. This is a controlled synthetic-input result, not evidence of general audit accuracy.
+
+Keyless terminal replay 94116f96-3304-4e5f-9355-8e418f5a2d11 returned the same saved paid report and payment at 23:39:30.570–23:39:30.588 UTC. Its trace contains started and completed_replay only: zero model responses, zero MCP tool requests and no new payment. The replay's result hash is c83753bf3a3a0d64d1e5ce47c8596cdf00a5ed0635e09da8f987cae6f6d2dc0e.
+
+## Independent final read and retained originals
+
+At 23:43:10.903 UTC, a fresh final RPC get_payment read at height 277432244 (block E4quSM9eAsTD47FzqqxKW8mwVeQ2o77HsqxYj4x74h3U) still returned the model payment as settled with the same ID, service and 0.002 NEAR invoice amount. A fresh FINAL transaction-status read found the exact core-to-B transfer above and successful execution; a core-account read still matched the deployed code hash. These are public RPC observations, not a light-client proof.
+
+To inspect the model transaction independently, use the read-only testnet RPC call:
+
+```sh
+curl --fail --silent --show-error https://test.rpc.fastnear.com \
+  -H 'content-type: application/json' \
+  --data '{"jsonrpc":"2.0","id":"r3-model","method":"EXPERIMENTAL_tx_status","params":{"tx_hash":"CpsFoiCWPHYRxmXqfdowa7jPAGJhQJx7AZ8srmfZRiGs","sender_account_id":"owner.agenttrust-2ae097b8b3780f87dc41fbba.testnet","wait_until":"FINAL"}}'
+```
+
+The original captures and job records remain ignored locally. The SHA-256 values below bind this summary to retained files; the files themselves are not copied into this document.
+
+| Retained original | SHA-256 |
+| --- | --- |
+| r3-16-missing manifest | a5eec1172d92a5b69e6781800684e0b4e689856411f37b0013d3a5ccc29bf260 |
+| r3-17-purchase manifest | 823668b90d7116345e961cea57e04e8699d7f0d50e343a6098c8eefec092799b |
+| r3-18-retry manifest | 2daa75ed2f2a83b74cbb21fe9791b6f6bb05a6160a9c2704d6f8a002b75d3c47 |
+| r3-20-revoked manifest | b6eb76154a9eb594998c365c02962289374e4d1d343aa98974089d0065b58d47 |
+| r3-23-identity-refusal manifest | 56431d8249e2dea41bb5fe0f5d37746f30ae4a6a670c69cdf3263c9bcec7383c |
+| Private buyer outcome-0 / outcome-1 records | 8bbd126a59aaa2aee060ca80a292490e98227bb999a24bf117849b2db3bdf775 / 0a3600e019aa203deaf8e4412c2a649df2a2cf7ce18020212c16b9c1973ebdb3 |
+
+The issuer and both providers are project-operated, the model runs locally without NEAR AI Cloud or TEE attestation, and the paid providers/MCP are localhost services rather than public hosted endpoints. The website and docs are public read-only surfaces; this file does not verify an updated r3 website feed. Browser visual QA was not performed. A second fresh rehearsal, the separate native refund-order Sandbox case and any recording/submission must be judged from their own evidence. Nothing here claims that an unknown or pending payment is safe to resend under a new ID.
