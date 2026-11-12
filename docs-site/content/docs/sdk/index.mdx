@@ -7,7 +7,7 @@ description: "Canonical protocol helpers and a local client for native views, ex
 
 The implemented protocol layer contains strict wire types, canonical invoice/descriptor encoders, hashes, request hashing and Ed25519 verification. See [exports](/sdk/exports-reference).
 
-The implemented `AgentTrustClient` adds read-only final views, non-authoritative preview, local restricted-key execution and finality observation. `ServiceDirectory` resolves explicit service/version origins. These methods pass local tests with mocked RPC; no live execution is claimed. The paid HTTP flow and `payService` remain under implementation in [milestone status](/reference/changelog).
+The implemented `AgentTrustClient` adds read-only final views, non-authoritative preview, local restricted-key execution and finality observation. `ServiceDirectory` resolves explicit service/version origins. These methods pass local tests; the [r2 testnet run](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) separately records restricted-key native execution and a scripted MCP purchase through the implemented `payService` flow. The actual-model purchase and two full rehearsals remain open.
 
 The worker client pins the network/core, checks its local key's restricted permission and verifies the configured service/version origin. `AgentTrustOwner` is a separate `@agenttrust/near-sdk/owner` entrypoint for owner management; keep it in a separate process. No arbitrary transaction signer, endpoint crawler or owner key is exposed to the agent.
 

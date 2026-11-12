@@ -16,12 +16,12 @@ export const PLUG_SECTION_TITLE = "A bounded tool call.";
 
 export const PLUG_COPY: readonly PlugCopySegment[] = [
   { text: "A local agent should ask for a service, not raw signing power. " },
-  { text: "The planned six-tool MCP surface keeps owner management separate and accepts a stable payment ID for every purchase.", isDim: true },
+  { text: "The six-tool local MCP keeps owner management separate and accepts a stable payment ID for every purchase.", isDim: true },
 ] as const;
 
 export const PLUG_CTA = {
   href: PUBLIC_LINKS.docsQuickstart,
-  label: "Read the Integration Plan",
+  label: "Read the Integration Guide",
 } as const;
 
 export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [

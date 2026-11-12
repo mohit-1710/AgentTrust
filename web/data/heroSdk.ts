@@ -10,7 +10,7 @@ export const HERO_SDK_COPY = {
   eyebrow: "Native development kit",
   title: "Inspect the payment boundary.",
   body: "From a prepared checkout, run the pure checks. The runtime runbook separates compiled code from observed native receipts.",
-  commandLabel: "Copy local check command", copiedLabel: "Copied", terminalTitle: "planned-purchase-flow · illustration",
+  commandLabel: "Copy local check command", copiedLabel: "Copied", terminalTitle: "native-payment-flow · illustration",
 } as const;
 export const HERO_SDK_LINKS: readonly HeroSdkLink[] = [
   { href: PUBLIC_LINKS.sdkSource, icon: "package", label: "SDK source", meta: "Local package · unpublished" },

@@ -49,7 +49,7 @@ export const EVENTS: readonly EventItem[] = [
   {
     date: "HTTP 402",
     description:
-      "Inspect the planned signed-quote and settled-receipt flow for one native adapter.",
+      "Inspect the signed-quote and settled-receipt flow for one native adapter.",
     event: "Custom HTTP 402 flow",
     href: PUBLIC_LINKS.docsHttp402,
     imageAlt: "Verifier nodes around an AgentTrust triangle",

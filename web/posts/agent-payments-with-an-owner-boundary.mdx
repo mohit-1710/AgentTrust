@@ -18,12 +18,12 @@ Registration does not grant trust. The owner must permit the exact supplier iden
 
 ## One bounded demonstration
 
-The planned demonstration uses two controlled providers of `invoice.audit.v1`. The audit engine parses CSV, reports duplicate invoice groups and rejected rows, and computes exact per-currency totals. Totals include valid duplicates and are explicitly not payable amounts.
+The controlled testnet demonstration uses two providers of `invoice.audit.v1`. The audit engine parses CSV, reports duplicate invoice groups and rejected rows, and computes exact per-currency totals. Totals include valid duplicates and are explicitly not payable amounts.
 
 The project-operated validator tests named public fixtures and checks a supplier-signed identity challenge. Passing the suite says only that those fixtures passed at that time. It does not attest to arbitrary future provider behavior.
 
 ## What is verified today
 
-The native policy, registry, reservation, callback, withdrawal, audit, and validator code has local checks. Native runtime verification and the full paid HTTP/MCP path remain separate gates. No deployed contract or completed live purchase is claimed here.
+The [r2 testnet capture](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) records a deployed core, two settled native payments, contract refusals, an exact retry without a second payout and a checked report. Its MCP buyer was scripted. Separate [native runtime captures](https://github.com/mohit-1710/AgentTrust/blob/main/docs/native-runtime-evidence.md) support 20 of 21 case groups; the refund-gap case remains open. An actual-model run, two fresh rehearsals and public hosting are not claimed.
 
 The visual website and docs shell are reused from the upstream AgentTrust project. The NEAR integration is new work, recorded separately in the repository's build ledger and baseline tags.

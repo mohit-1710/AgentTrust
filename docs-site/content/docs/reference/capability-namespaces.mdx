@@ -19,7 +19,7 @@ A profile pins `conformance_suite_version` and `conformance_suite_hash` plus its
 
 The implemented audit report binds the exact input hash and contains logical row counts, duplicate vendor/invoice groups, rejected rows and exact per-currency totals. Valid duplicate rows remain included in those totals, which are not amounts to pay. The engine accepts bounded UTF-8 CSV with the four required headers, quoted fields and LF/CRLF records; the committed [fixture suite](https://github.com/mohit-1710/AgentTrust/blob/main/fixtures/invoice-audit/v1/suite.json) pins the controlled conformance cases. A passing suite is a bounded behavior claim, not a general accuracy guarantee.
 
-No deployed suite hash, issuer record or credential ID is supplied here until it is backed by reviewed evidence. The explicit native generator reads the profile validator. It does not read a deployment catalog or invent credentials.
+The [r2 testnet run](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) used suite hash `xtCJ71mS8vG1KVIyj6ttKwBmQ7Su5suqkSLCUn8Xl40=` and recorded provider B's credential issuance by `issuer.agenttrust-73cf3674cd1978d09120a484.testnet` in FINAL transaction `2qghHS9pG92Kcj8staroJ8pKjoA4tE5uAyddjfSE1PuA`. That credential was revoked later in the same run. The native generator still reads only the profile validator; it does not invent a live credential catalog.
 
 ## Source and verification
 

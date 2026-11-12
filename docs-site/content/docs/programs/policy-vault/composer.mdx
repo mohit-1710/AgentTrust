@@ -3,7 +3,7 @@ title: "Ordered payment decisions"
 description: "A deterministic sequence of checks before a new native payment can be dispatched."
 ---
 
-> The evaluator and native dispatch are implemented locally. Check [implementation status](/reference/changelog) for pending runtime and client integration gates.
+> The evaluator and native dispatch are implemented. Check [implementation status](/reference/changelog) for the accepted testnet/runtime evidence and open refund-gap/model rehearsal gates.
 
 The worker entry point must authenticate the actual caller and signing key, then check the owner-scoped payment ID. An exact existing invoice hash returns the original payment without dispatching again; a changed invoice under that ID conflicts.
 

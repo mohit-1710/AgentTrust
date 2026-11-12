@@ -5,9 +5,19 @@ description: "One core account and verified deployment metadata, supplied by an 
 
 This native build targets the protocol domain `near:testnet`. The active deployment model is one core account and one WASM artifact.
 
-No account ID, code hash, transaction ID or hosted service URL is asserted as deployed in this documentation snapshot. Do not use upstream addresses or a fixture's synthetic account strings as native deployment configuration.
+The dated [r2 testnet evidence](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) verifies this production-contract deployment. Its [public RPC extract](https://github.com/mohit-1710/AgentTrust/blob/main/docs/evidence/r2-native/README.md) records selected transaction and receipt fields:
 
-After an authorized/user-run deployment, record and verify:
+| R2 field | Verified value |
+|---|---|
+| Core account | `core.agenttrust-73cf3674cd1978d09120a484.testnet` |
+| On-chain code hash | `HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS` |
+| Production WASM SHA-256 | `f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f` |
+| Deployment transaction | `7canY4idgiM854pCRxY2Vw4UStzXxWezjriwoqZjouqc` |
+| Source commit | `315503c59eb5b515768d4c7c176983180ff15576` |
+
+R2 ended with B's credential revoked and its identity rotated. It is evidence of that run, not a default configuration for a fresh purchase. No hosted service URL or production deployment is claimed.
+
+For any fresh deployment, record and verify:
 
 | Field | Required evidence |
 |---|---|

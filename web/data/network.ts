@@ -28,11 +28,11 @@ export const NETWORK_LABELS: readonly NetworkLabel[] = [
   },
   {
     text: "/ Custom HTTP 402",
-    caption: "One native adapter in development; no standard-exact claim.",
+    caption: "Custom adapter built; no standard-exact claim.",
   },
   {
     text: "/ Controlled demonstration",
-    caption: "Planned: two controlled providers, one invoice-audit capability.",
+    caption: "Two controlled providers, one invoice-audit capability.",
   },
 ] as const;
 

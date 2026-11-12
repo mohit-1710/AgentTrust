@@ -3,7 +3,7 @@ export interface CoreResponsibility {
   readonly name: string; readonly sourcePath: string; readonly role: string; readonly docsHref: string;
 }
 export const PROGRAMS_SECTION_ID = "programs";
-export const PROGRAMS_EYEBROW = "One native NEAR core · not deployed";
+export const PROGRAMS_EYEBROW = "One native NEAR core · deployed on testnet";
 export const PROGRAMS_TITLE = { lead: "Three responsibilities,", emphasis: "one spending boundary." } as const;
 export const PROGRAMS_INTRO = "A single Rust contract owns the registry, policy admission, and payment ledger. A transfer and its callback run in separate receipts; pending never means paid.";
 export const CORE_RESPONSIBILITIES: readonly CoreResponsibility[] = [

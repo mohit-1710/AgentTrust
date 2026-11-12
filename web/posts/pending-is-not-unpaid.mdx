@@ -24,6 +24,6 @@ If the transfer succeeds but its callback fails, the reservation can remain inde
 
 A supplier must independently check final settled state and the full invoice/request binding before releasing a report. A settled receipt remains valid for its original input after quote expiry; retrieval failure never permits repayment.
 
-## Evidence still required
+## Evidence and remaining gap
 
-Pure transition tests and compiled WASM establish useful properties of the implementation, but they do not establish native receipt ordering, actual storage charging, or restricted-key behavior. The repository includes a user-run runtime harness and records which cases remain open. A live end-to-end payment is not yet claimed.
+The [native runtime captures](https://github.com/mohit-1710/AgentTrust/blob/main/docs/native-runtime-evidence.md) support 20 of 21 case groups, including actual restricted-key behavior, storage and receipt cases. The refund-gap case remains unobserved. The [r2 testnet run](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) records two settled native payments and exact retry behavior; its buyer was scripted, and an actual-model purchase and two full rehearsals remain open.

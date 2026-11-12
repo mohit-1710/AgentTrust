@@ -13,7 +13,7 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "NEAR prototype · local checks passed · runtime verification pending";
+  "NEAR testnet payments verified · refund-gap proof pending";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [
