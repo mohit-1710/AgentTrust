@@ -1,5 +1,6 @@
 //! USER-RUN ONLY: separate bounded timing experiment. Never part of default tests.
 mod midnight_assertions;
+mod midnight_rpc;
 use agenttrust_domain::{codec, owner::ActorState, types::InvoiceV1};
 use anyhow::{Context, Result, bail, ensure};
 use base64::{Engine, engine::general_purpose::STANDARD};
@@ -86,16 +87,37 @@ impl Capture {
             .push(json!({"path":name,"sha256":hash(&bytes)}));
         self.save()
     }
-    async fn rpc(&self, method: &str, params: Value) -> Result<Value> {
-        Ok(self
-            .rpc
-            .post(&self.url)
-            .json(&json!({"jsonrpc":"2.0","id":"midnight","method":method,"params":params}))
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?)
+    async fn rpc(&mut self, method: &str, params: Value) -> Result<Value> {
+        let request = json!({"jsonrpc":"2.0","id":"midnight","method":method,"params":params});
+        let response = match self.rpc.post(&self.url).json(&request).send().await {
+            Ok(response) => response,
+            Err(error) => {
+                self.put(
+                    "rpc-transport-error",
+                    &json!({"request":request,"error":error.to_string()}),
+                )?;
+                return Err(error).context(format!("RPC {method} transport failed"));
+            }
+        };
+        let status = response.status().as_u16();
+        let body = match response.bytes().await {
+            Ok(body) => body,
+            Err(error) => {
+                self.put(
+                    "rpc-body-error",
+                    &json!({"request":request,"http_status":status,"error":error.to_string()}),
+                )?;
+                return Err(error).context(format!("RPC {method} body failed"));
+            }
+        };
+        match midnight_rpc::decode_response(status, &body) {
+            Ok(raw) => Ok(raw),
+            Err(error) => {
+                self.put("rpc-response-error", &json!({"request":request,"http_status":status,
+                    "body_base64":STANDARD.encode(&body),"response":serde_json::from_slice::<Value>(&body).ok()}))?;
+                Err(error).context(format!("RPC {method} response failed"))
+            }
+        }
     }
     async fn query(&mut self, label: &str, params: Value) -> Result<Value> {
         let raw = self.rpc("query", params.clone()).await?;
@@ -120,17 +142,50 @@ impl Capture {
         ensure!(raw.get("error").is_none(), "block unavailable");
         Ok(raw["result"].clone())
     }
-    async fn head(&self) -> Result<Value> {
+    async fn head(&mut self) -> Result<Value> {
         let raw = self.rpc("block", json!({"finality":"optimistic"})).await?;
         ensure!(raw.get("error").is_none(), "optimistic block unavailable");
         Ok(raw["result"].clone())
     }
     async fn final_tx(&mut self, label: &str, tx: &TransactionStatus) -> Result<Value> {
-        let params = json!({"tx_hash":tx.hash().to_string(),"sender_account_id":tx.sender_id(),"wait_until":"FINAL"});
+        // Persist even setup locators before the first status request. A failed
+        // observation never authorizes another transaction or a new nonce.
+        self.submitted(&format!("{label}-awaiting-final"), tx)?;
+        let hash = tx.hash().to_string();
+        let params = midnight_rpc::status_request(&hash, tx.sender_id().as_str());
         let start = Instant::now();
+        let mut previous = Value::Null;
         loop {
-            let raw = self.rpc("tx_status", params.clone()).await?;
-            if raw["result"]["final_execution_status"] == "FINAL" {
+            let remaining = Duration::from_secs(90).saturating_sub(start.elapsed());
+            if remaining.is_zero() {
+                self.put(
+                    "final-timeout",
+                    &json!({"request":params,"last_response":previous}),
+                )?;
+                bail!("FINAL timeout: {label}");
+            }
+            let raw = match tokio::time::timeout(remaining, self.rpc("tx_status", params.clone()))
+                .await
+            {
+                Ok(raw) => raw?,
+                Err(_) => {
+                    self.put(
+                        "final-timeout",
+                        &json!({"request":params,"last_response":previous}),
+                    )?;
+                    bail!("FINAL timeout: {label}");
+                }
+            };
+            // Preserve the first response and every status/body change, including
+            // UNKNOWN_TRANSACTION and terminal errors, before interpretation.
+            if raw != previous {
+                self.put(
+                    &format!("{label}-status"),
+                    &json!({"request":params,"response":raw}),
+                )?;
+                previous = raw.clone();
+            }
+            if midnight_rpc::is_final(&raw, &hash, tx.sender_id().as_str())? {
                 self.put(label, &json!({"request":params,"response":raw}))?;
                 let result = &raw["result"];
                 ensure!(
@@ -148,10 +203,6 @@ impl Capture {
                     "native transaction or receipt failed: {label}"
                 );
                 return Ok(result.clone());
-            }
-            if start.elapsed() > Duration::from_secs(90) {
-                self.put("final-timeout", &json!({"request":params,"response":raw}))?;
-                bail!("FINAL timeout: {label}");
             }
             tokio::time::sleep(Duration::from_millis(200)).await;
         }
@@ -314,12 +365,12 @@ async fn run(c: &mut Capture, wasm: &[u8]) -> Result<()> {
         .rpc_addr(&sandbox.rpc_addr)
         .validator_key(ValidatorKey::HomeDir(sandbox.home_dir.path().to_owned()))
         .await?;
-    c.put("status", &c.rpc("status", json!([])).await?)?;
-    c.put(
-        "protocol",
-        &c.rpc("EXPERIMENTAL_protocol_config", json!({"finality":"final"}))
-            .await?,
-    )?;
+    let status = c.rpc("status", json!([])).await?;
+    c.put("status", &status)?;
+    let protocol = c
+        .rpc("EXPERIMENTAL_protocol_config", json!({"finality":"final"}))
+        .await?;
+    c.put("protocol", &protocol)?;
     let root = worker.root_account()?;
     let core = account(c, &worker, &root, "core").await?;
     let owner = account(c, &worker, &root, "owner").await?;
@@ -947,7 +998,7 @@ async fn main() -> Result<()> {
         Ok(Err(error)) => {
             c.manifest["status"] = json!("failed");
             c.manifest["exit_status"] = json!(1);
-            c.manifest["failure"] = json!(error.to_string());
+            c.manifest["failure"] = json!(format!("{error:#}"));
         }
         Err(_) => {
             c.manifest["status"] = json!("failed");

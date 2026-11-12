@@ -24,6 +24,8 @@ Acceptance also requires:
 
 The optimistic pending observation is only a scheduling signal. Its block hash must subsequently match the canonical block at that height and be covered by the final head. Acceptance relies on FINAL transaction/receipt data.
 
+Every transaction locator is saved before finality polling. The fixture queries `tx_status` with `wait_until: NONE` so the node's ten-second server wait cannot end a slow-block observation; only a response reporting actual `FINAL` passes. It retains the first status and each changed response and polls only the original locator for at most 90 seconds. The status loop never resends. A typed, matching `UNKNOWN_TRANSACTION` remains unresolved; other RPC errors fail. HTTP errors retain their status and exact response bytes, including nearcore's HTTP 408 timeout body.
+
 ## Bounds and failures
 
 There is one timing attempt, one payment and at most one exact replay. The overall wall limit is 900 seconds. Setup funds three fresh local accounts with 20 NEAR each; the worker key has a finite 1 NEAR gas allowance and both worker calls explicitly attach 150 Tgas. These are isolated fixture budgets, not product defaults. The fixture never uses near-workspaces' changing `max_gas` default.
@@ -31,6 +33,8 @@ There is one timing attempt, one payment and at most one exact replay. The overa
 The checked-in Node launcher owns the fixed fixture binary and Sandbox in one POSIX process group. Persistent SIGINT/SIGTERM handlers, the outer 900-second timer and early child exit all trigger group SIGTERM, followed by SIGKILL after at most two seconds. Only PATH, TMPDIR and the explicit Sandbox path/command annotation reach the fixture; wallet/model keys, HOME and NODE_OPTIONS are dropped. Abrupt interruption can leave an incomplete capture, which must never be accepted as a pass.
 
 A skipped launch window, absent pending observation, edit after settlement, same-day callback, timeout, malformed evidence or failed assertion records failure. It never silently advances another day or creates another payment. Keep that capture; another explicitly selected trial needs a new output directory and node. Slow blocks provide observation time, not guaranteed receipt order.
+
+The first execution, `midnight-20261112T163957Z`, stopped during the first account-creation status wait with HTTP 408. Its original four artifacts and failed manifest remain unchanged; it proves no payment or midnight behavior. The polling repair and pure tests require a fresh separately executed capture before any V15 acceptance.
 
 ## Exact commands
 
