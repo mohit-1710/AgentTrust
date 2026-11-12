@@ -50,3 +50,9 @@ The absolute attempt-directory parent must exist. The SDK creates the leaf with0
 A single immutable checkpoint slot holds either a preview refusal or the exact transaction locator. A concurrent refusal therefore cannot permit supplier switching while another process broadcasts. Only the process that durably creates the locator sends it. Later calls observe that same locator; they never rebroadcast, re-quote or silently repay. A crash after checkpoint creation but before the actual send leaves that attempt uncertain, including after quote expiry. Preserve the journal; deleting it is not a recovery mechanism. This conservative prototype has no automatic checkpoint reset or force-retry operation.
 
 An interrupted response after payment can be recovered through the original attempt. Changed CSV/service under that ID conflicts. Missing journal for an already-existing chain payment stays uncertain. Settled retrieval/output-check failures stay `retrieval_failed`; they do not authorize another purchase. A caller may select a separately identified new attempt only after a definitive no-dispatch refusal or a finalized failed payment, never from `uncertain`.
+
+## Optional local HTTPS
+
+For a local demo, add `tls:{cert_file,key_file}` with absolute paths to a localhost certificate and private key. The listener stays on127.0.0.1 and requires the offer's localhost HTTPS origin/port to match the configured port. Clients explicitly trust the certificate in their own process using `NODE_EXTRA_CA_CERTS`; no OS or browser trust settings are changed. See [local environment](../../docs/local-demo.md) for concrete commands and key separation.
+
+`GET /health` reports only public configured identity and `chain_verification:"not_checked"`. It does not query NEAR or prove registration, key ownership, readiness to receive payments or settlement. TLS and HTTP modes share the same paid-route checks.

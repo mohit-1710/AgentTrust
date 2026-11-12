@@ -1,4 +1,5 @@
-import { createServer, type Server } from "node:http";
+import { createServer, type Server, type RequestListener } from "node:http";
+import { createServer as createHttpsServer, type Server as HttpsServer } from "node:https";
 import { Readable } from "node:stream";
 import { encodeInvoice, invoiceHash, validateSignedInvoice, validateU128, verifyInvoiceSignature } from "../../../packages/near-sdk/src/codec.js";
 import { endpointHash } from "../../../packages/near-sdk/src/directory.js";
@@ -78,6 +79,9 @@ export function createAuditHandler(config: AuditServerConfig): (request: Request
   }
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
+    if (url.pathname === "/health" && !url.search) return request.method === "GET"
+      ? json(200, { status: "configured", network, core_account: core, service_id: offer.service.service_id, service_version: offer.service.version, endpoint_hash: offer.service.endpoint_hash, chain_verification: "not_checked" })
+      : error(405, "METHOD_NOT_ALLOWED");
     if (url.search || !["/v1/invoice-audit", "/v1/identity-challenge", "/v1/conformance"].includes(url.pathname)) return error(404, "NOT_FOUND");
     if (request.method !== "POST") return error(405, "METHOD_NOT_ALLOWED");
     if (request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() !== "application/json") return error(415, "JSON_REQUIRED");
@@ -95,10 +99,9 @@ export function createAuditHandler(config: AuditServerConfig): (request: Request
   };
 }
 
-/** Plain HTTP listener for a local HTTPS reverse proxy. Construction does not listen or read keys. */
-export function createAuditHttpServer(config: AuditServerConfig): Server {
+function requestListener(config: AuditServerConfig): RequestListener {
   const handler = createAuditHandler(config);
-  return createServer({ requestTimeout: 15_000, headersTimeout: 10_000, maxHeaderSize: 16 * 1024 }, async (incoming, outgoing) => {
+  return async (incoming, outgoing) => {
     try {
       const headers = new Headers();
       for (const [name, value] of Object.entries(incoming.headers)) if (value !== undefined) headers.set(name, Array.isArray(value) ? value.join(", ") : value);
@@ -109,5 +112,15 @@ export function createAuditHttpServer(config: AuditServerConfig): Server {
       outgoing.writeHead(response.status, Object.fromEntries(response.headers));
       outgoing.end(Buffer.from(await response.arrayBuffer()));
     } catch { if (!outgoing.headersSent) outgoing.writeHead(400, { "content-type": "application/json" }); outgoing.end('{"error":"INVALID_REQUEST"}'); }
-  });
+  };
+}
+
+const timeouts = { requestTimeout: 15_000, headersTimeout: 10_000, maxHeaderSize: 16 * 1024 };
+/** Plain HTTP listener for an operator's HTTPS reverse proxy. Construction does not listen or read keys. */
+export function createAuditHttpServer(config: AuditServerConfig): Server {
+  return createServer(timeouts, requestListener(config));
+}
+/** Direct local HTTPS: clients explicitly trust the certificate in their own process. */
+export function createAuditHttpsServer(config: AuditServerConfig, tls: { cert: Buffer; key: Buffer }): HttpsServer {
+  return createHttpsServer({ ...timeouts, ...tls, minVersion: "TLSv1.2" }, requestListener(config));
 }
