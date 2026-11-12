@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: inspect the user-run T13 native evidence when provided; implement T17 paid HTTP flow and integrate reviewed T24/T25 docs. T01–T12,T14,T15 accepted locally; T13/T16 prepared and integrated; T17/T22/T24/T25 in isolated worktrees. T13 runtime gates remain open. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: inspect the user-run T13 native evidence when provided; finish T18 preparation, T19 MCP, T23 evidence detail and T26 local environment. T01–T12,T14,T15,T17,T21,T22 accepted locally; T13/T16/T24/T25 prepared and integrated. Native runtime gates remain open. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -105,3 +105,13 @@ Ruling: user requested full build ownership with no browser activity on 12Novemb
 T24/T25 preparation integrated f0f5646/812fa71 | reviewed native34-page corpus,11 exact archives, source-backed generators, pure search and default-disabled assistant; reconciled docs with integrated T14/T15 and preparedT16 | integrated build:surfaces, generated drift checks, corpus checks,3 search tests, docs lint/typecheck passed; GET smoke34HTML/34Markdown/11archive404 plus search/LLM/OG/assistant checks passed | fresh spec/quality review no Critical/Important; docs desktop/mobile interactions not performed, browser restriction now applies | no native runtime or live Ask AI claim
 
 Ruling: SDK executePayment returns a SubmissionResult wrapper around on-chain admission plus transaction/receipt provenance, with uncertain alternative | an RPC result cannot stand in for settlement; T14 exact-submission recovery and beforeBroadcast checkpoint require locator retention | architecture and SDK docs reconciled; no contract ABI change
+
+T17 done 3c0201e | immutable private attempt journal and single durable transaction checkpoint, exact signed HTTP402 quote binding, independent provider FINAL plus settled verification and checked audit output; emitted provider CLI | fresh review no findings;53 focused tests and compiled loopback-only provider smoke passed; integrated99Rust+423TS/typecheck and build:services passed after T21 integration | no native payment executed; crash after checkpoint but before send remains uncertain with no automatic resend/reset
+
+T21 done 9381cd3 | operator-pinned read-only native activity adapter, exact24-decimal NEAR values, bounded final public views and explicit verified rejection references |30 focused tests; fresh review no findings; prior isolated desktop/mobile layout and interaction checks passed before browser restriction; integrated web production build passed | no browser signer, no invented account event feed or payment-ID transaction links, no live chain evidence
+
+T22 done 8189ae6 | truthful native website claims, metadata, SVGs and three posts; six byte-exact upstream archives excluded from served paths; existing design preserved | fresh review no Critical/Important; Minor illustrative call corrected; prior27 HTTP and normal/reduced-motion desktop/mobile checks passed before browser restriction; integrated surface builds passed | two observed fixes only: hero hydration reversion and mobile status clearance; public hosting remains unconfigured
+
+Ruling: web uses installed Next webpack extensionAlias for source SDK NodeNext imports | actual Turbopack build could not resolve .js-to-.ts source package imports | same Next/dependency versions; scoped web build/dev flags and ES2022 target; integrated build passed
+
+Ruling: active GitHub CLI belongs to mohit-scaler; personal repo access uses an ephemeral per-command mohit-1710 credential environment | preserve the user's active work account while continuing authorized private pushes | verified standalone private repo identity; no global auth switch or credential persistence
