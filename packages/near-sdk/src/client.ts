@@ -3,10 +3,12 @@ import { encodeIdentityDescriptor, validateAccountId, validateHash32, validatePr
 import { ServiceDirectory, type CatalogEntry } from "./directory.js";
 import { assertRestrictedWorkerKey, finalAdmission, observePayment, validateDecision, validatePayment } from "./finality.js";
 import type * as V from "./views.js";
+import { payService, type PaidAuditResult, type PayServiceArgs, type PurchaseOptions } from "./pay-service.js";
 
 export interface ClientOptions {
   network: "near:testnet"; coreAccount: string; rpcUrl: string; catalog?: readonly CatalogEntry[];
   worker?: { ownerId: string; signer: Signer };
+  purchase?: PurchaseOptions;
 }
 export interface BroadcastOptions { beforeBroadcast?: (transaction: V.TransactionLocator) => Promise<void> }
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -53,6 +55,7 @@ export class AgentTrustClient {
   private readonly worker: ClientOptions["worker"];
   private readonly workerAccount: Account | undefined;
   private domainCheck: Promise<V.CoreConfig> | undefined;
+  private readonly purchaseOptions: PurchaseOptions | undefined;
   constructor(options: ClientOptions) {
     if (options.network !== "near:testnet") throw new TypeError("DOMAIN_MISMATCH");
     validateAccountId(options.coreAccount);
@@ -61,11 +64,16 @@ export class AgentTrustClient {
     this.provider = new JsonRpcProvider({ url: options.rpcUrl }, { retries: 1 }); // One attempt, including broadcasts.
     this.coreAccount = options.coreAccount; this.network = options.network;
     this.directory = new ServiceDirectory(options.catalog ?? []);
+    this.purchaseOptions = options.purchase ? structuredClone(options.purchase) : undefined;
     this.worker = options.worker ? Object.freeze({ ...options.worker }) : undefined;
     if (options.worker) {
       validateAccountId(options.worker.ownerId);
       this.workerAccount = new Account(options.worker.ownerId, this.provider, options.worker.signer);
     }
+  }
+  async payService(args: PayServiceArgs): Promise<PaidAuditResult> {
+    if (!this.purchaseOptions) throw new Error("PURCHASE_NOT_CONFIGURED");
+    return payService(this, this.purchaseOptions, args);
   }
   private async rawView<T>(method: string, args: object): Promise<V.FinalSnapshot<T>> {
     const value: unknown = await bounded(this.provider.sendJsonRpc("query", { request_type: "call_function", account_id: this.coreAccount,

@@ -22,8 +22,11 @@
     "demo:prepare:testnet": "node scripts/not-ready.mjs demo:prepare:testnet T18",
     "demo:run:testnet": "node scripts/not-ready.mjs demo:run:testnet T18",
     "evidence:check": "node scripts/runtime-evidence.ts",
-    "check:runtime:compile": "cargo check --locked --manifest-path tests/runtime/Cargo.toml"
+    "check:runtime:compile": "cargo check --locked --manifest-path tests/runtime/Cargo.toml",
+    "build:services": "tsc -p tsconfig.services.json && node scripts/copy-service-fixtures.mjs",
+    "start:invoice-audit": "node dist/examples/invoice-audit/src/run-server.js"
   },
+  "dependencies": { "near-api-js": "7.4.0" },
   "devDependencies": {
     "@types/node": "24.19.2",
     "typescript": "6.0.3",

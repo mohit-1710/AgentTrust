@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": ["packages/near-sdk/src/**/*.ts", "examples/invoice-audit/src/**/*.ts"],
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/test/**"]
+}
