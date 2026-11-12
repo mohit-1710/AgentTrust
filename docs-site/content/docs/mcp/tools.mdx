@@ -3,25 +3,25 @@ title: "Tool contract"
 description: "Read tools and one bounded paid-service operation."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+> These are the implemented local input schemas. Their protocol tests use mock RPC; native execution is a separate gate.
 
-| Tool | Intended behavior |
-|---|---|
-| `list_services` | Distinguish registered services, configured origins and preview eligibility. |
-| `get_service` | Read the exact registered identity/version and related service facts. |
-| `get_policy` | Read the configured owner's policy and session context. |
-| `preview_payment` | Explain current policy without proving key possession or reserving funds. |
-| `pay_service` | Buy from a configured service using explicit CSV content and a caller-supplied stable payment ID. |
-| `get_payment` | Inspect an existing operation's immutable context and current state. |
+| Tool | Input | Result |
+|---|---|---|
+| `list_services` | Optional `cursor`, optional `limit` from 1–20 | Registered page, configured-origin label and eligibility `not_evaluated`. |
+| `get_service` | `serviceId` | Current registered identity/version or `null`. |
+| `get_policy` | Empty object | Fixed owner's policy, exact service permissions and blocks, or `null`. |
+| `preview_payment` | Signed `quote`, `credential` reference or `null` | Decision with signer authorization explicitly unproven. |
+| `pay_service` | `serviceId`, `csvUtf8`, `paymentId` | Paid report, typed denial, failed payment, uncertainty or retrieval failure. |
+| `get_payment` | `paymentId` | Final-block settled/failed observation or explicit uncertainty. |
 
-`pay_service` accepts service ID, CSV content and payment ID. It does not accept an arbitrary URL, local file path, raw transaction or instruction to sign arbitrary bytes. The SDK supplies the fixed native flow and validates the catalog commitment.
+All schemas reject unknown fields. `paymentId` is canonical base64 for 32 bytes and CSV is limited to 64 KiB of valid UTF-8. `pay_service` does not accept an arbitrary URL, local file path, raw transaction or instruction to sign arbitrary bytes. The SDK supplies the fixed native flow and validates the catalog commitment.
 
 The same payment ID must be preserved through retries for that attempt. If the outcome is unresolved, the agent must stop replacement purchases. Switching suppliers after a definitive non-dispatch rejection is a separate, deliberately identified attempt.
 
-A preview refusal has origin `preview`; it does not include a fabricated rejection transaction. A real rejected call has origin `executed_rejection`. A saved demonstration is `recorded_replay`, with capture time. Only dispatched operations appear in payment history.
+A preview refusal has origin `preview`; it does not include a rejection transaction. A real rejected call has origin `executed_rejection`. Reusing a journaled preview refusal has origin `recorded_replay` and retains its original preview origin. A dated demonstration capture must also be labeled as a replay when shown later. Only admitted operations appear in contract payment history.
 
-The final input/output schemas and executable transport checks are T19 work. This table fixes scope without adding owner-management, issuance, hosted-signing, resources or prompt tools.
+Tool results contain `structuredContent: { result }` and matching JSON text. A typed refusal is a normal result. Read failures are distinct from absent data; generic payment exceptions return sanitized uncertainty with the original ID. Pending, missing, uncertain or `retrieval_failed` never means unpaid. Inspect the original attempt; do not switch suppliers or create a replacement ID from those states.
 
 ## Source and verification
 
-[Frozen six-tool surface](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Tool boundary acceptance cases](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md)
+[Strict tool schemas](https://github.com/mohit-1710/AgentTrust/blob/main/packages/mcp/src/schemas.ts) · [Result mapping](https://github.com/mohit-1710/AgentTrust/blob/main/packages/mcp/src/server.ts) · [Protocol checks](https://github.com/mohit-1710/AgentTrust/tree/main/packages/mcp/test)

@@ -3,18 +3,18 @@ title: "Local MCP tools"
 description: "Six tools for a locally signed worker and read-only inspection."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+> The local implementation and mock-RPC stdio checks have passed. Native worker authorization and settlement remain separate runtime gates; see [implementation status](/reference/changelog).
 
-The frozen MCP surface is local stdio with six tools. `pay_service` is the only money-moving tool. The other tools inspect services, policy, previews and payment state.
+The MCP surface is local stdio with six tools, using the pinned official MCP SDK. `pay_service` is the only money-moving tool. The other tools inspect services, policy, previews and payment state.
 
 The worker process holds only its restricted key, pinned owner/session and network/core configuration. Owner management and issuer operations run separately. There is no hosted signer, shared full-access key or generic `sign` tool.
 
 Service discovery is bounded to registered records and the configured version-to-origin catalog. Being listed, having a configured endpoint and passing a policy preview are different facts.
 
-Implementation and transport verification belong to T19; see [milestone status](/reference/changelog). No native MCP package release, hosted endpoint, resource catalog or guided prompt registry is claimed by these docs.
+The compiled server has been exercised through an actual stdio client against loopback mock RPC. Its retry integration uses the real SDK journal with chain methods doubled. These are local transport and recovery checks, not native payment evidence. No native MCP package release or hosted endpoint is claimed.
 
 Continue with [configuration boundary](/mcp/install) and [tool contract](/mcp/tools).
 
 ## Source and verification
 
-[MCP design and roles](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [MCP acceptance task](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/plan.md)
+[MCP implementation and runner](https://github.com/mohit-1710/AgentTrust/tree/main/packages/mcp) · [MCP acceptance task](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/plan.md)

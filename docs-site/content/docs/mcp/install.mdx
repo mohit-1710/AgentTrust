@@ -3,9 +3,17 @@ title: "Worker configuration"
 description: "Keep the MCP signer local, restricted and separate from owner setup."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+> The local stdio runner is implemented. Its local checks do not establish live key authorization or native settlement; see [implementation status](/reference/changelog).
 
-The local stdio launcher/configuration is a T19 deliverable. This snapshot does not supply an `npx` package command or a hosted signing URL. Use the accepted local runner when its implementation and quickstart are available.
+Build and inspect the local runner from the repository root:
+
+```sh
+. scripts/env.sh
+pnpm build:services
+node dist/packages/mcp/src/run-server.js --help
+```
+
+Configure an MCP host to invoke that compiled Node entry with `--config` and an absolute path to the public operator JSON. The [package runbook](https://github.com/mohit-1710/AgentTrust/blob/main/packages/mcp/README.md) defines the exact configuration and host invocation. Use the direct Node entry so stdout contains only MCP protocol messages. There is no published `npx` package or hosted signing URL.
 
 Prepare these separate roles:
 
@@ -18,7 +26,9 @@ Prepare these separate roles:
 
 The worker's protocol key must target the configured core with the exact method list `["execute_payment"]` and a finite gas allowance. An empty method list is not the intended restriction. Registering a contract session does not install this key; revoking a session does not remove it.
 
-The planned attempt directory is local and private: directory mode 0700 and attempt-file mode 0600. It persists the exact signed quote and immutable context before broadcast, without keys or user CSV. A restart must reuse it.
+The attempt directory is local and private: directory mode 0700 and attempt-file mode 0600. It persists the exact signed quote and immutable context before broadcast, without keys or user CSV. A restart must reuse it.
+
+Only the dedicated `AGENTTRUST_WORKER_PRIVATE_KEY` environment variable supplies the restricted worker signer. Omit it for read-only observation. The resulting `PAYMENT_NOT_CONFIGURED` response is not proof that an existing attempt is unpaid. Supply no owner, deploy, merchant or issuer secret to the worker process. For local HTTPS, pass only the explicit public certificate path through `NODE_EXTRA_CA_CERTS`; never disable TLS verification.
 
 Do not include secrets in browser configuration, repository files, logs, tool descriptions or the evidence bundle. The public fixture signing seed is test material and must never be funded.
 
