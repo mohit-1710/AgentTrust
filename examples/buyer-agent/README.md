@@ -11,10 +11,10 @@ When a job needs execution, both modes use the official MCP `Client` and `StdioC
 
 ## Prepare, then explicitly execute
 
-1. Finish the separate native/runtime and T18 preparation. Supply its public MCP configuration, restricted worker key, provider catalog and credential references. Preserve the SDK's original attempt journal.
-2. Copy `buyer.example.json` to an ignored private location and replace its placeholders with the prepared testnet configuration. Use only the project's public synthetic CSV fixtures for this demo. The JSON contains explicit CSV text; do not include this file in a public trace or evidence upload.
-3. Choose unique canonical base64 32-byte `job_id` and `payment_id` values before the run. Fix the exact CSV and candidate IDs for this job and all recoveries. Candidate services must be distinct and already present in the operator MCP catalog. The job-directory parent must exist; the buyer creates the child directory as `0700`, or requires it already to have that mode and current-user ownership. Files are private `0600` ordinary files, not a database.
-4. For `near-ai`, set `mode` to `near-ai`, add an explicit `model` ID from the current [public model catalog](https://cloud-api.near.ai/v1/model/list), and provide `NEAR_AI_API_KEY` through a protected environment. The launcher verifies that the exact model is ready and advertises tool support. There is no invented default model. The [official quickstart](https://docs.near.ai/cloud/quickstart) documents the Cloud endpoint and Bearer authentication. Using the gateway alone is not an attestation or privacy-verification claim.
+1. Finish the separate native/runtime and T18 preparation through B's credential issuance. Run fresh buyer jobs before T18 revokes B's credential or rotates its identity. Supply the prepared public MCP configuration, restricted worker key, provider catalog and credential references. Preserve the SDK's original attempt journal.
+2. Use the offline command below with the existing `AGENTTRUST_DEMO_DIR` containing the completed `demo.json` and rendered `mcp.json`. It validates their exact shared bindings and writes the committed synthetic `mixed-validity` CSV into a private buyer configuration. The JSON contains explicit CSV text; do not include this file in a public trace or evidence upload. `buyer.example.json` documents the schema; its sample IDs and services are not a prepared run.
+3. The command generates a fresh canonical base64 32-byte job ID and two payment IDs distinct from T18's IDs. Scripted and model runs get separate files and fresh IDs; do not change one job's mode to reuse it for the other. Keep the exact CSV, configuration and IDs for every recovery. `buyer-jobs` is inside the prepared demo directory; execution creates it as `0700`, or requires that mode and current-user ownership. Configurations/journals are private `0600` ordinary files, not a database. An existing buyer file is never overwritten.
+4. For `near-ai`, choose an explicit model ID from the current [public model catalog](https://cloud-api.near.ai/v1/model/list), and provide `NEAR_AI_API_KEY` through a protected environment for execution only. The offline preparation accepts its identifier without contacting the catalog; the execution launcher verifies that the exact model is ready and advertises tool support. There is no invented default model. The [official quickstart](https://docs.near.ai/cloud/quickstart) documents the Cloud endpoint and Bearer authentication. Using the gateway alone is not an attestation or privacy-verification claim.
 5. Provide `AGENTTRUST_WORKER_PRIVATE_KEY` through a protected environment, containing only the owner's restricted ed25519 function-call key. Never put either key in JSON, CLI arguments, logs, Git or model text. Model requests receive only the model API key in the authorization header. The MCP child receives only the worker variable, PATH and an explicitly supplied `NODE_EXTRA_CA_CERTS`, in addition to the official transport's ordinary platform defaults. Owner, issuer, provider and LLM credentials are excluded from that child. No TLS bypass is passed.
 
 Build and read help without executing payment or inference:
@@ -23,13 +23,36 @@ Build and read help without executing payment or inference:
 . scripts/env.sh
 pnpm build:services
 node dist/examples/buyer-agent/src/run.js --help
+node dist/examples/testnet-demo/src/buyer-config.js --help
+```
+
+Create the scripted configuration offline:
+
+```sh
+node dist/examples/testnet-demo/src/buyer-config.js --directory "$AGENTTRUST_DEMO_DIR" --mode scripted
+```
+
+For a separate model run, set the public `AGENTTRUST_BUYER_MODEL` variable to the chosen catalog ID, then prepare its configuration:
+
+```sh
+node dist/examples/testnet-demo/src/buyer-config.js --directory "$AGENTTRUST_DEMO_DIR" --mode near-ai --model "$AGENTTRUST_BUYER_MODEL"
+```
+
+These commands create `buyer-scripted.json` or `buyer-near-ai.json` exclusively, using the existing MCP file, provider A/B service IDs, eight model/tool steps and a 1,024 output-token limit per request. They need no role keys or model API key and make no network or signing call. A second invocation refuses the existing file; keep it for recovery. They do not check chain readiness or create a fresh rehearsal environment.
+
+For localhost HTTPS providers, export the explicit CA in this buyer shell before execution; the MCP child receives it too:
+
+```sh
+export NODE_EXTRA_CA_CERTS="$PWD/.agenttrust/local-tls/localhost.crt"
 ```
 
 The following is a **user-run execution command**. It can spend configured native testnet funds; `near-ai` mode also consumes billable model credits. Implementation checks do not run it:
 
 ```sh
-node dist/examples/buyer-agent/src/run.js --config /absolute/private/buyer.json --execute
+node dist/examples/buyer-agent/src/run.js --config "$AGENTTRUST_DEMO_DIR/buyer-near-ai.json" --execute
 ```
+
+Use `buyer-scripted.json` instead for the separately labeled scripted run. Do not run both concurrently with each other or with T18 captures.
 
 `--execute` is mandatory for both modes. No startup/default/test command launches an actual model run. `max_steps` is 1–12 per invocation, `max_completion_tokens` is 1–4096 per request, one tool call per model response is permitted, and model HTTP calls have a 30-second timeout with no retry. `max_tokens` limits output tokens, not a guaranteed dollar budget; repeated invocations incur additional inference cost. The final JSON is a machine-checked report or a stopped outcome. The raw model's narrative is not printed as a successful result.
 

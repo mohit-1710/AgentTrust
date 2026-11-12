@@ -168,6 +168,14 @@ Run the actual missing-evidence refusal, then B's paid report, then an exact ret
 
 **Stop here before the negative state changes.** Inspect successful T18 purchase/retry captures, then run the fresh [T20 buyer job](../examples/buyer-agent/README.md) while B's credential and identity are still active. Its job and two payment IDs must differ from this runbook's four IDs; otherwise a saved report could be mistaken for a new model-driven purchase. Run the actual model mode separately from any scripted job. Keep the same files/IDs when recovering either job. A successful saved replay with zero model responses is not a new actual-agent run. Export `NODE_EXTRA_CA_CERTS` in the buyer's shell as well.
 
+Prepare that fresh job offline with the implemented helper. Choose the public `AGENTTRUST_BUYER_MODEL` value from the current [model catalog](https://cloud-api.near.ai/v1/model/list), then run:
+
+```sh
+pnpm demo:prepare:buyer --directory "$AGENTTRUST_DEMO_DIR" --mode near-ai --model "$AGENTTRUST_BUYER_MODEL"
+```
+
+This exclusively creates `buyer-near-ai.json` with fresh IDs, actual configured A/B service IDs, the existing MCP path and the committed synthetic CSV. It performs no network/key/model/payment operation. A separate `--mode scripted` command creates `buyer-scripted.json`; it cannot be converted into model evidence by editing its mode. The [buyer runbook](../examples/buyer-agent/README.md) gives the separate explicit execution command and key/CA setup. Preparation alone does not clear the next gate.
+
 Proceed only after reviewing successful purchase, exact retry and actual buyer output/trace. A stopped, pending or uncertain buyer must be investigated using its original files; do not revoke/rotate as a way to resolve it. These state-changing negative checks make new B purchases impossible in this prepared environment. They belong after the useful task in each rehearsal.
 
 In a separate setup invocation, load the **issuer** key and revoke B's credential:

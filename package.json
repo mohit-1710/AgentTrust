@@ -23,6 +23,7 @@
     "demo:run:testnet": "node scripts/run-demo.mjs run",
     "demo:evidence:check": "node dist/examples/testnet-demo/src/check.js",
     "demo:local": "node dist/examples/testnet-demo/src/local.js",
+    "demo:prepare:buyer": "node dist/examples/testnet-demo/src/buyer-config.js",
     "test:local:stack": "pnpm build:services && node examples/testnet-demo/test/local-smoke.mjs",
     "evidence:check": "node scripts/runtime-evidence.ts",
     "check:runtime:compile": "cargo check --locked --manifest-path tests/runtime/Cargo.toml",
