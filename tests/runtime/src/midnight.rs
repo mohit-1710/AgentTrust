@@ -590,31 +590,37 @@ async fn run(c: &mut Capture, wasm: &[u8]) -> Result<()> {
         .transact_async()
         .await?;
     c.submitted("payment-submitted", &payment_tx)?;
-    // Poll optimistic state only to schedule the owner transaction. Its block is
-    // subsequently required to be canonical and finalized; this is not settlement.
-    let pending_start = Instant::now();
-    let pending_query = json!({"request_type":"call_function","account_id":core.id(),"method_name":"get_payment",
-        "args_base64":STANDARD.encode(serde_json::to_vec(&json!({"owner_id":owner.id(),"payment_id":id(PAYMENT_ID)}))?),"finality":"optimistic"});
-    let pending_raw = loop {
-        let raw = c.rpc("query", pending_query.clone()).await?;
-        ensure!(raw.get("error").is_none(), "pending query failed");
-        let value = decode_view(&raw["result"])?;
-        if value["state"] == "pending" {
+    // Waiting for contract pending state costs another receipt stage and made
+    // the observed edit arrive late. INCLUDED is only a scheduling signal;
+    // final inclusion and the committed edit's pending return prove order below.
+    let inclusion_start = Instant::now();
+    let payment_hash = payment_tx.hash().to_string();
+    let inclusion_query = midnight_rpc::status_request(&payment_hash, owner.id().as_str());
+    let mut previous = Value::Null;
+    let inclusion_raw = loop {
+        let remaining = Duration::from_secs(20).saturating_sub(inclusion_start.elapsed());
+        ensure!(
+            !remaining.is_zero(),
+            "TIMING_MISS: no inclusion observation"
+        );
+        let raw = tokio::time::timeout(remaining, c.rpc("tx_status", inclusion_query.clone()))
+            .await
+            .context("TIMING_MISS: inclusion observation timed out")??;
+        if raw != previous {
+            c.put(
+                "payment-inclusion-status",
+                &json!({"request":inclusion_query,"response":raw}),
+            )?;
+            previous = raw.clone();
+        }
+        if midnight_rpc::included_for_edit(&raw, &payment_hash, owner.id().as_str())? {
             break raw;
         }
-        ensure!(
-            value.is_null(),
-            "TIMING_MISS: payment already finalized before edits"
-        );
-        ensure!(
-            pending_start.elapsed() < Duration::from_secs(20),
-            "TIMING_MISS: no pending observation"
-        );
         tokio::time::sleep(Duration::from_millis(25)).await;
     };
     c.put(
-        "optimistic-pending",
-        &json!({"request":pending_query,"response":pending_raw}),
+        "payment-included",
+        &json!({"request":inclusion_query,"response":inclusion_raw}),
     )?;
     let edit_tx = owner
         .batch(core.id())
@@ -719,18 +725,44 @@ async fn run(c: &mut Capture, wasm: &[u8]) -> Result<()> {
     let dispatch_block = receipt_block(c, "dispatch-block", dispatch_outcome).await?;
     let edit_block = receipt_block(c, "edit-block", edit_outcomes[0]).await?;
     let callback_block = receipt_block(c, "callback-block", callback_outcome).await?;
-    let canonical_pending = c
+    let transaction_outcome = &payment_raw["transaction_outcome"];
+    ensure!(
+        transaction_outcome["id"] == payment_hash
+            && transaction_outcome["outcome"]["executor_id"] == owner.id().as_str()
+            && transaction_outcome["outcome"]["status"]["SuccessReceiptId"]
+                == dispatch_outcome["id"],
+        "final transaction must generate the observed dispatch receipt"
+    );
+    let observed_outcome = &inclusion_raw["result"]["transaction_outcome"];
+    if !observed_outcome.is_null() {
+        ensure!(
+            observed_outcome["id"] == transaction_outcome["id"]
+                && observed_outcome["block_hash"] == transaction_outcome["block_hash"],
+            "observed inclusion must match the final transaction outcome"
+        );
+    }
+    let inclusion_block = receipt_block(c, "payment-inclusion-block", transaction_outcome).await?;
+    let inclusion_height = inclusion_block["header"]["height"]
+        .as_u64()
+        .context("inclusion height")?;
+    let canonical_inclusion = c
         .block(
-            "pending-block-canonical",
-            json!({"block_id":pending_raw["result"]["block_height"]}),
+            "inclusion-block-canonical",
+            json!({"block_id":inclusion_height}),
         )
         .await?;
     let final_head = c.block("final-head", json!({"finality":"final"})).await?;
     ensure!(
-        canonical_pending["header"]["hash"] == pending_raw["result"]["block_hash"]
-            && final_head["header"]["height"].as_u64()
-                >= canonical_pending["header"]["height"].as_u64(),
-        "optimistic observation must finalize canonically"
+        canonical_inclusion["header"]["hash"] == transaction_outcome["block_hash"]
+            && final_head["header"]["height"]
+                .as_u64()
+                .context("final head height")?
+                >= inclusion_height
+            && inclusion_height
+                <= dispatch_block["header"]["height"]
+                    .as_u64()
+                    .context("dispatch height")?,
+        "transaction inclusion must finalize canonically before dispatch"
     );
     let after = c
         .view(
@@ -828,6 +860,10 @@ async fn run(c: &mut Capture, wasm: &[u8]) -> Result<()> {
     let mut checks = midnight_assertions::checks(&observed);
     checks.extend([
         (
+            "canonical transaction inclusion precedes the dispatch receipt",
+            timestamp(&inclusion_block)? <= dispatch_ns,
+        ),
+        (
             "payment is settled with original invoice",
             payment["state"] == "settled" && payment["invoice"] == args["quote"]["invoice"],
         ),
@@ -863,9 +899,10 @@ async fn run(c: &mut Capture, wasm: &[u8]) -> Result<()> {
                 && after["usage"]["settled_current_day_yocto"] == "0",
         ),
     ]);
-    c.manifest["ordering"] = json!({"dispatch_ns":dispatch_ns.to_string(),"edit_ns":observed.edit_ns.to_string(),
+    c.manifest["ordering"] = json!({"inclusion_ns":timestamp(&inclusion_block)?.to_string(),"dispatch_ns":dispatch_ns.to_string(),"edit_ns":observed.edit_ns.to_string(),
         "callback_ns":callback_ns.to_string(),"same_block_edit_callback":edit_outcomes[0]["block_hash"]==callback_outcome["block_hash"],
-        "equal_timestamp_order_proof":"committed post-edit account return still contains this sole pending payment"});
+        "equal_timestamp_order_requirement":"committed post-edit account return must still contain this sole pending payment",
+        "committed_edit_retains_full_pending":observed.pending_in_edit==AMOUNT});
     c.manifest["assertions"] = json!(
         checks
             .iter()

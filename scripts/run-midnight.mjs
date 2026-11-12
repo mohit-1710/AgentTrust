@@ -25,6 +25,8 @@ export async function runMidnight(args) {
   if (process.platform === 'win32') throw Error('POSIX_REQUIRED');
   const values = parseArguments(args);
   const root = await realpath(fileURLToPath(new URL('../', import.meta.url)));
+  const expectedNode = (await readFile(path.join(root, '.node-version'), 'utf8')).trim();
+  if (process.versions.node !== expectedNode) throw Error(`PINNED_NODE_REQUIRED: expected ${expectedNode}; source scripts/env.sh before running.`);
   const fixture = path.join(root, 'tests/runtime/target/debug/agenttrust-midnight');
   const sandbox = await realpath(values.get('--sandbox-bin'));
   const wasm = await realpath(values.get('--wasm'));
@@ -82,7 +84,8 @@ export async function runMidnight(args) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   if (args.length === 1 && args[0] === '--help') console.log(usage);
-  else runMidnight(args).then((code) => { process.exitCode = code; }).catch(() => {
+  else runMidnight(args).then((code) => { process.exitCode = code; }).catch((error) => {
+    if (error.message?.startsWith('PINNED_NODE_REQUIRED:')) console.error(error.message);
     console.error('MIDNIGHT_FIXTURE_REFUSED_OR_FAILED: retain any original capture; no automatic retry.');
     process.exitCode = 1;
   });

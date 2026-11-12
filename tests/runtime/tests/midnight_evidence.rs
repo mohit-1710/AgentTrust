@@ -57,6 +57,7 @@ fn only_bound_typed_unknown_transaction_is_pending() {
     );
     let raw = json!({"error":error});
     assert!(!rpc::is_final(&raw, hash, "root.test.near").unwrap());
+    assert!(!rpc::included_for_edit(&raw, hash, "root.test.near").unwrap());
     assert!(rpc::is_final(&raw, "other-hash", "root.test.near").is_err());
     for error in [
         json!({"code":-32000,"message":"UNKNOWN_TRANSACTION"}),
@@ -83,6 +84,29 @@ fn http_error_keeps_exact_body_and_cannot_look_like_final() {
     assert!(rpc::decode_response(200, b"invalid body").is_err());
     assert!(rpc::decode_response(200, br#"{"jsonrpc":"2.0","id":"wrong"}"#).is_err());
     assert!(rpc::decode_response(200, br#"{"jsonrpc":"2.0","id":"midnight","result":{}}"#).is_ok());
+}
+
+#[test]
+fn only_inclusion_schedules_the_single_edit_without_weakening_finality() {
+    let hash = "11111111111111111111111111111111";
+    // Actual pinned RPC may first expose only this minimal INCLUDED response.
+    let included = json!({"result":{"final_execution_status":"INCLUDED"}});
+    assert!(rpc::included_for_edit(&included, hash, "owner.test.near").unwrap());
+    assert!(!rpc::is_final(&included, hash, "owner.test.near").unwrap());
+    assert!(
+        !rpc::included_for_edit(
+            &json!({"result":{"final_execution_status":"NONE"}}),
+            hash,
+            "owner.test.near"
+        )
+        .unwrap()
+    );
+    for status in ["INCLUDED_FINAL", "EXECUTED_OPTIMISTIC", "EXECUTED", "FINAL"] {
+        let raw = json!({"result":{"final_execution_status":status,"transaction":{"hash":hash,"signer_id":"owner.test.near"}}});
+        assert!(rpc::included_for_edit(&raw, hash, "owner.test.near").is_err());
+    }
+    let wrong_signer = json!({"result":{"final_execution_status":"INCLUDED","transaction":{"hash":hash,"signer_id":"other.test.near"}}});
+    assert!(rpc::included_for_edit(&wrong_signer, hash, "owner.test.near").is_err());
 }
 
 #[test]
@@ -141,4 +165,20 @@ fn rejects_released_principal_partial_reservation_or_duplicate_payout() {
     observed = valid();
     observed.recipient_delta = 6;
     assert!(checks(&observed).iter().any(|(_, pass)| !pass));
+}
+
+#[test]
+fn rejects_observed_late_edit_even_when_midnight_accounting_and_payout_pass() {
+    let mut observed = valid();
+    // Retained failed midnight-polling-20261112T164601Z receipt timestamps.
+    observed.dispatch_ns = 1_794_527_998_654_480_000;
+    observed.callback_ns = 1_794_528_002_672_968_000;
+    observed.edit_ns = 1_794_528_004_679_179_000;
+    observed.pending_in_edit = 0;
+    let results = checks(&observed);
+    assert!(results[0].1); // midnight crossing cannot compensate for late edits
+    assert!(!results[1].1);
+    assert!(!results[2].1);
+    assert!(results[5].1);
+    assert!(results[6].1);
 }

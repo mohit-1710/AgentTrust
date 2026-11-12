@@ -6,7 +6,7 @@ Pinned near-sandbox 0.4.0 starts a fresh local 2.14.0 node with two-second minim
 
 Genesis time is not treated as a virtual-clock setter. Nearcore uses wall time plus the Sandbox fast-forward offset. After all setup transactions are FINAL, the fixture advances toward the next UTC midnight and checks actual optimistic block timestamps. No fast-forward runs after payment submission. No state patch, fault WASM, callback call, recipient helper or receipt scheduling API is used.
 
-The scenario submits one 0.03 NEAR payment with its real restricted key shortly before midnight. On observing its pending record, it submits one owner batch:
+The scenario submits one 0.03 NEAR payment with its real restricted key shortly before midnight. On the first exact transaction `INCLUDED` response, it immediately submits one owner batch:
 
 1. Lower the daily cap to 0.02 NEAR.
 2. Increment the selected profile revision.
@@ -22,7 +22,7 @@ Acceptance also requires:
 - Both edits remain committed. Recipient balance increases by exactly 0.03 NEAR, without other recipient transactions during measurement.
 - One exact replay after the edits preserves the complete payment, persisted ledger and recipient balance. Runtime vault cash is excluded from ledger equality because contract gas rewards can change it.
 
-The optimistic pending observation is only a scheduling signal. Its block hash must subsequently match the canonical block at that height and be covered by the final head. Acceptance relies on FINAL transaction/receipt data.
+Transaction inclusion is only a scheduling signal; the RPC may initially return `INCLUDED` without an outcome body. The final transaction outcome must subsequently bind the original hash/signer to the dispatch receipt, and its inclusion block must match the canonical block at that height and be covered by the final head. Inclusion alone does not prove that the edit preceded settlement. Acceptance still requires the committed edit return to retain the full pending principal and relies on FINAL transaction/receipt data.
 
 Every transaction locator is saved before finality polling. The fixture queries `tx_status` with `wait_until: NONE` so the node's ten-second server wait cannot end a slow-block observation; only a response reporting actual `FINAL` passes. It retains the first status and each changed response and polls only the original locator for at most 90 seconds. The status loop never resends. A typed, matching `UNKNOWN_TRANSACTION` remains unresolved; other RPC errors fail. HTTP errors retain their status and exact response bytes, including nearcore's HTTP 408 timeout body.
 
@@ -30,11 +30,13 @@ Every transaction locator is saved before finality polling. The fixture queries 
 
 There is one timing attempt, one payment and at most one exact replay. The overall wall limit is 900 seconds. Setup funds three fresh local accounts with 20 NEAR each; the worker key has a finite 1 NEAR gas allowance and both worker calls explicitly attach 150 Tgas. These are isolated fixture budgets, not product defaults. The fixture never uses near-workspaces' changing `max_gas` default.
 
-The checked-in Node launcher owns the fixed fixture binary and Sandbox in one POSIX process group. Persistent SIGINT/SIGTERM handlers, the outer 900-second timer and early child exit all trigger group SIGTERM, followed by SIGKILL after at most two seconds. Only PATH, TMPDIR and the explicit Sandbox path/command annotation reach the fixture; wallet/model keys, HOME and NODE_OPTIONS are dropped. Abrupt interruption can leave an incomplete capture, which must never be accepted as a pass.
+The checked-in Node launcher requires the exact `.node-version` before spawning anything and owns the fixed fixture binary and Sandbox in one POSIX process group. Persistent SIGINT/SIGTERM handlers, the outer 900-second timer and early child exit all trigger group SIGTERM, followed by SIGKILL after at most two seconds. Only PATH, TMPDIR and the explicit Sandbox path/command annotation reach the fixture; wallet/model keys, HOME and NODE_OPTIONS are dropped. Abrupt interruption can leave an incomplete capture, which must never be accepted as a pass.
 
-A skipped launch window, absent pending observation, edit after settlement, same-day callback, timeout, malformed evidence or failed assertion records failure. It never silently advances another day or creates another payment. Keep that capture; another explicitly selected trial needs a new output directory and node. Slow blocks provide observation time, not guaranteed receipt order.
+A skipped launch window, no inclusion observation within 20 seconds, first observation beyond `INCLUDED`, edit after settlement, same-day callback, timeout, malformed evidence or failed assertion records failure. It never silently advances another day or creates another payment. Keep that capture; another explicitly selected trial needs a new output directory and node. Slow blocks provide observation time, not guaranteed receipt order.
 
 The first execution, `midnight-20261112T163957Z`, stopped during the first account-creation status wait with HTTP 408. Its original four artifacts and failed manifest remain unchanged; it proves no payment or midnight behavior. The polling repair and pure tests require a fresh separately executed capture before any V15 acceptance.
+
+The second execution, `midnight-polling-20261112T164601Z`, crossed midnight and charged the original day exactly once, but its edit receipt followed the callback by one block and returned zero pending principal. The three affected assertions correctly failed and no replay ran. Its 147 artifacts and failed manifest remain unchanged. Waiting for contract pending state had delayed the edit submission; the inclusion trigger is a new scheduling attempt, not a pass claim. Future ordering metadata states the required proof and separately records whether the committed return actually retains full pending funds.
 
 ## Exact commands
 
@@ -51,6 +53,7 @@ node scripts/test-midnight-launcher.mjs
 Only when actual local runtime/database execution is authorized for this work:
 
 ```sh
+. scripts/env.sh
 node scripts/run-midnight.mjs --user-run --sandbox-bin /absolute/pinned/near-sandbox --wasm /absolute/production/agenttrust_core.wasm --output /absolute/repository/artifacts/local/runtime/NEW-midnight-capture
 ```
 

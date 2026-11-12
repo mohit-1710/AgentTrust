@@ -65,3 +65,14 @@ pub fn is_final(raw: &Value, hash: &str, sender: &str) -> Result<bool> {
         _ => bail!("missing or unknown transaction execution status"),
     }
 }
+
+pub fn included_for_edit(raw: &Value, hash: &str, sender: &str) -> Result<bool> {
+    // A minimal INCLUDED response schedules the edit; only FINAL proves settlement.
+    is_final(raw, hash, sender)?;
+    match raw["result"]["final_execution_status"].as_str() {
+        None if raw.get("error").is_some() => Ok(false), // typed matching UNKNOWN only
+        Some("NONE") => Ok(false),
+        Some("INCLUDED") => Ok(true),
+        _ => bail!("TIMING_MISS: payment passed the transaction-inclusion window"),
+    }
+}
