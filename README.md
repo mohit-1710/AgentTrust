@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: implementation in progress.** The native policy/vault core, local SDK, paid HTTP flow and invoice audit service pass local checks: 99 pure Rust tests and 436 TypeScript tests, plus five isolated RPC-error regression tests. The website and documentation now describe the native NEAR implementation while preserving the upstream design. Two local HTTPS providers have passed signed-quote checks; native-chain execution remains unverified. MCP and the buyer loop are being integrated. No contract has been deployed, and no native runtime test is claimed passed.
+**Status: implementation in progress.** The native policy/vault core, local SDK, paid HTTP flow, six MCP tools and invoice audit service pass local checks: 99 pure Rust tests and 472 TypeScript tests, plus five isolated RPC-error regression tests. The website and documentation now describe the native NEAR implementation while preserving the upstream design. Two local HTTPS providers have passed signed-quote checks; the compiled MCP has passed a mock-RPC stdio exchange. Native-chain execution remains unverified and the buyer loop is being implemented. No contract has been deployed, and no native runtime test is claimed passed.
 
 ## Start here
 
