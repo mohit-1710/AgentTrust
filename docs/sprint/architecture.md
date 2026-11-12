@@ -117,7 +117,7 @@ The first endpoint commitment is the UTF-8 bytes of `agenttrust-http402-v1\nPOST
 
 `request_hash = SHA256(ASCII("AGENTTRUST_INVOICE_AUDIT_REQUEST_V1\0") || raw CSV bytes)`. Every quote and paid response binds those exact bytes. Input limit is 64 KiB. No normalization before hashing; the auditor's parsing rules are separate.
 
-Quote default validity is 120 seconds; maximum signed invoice lifetime is 300 seconds. Contract acceptance requires `issued_at <= block_time + 5 seconds`, `expires_at > block_time`, and `0 < expires_at - issued_at <= 300 seconds`. The five-second tolerance bounds clock skew; it does not extend expiry. The owner setup defaults a session to 24 hours and the NEAR function-call key gas allowance to 0.05 NEAR. Those are labeled demo settings, not measured safe production limits. Gas allowance is a spending limit on transaction fees charged to the key's account, not prepaid gas or a vault-purchase allowance; the owner account still needs gas funds.
+Quote default validity is 120 seconds; maximum signed invoice lifetime is 300 seconds. Contract acceptance requires `issued_at <= block_time + 5 seconds`, `expires_at > block_time`, and `0 < expires_at - issued_at <= 300 seconds`. The five-second tolerance bounds clock skew; it does not extend expiry. The owner setup defaults a session to 24 hours and the NEAR function-call key gas allowance to 0.5 NEAR. Those are labeled demo settings, not measured safe production limits. Gas allowance is a spending limit on transaction fees charged to the key's account, not prepaid gas or a vault-purchase allowance; the owner account still needs gas funds.
 
 The endpoint challenge response has a separate `IdentityDescriptorV1` signature domain and exact Borsh field order:
 

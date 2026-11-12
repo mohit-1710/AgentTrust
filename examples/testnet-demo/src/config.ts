@@ -19,7 +19,7 @@ export interface DemoConfig {
 export const TESTNET_RPC_URL = "https://test.rpc.fastnear.com";
 export const LEGACY_TESTNET_RPC_URL = "https://rpc.testnet.near.org";
 export const RPC_MIGRATION_FILE = "rpc-migration-fastnear.json";
-export const limits = Object.freeze({ owner_deposit: "1000000000000000000000000", owner_storage: "250000000000000000000000", registry_deposit: "100000000000000000000000", daily_cap: "50000000000000000000000", purchase_cap: "10000000000000000000000", key_allowance: "50000000000000000000000", operating_reserve: "50000000000000000000000", rate: 5 });
+export const limits = Object.freeze({ owner_deposit: "1000000000000000000000000", owner_storage: "250000000000000000000000", registry_deposit: "100000000000000000000000", daily_cap: "50000000000000000000000", purchase_cap: "10000000000000000000000", key_allowance: "500000000000000000000000", operating_reserve: "50000000000000000000000", rate: 5 });
 export const exact = (v: unknown, keys: string[]): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === keys.length && keys.every((k) => Object.hasOwn(v, k));
 export const sha256 = (bytes: Uint8Array | string): string => createHash("sha256").update(bytes).digest("hex");
 export function validateConfig(value: unknown): DemoConfig {

@@ -2,7 +2,9 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: local implementation checked; native execution pending.** The native policy/vault core, local SDK, paid HTTP flow, six MCP tools, bounded buyer and testnet preparation pass local checks: 99 pure Rust tests and 671 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks; compiled buyer/MCP exchanges pass against mock RPC, and checked completed jobs replay without keys or network access. Actual native settlement, real model execution and full rehearsals remain unverified. No contract has been deployed, and no native runtime gate is claimed passed.
+**Status: deployed on testnet; paid execution still under verification.** The production native core is deployed, with fourteen accepted FINAL transactions covering deployment, owner/service setup and credential issuance; [captured evidence](docs/testnet-evidence.md) records the exact accounts, hashes and limits. The first worker submission exposed an insufficient gas allowance under current testnet pricing. Its original records are preserved. Actual native settlement, real model execution and full rehearsals remain unverified; no complete native runtime gate is claimed passed.
+
+Local checks cover 99 pure Rust tests and 672 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks; compiled buyer/MCP exchanges pass against mock RPC, and checked completed jobs replay without keys or network access.
 
 ## Start here
 

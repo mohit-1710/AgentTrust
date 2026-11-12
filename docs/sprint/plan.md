@@ -60,7 +60,7 @@ Default install/test/build must not start persisted runtime, seed, deploy or pay
 
 ## Fixed values and authority
 
-- YoctoNEAR U128; JSON decimal strings; no floating money. Sample funding 1 NEAR, purchase cap 0.01, daily cap 0.05, 5 dispatches/fixed 60 seconds. Invoice 120-second default/max300; session24h; key gas allowance0.05NEAR. These are demo parameters, not production tuning.
+- YoctoNEAR U128; JSON decimal strings; no floating money. Sample funding 1 NEAR, purchase cap 0.01, daily cap 0.05, 5 dispatches/fixed 60 seconds. Invoice 120-second default/max300; session24h; key gas allowance0.5NEAR. These are demo parameters, not production tuning.
 - Same owner counters across sessions. Daily usage includes today's settled dispatches and every unresolved payment reservation across all days.
 - Merchant account is service ID; payout/key/endpoint versioned. Exactly one owner-selected profile/revision per session; capability `invoice.audit.v1` with pinned suite/issuer set.
 - Worker method exactly `execute_payment`, zero deposit, real signing key checked. Owner/merchant/issuer management has separate direct authority. No full-access worker key, relayer or arbitrary signing tool.
