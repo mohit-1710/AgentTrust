@@ -5,12 +5,12 @@ export interface SectionMarker {
 
 export const SECTION_MARKERS: readonly SectionMarker[] = [
   { label: "AgentTrust", href: "#home" },
-  { label: "A New Benchmark", href: "#benchmark" },
+  { label: "Spending Boundary", href: "#benchmark" },
   { label: "Trust Stack", href: "#trust-stack" },
-  { label: "Programs", href: "#programs" },
-  { label: "Performance", href: "#performance" },
-  { label: "Plug And Play", href: "#plug-and-play" },
-  { label: "The Network", href: "#network" },
-  { label: "The Trilemma", href: "#trilemma" },
+  { label: "Core Responsibilities", href: "#programs" },
+  { label: "Payment Model", href: "#performance" },
+  { label: "Local Tools", href: "#plug-and-play" },
+  { label: "Supplier Catalog", href: "#network" },
+  { label: "Payment Steps", href: "#trilemma" },
   { label: "Explore", href: "#explore" },
 ];

@@ -1,0 +1,29 @@
+---
+title: "An agent can choose a supplier. Its owner sets the boundary."
+description: "The native NEAR build binds service identity, spending limits, and scoped evidence before a payment is dispatched."
+date: "2026-11-12"
+author: "Mohit"
+coverImage: "/media/explore-trust-layer.svg"
+---
+
+An agent needs an invoice CSV audited. It can compare services and request a quote. That choice should not give it authority to pay any account, use a different asset, or spend beyond the owner's allowance.
+
+AgentTrust on NEAR puts that boundary in a native contract. The owner configures trusted suppliers and blocks, purchase and daily limits, and the capability evidence required by a session. A restricted function-call key can call only the core's payment method with zero attached deposit. Owner management stays separate.
+
+## A supplier is an exact identity
+
+A service record binds an account and version to a signing key, payout account, and endpoint commitment. The signed invoice also binds the buyer, session, profile, policy revision, exact request hash, native amount, and stable payment ID.
+
+Registration does not grant trust. The owner must permit the exact supplier identity. A profile may also require a current credential from an accepted issuer for the named capability and conformance suite. These are explicit permissions and evidence checks, not a reputation score.
+
+## One bounded demonstration
+
+The planned demonstration uses two controlled providers of `invoice.audit.v1`. The audit engine parses CSV, reports duplicate invoice groups and rejected rows, and computes exact per-currency totals. Totals include valid duplicates and are explicitly not payable amounts.
+
+The project-operated validator tests named public fixtures and checks a supplier-signed identity challenge. Passing the suite says only that those fixtures passed at that time. It does not attest to arbitrary future provider behavior.
+
+## What is verified today
+
+The native policy, registry, reservation, callback, withdrawal, audit, and validator code has local checks. Native runtime verification and the full paid HTTP/MCP path remain separate gates. No deployed contract or completed live purchase is claimed here.
+
+The visual website and docs shell are reused from the upstream AgentTrust project. The NEAR integration is new work, recorded separately in the repository's build ledger and baseline tags.

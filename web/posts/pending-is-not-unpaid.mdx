@@ -1,0 +1,29 @@
+---
+title: "Pending is not unpaid: following a native NEAR payment"
+description: "A transfer and its callback are separate receipts. Retry behavior must preserve the original payment instead of guessing."
+date: "2026-11-12"
+author: "Mohit"
+coverImage: "/media/media-field-notes.svg"
+---
+
+The core admits a signed invoice and reserves the owner's available balance before dispatching a native transfer. The transfer then runs in a separate receipt. A private callback records the outcome.
+
+This separation matters. An allowed request is not a settled payment, and a successful RPC response is not enough to release purchased content.
+
+## Keep one operation identity
+
+Each attempt has a stable payment ID and an immutable invoice hash. An exact retry returns the original payment record. Reusing the ID for another invoice conflicts.
+
+The SDK design saves the original quote and operation context before broadcast. After a timeout, it resumes that attempt. A missing payment in one observation does not prove that an earlier transaction cannot still execute, so it must not silently choose a fresh quote, supplier, or payment ID.
+
+## Three outcomes, plus an explicit gap
+
+A successful transfer and successful callback leave a settled record. A definitive failed transfer restores the available balance once. A pending transfer keeps its reservation.
+
+If the transfer succeeds but its callback fails, the reservation can remain indefinitely. The 120-second reconciliation label is diagnostic. The prototype has no automatic refund, resend, or administrative resolver for this state.
+
+A supplier must independently check final settled state and the full invoice/request binding before releasing a report. A settled receipt remains valid for its original input after quote expiry; retrieval failure never permits repayment.
+
+## Evidence still required
+
+Pure transition tests and compiled WASM establish useful properties of the implementation, but they do not establish native receipt ordering, actual storage charging, or restricted-key behavior. The repository includes a user-run runtime harness and records which cases remain open. A live end-to-end payment is not yet claimed.

@@ -25,7 +25,7 @@ export interface PerformanceHeadline {
 export const PERFORMANCE_SECTION_LABELS = [
   "/ Identity first",
   "/ Policy in path",
-  "/ Feedback recorded",
+  "/ Settlement tracked",
 ] as const;
 
 export const PERFORMANCE_HEADLINE: PerformanceHeadline = {
@@ -36,32 +36,30 @@ export const PERFORMANCE_HEADLINE: PerformanceHeadline = {
 };
 
 export const PERFORMANCE_STATEMENT =
-  "AgentTrust keeps identity, policy, and feedback in one Solana-native decision path. Pay.sh is the first live route, not the boundary of the system.";
+  "Supplier identity, owner limits, and capability evidence gate dispatch. Native receipts track settlement. The chart is decorative; no performance benchmark is claimed.";
 
 export const PERFORMANCE_CTA = {
-  label: "Learn About Trust Performance",
+  label: "Read the Payment Model",
   href: PUBLIC_LINKS.docsArchitecture,
 } as const;
 
 export const PERFORMANCE_STATS: readonly PerformanceStat[] = [
   {
-    label: "Trust checks",
-    value: "3",
-    count: { from: 0, target: 3 },
+    label: "Native asset",
+    value: "NEAR",
   },
   {
-    label: "Settlement path",
-    value: "1 tx",
-    count: { from: 0, target: 1, suffix: " tx" },
+    label: "Core contract",
+    value: "1",
+    count: { from: 0, target: 1 },
   },
   {
-    label: "Invariants verified",
-    value: "7 / 7",
-    count: { from: 0, target: 7, suffix: " / 7" },
+    label: "Settlement model",
+    value: "Receipts",
   },
   {
-    label: "Live route",
-    value: "Pay.sh",
+    label: "Build stage",
+    value: "Prototype",
   },
 ] as const;
 

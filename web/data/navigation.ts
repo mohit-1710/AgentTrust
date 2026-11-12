@@ -44,42 +44,42 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         items: [
           {
             label: "Trust Layer",
-            description: "Identity, policy, and feedback before settlement.",
+            description: "Supplier identity, owner rules, and final settlement.",
             href: PUBLIC_LINKS.docsArchitecture,
             icon: "shield",
           },
           {
-            label: "Atomic Settlement",
-            description: "Policy check, SPL transfer, and feedback in one path.",
-            href: PUBLIC_LINKS.docsAtomicSettlement,
+            label: "Asynchronous Settlement",
+            description: "Reservation, native transfer, and a separate callback.",
+            href: PUBLIC_LINKS.docsSettlement,
             icon: "grid",
           },
           {
-            label: "Program IDs",
-            description: "Devnet addresses for every trust gate component.",
-            href: PUBLIC_LINKS.docsProgramIds,
+            label: "Deployment Status",
+            description: "Explicit status and configuration for the native core.",
+            href: PUBLIC_LINKS.docsDeployment,
             icon: "file",
           },
         ],
       },
       {
-        title: "Route Signals",
+        title: "Native Flow",
         items: [
           {
-            label: "Adapter Contract",
-            description: "Bring routes into one AgentTrust decision shape.",
-            href: PUBLIC_LINKS.docsFacilitatorAdapters,
+            label: "HTTP 402 Contract",
+            description: "Bind a signed invoice to a native payment attempt.",
+            href: PUBLIC_LINKS.docsHttp402,
             icon: "box",
           },
           {
-            label: "Live Route",
-            description: "Pay.sh proves one route without owning the trust model.",
-            href: PUBLIC_LINKS.docsPayShAdapter,
+            label: "Audit Capability",
+            description: "One bounded invoice-CSV audit and its fixture suite.",
+            href: PUBLIC_LINKS.docsAuditExample,
             icon: "users",
           },
           {
             label: "Settlement Flow",
-            description: "See the trust check path from request to allow.",
+            description: "See the path from admission to final payment state.",
             href: "#trilemma",
             icon: "terminal",
           },
@@ -96,7 +96,7 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         items: [
           {
             label: "Quickstart",
-            description: "Install the SDK and drive a local payment gate.",
+            description: "Prepare the checkout and inspect the local checks.",
             href: PUBLIC_LINKS.docsQuickstart,
             icon: "code",
           },
@@ -108,24 +108,24 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
           },
           {
             label: "Integration Notes",
-            description: "Keep route-specific details outside trust logic.",
-            href: PUBLIC_LINKS.docsFacilitatorAdapters,
+            description: "Follow the custom HTTP 402 integration in development.",
+            href: PUBLIC_LINKS.docsHttp402,
             icon: "file",
           },
         ],
       },
       {
-        title: "Devnet Surface",
+        title: "Core Responsibilities",
         items: [
           {
-            label: "Policy Program",
+            label: "Owner Policy",
             description: "Thresholds, pausing, and signer controls.",
             href: PUBLIC_LINKS.docsPolicyVault,
             icon: "shield",
           },
           {
-            label: "Feedback Program",
-            description: "Receipt-grade feedback after settlement.",
+            label: "Payment Ledger",
+            description: "Pending, settled, and failed are distinct states.",
             href: PUBLIC_LINKS.docsTrustGate,
             icon: "terminal",
           },
@@ -154,9 +154,9 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
             icon: "book",
           },
           {
-            label: "Live Adapter Example",
-            description: "Worked route using Pay.sh and AgentTrust.",
-            href: PUBLIC_LINKS.docsPayShAdapter,
+            label: "Audit Capability",
+            description: "Controlled providers, named fixtures, and a scoped issuer.",
+            href: PUBLIC_LINKS.docsAuditExample,
             icon: "box",
           },
           {
@@ -171,14 +171,14 @@ export const PRIMARY_NAV_LINKS: readonly NavigationLink[] = [
         title: "Integration",
         items: [
           {
-            label: "Route Adapters",
-            description: "Add new routes without rewriting trust checks.",
-            href: PUBLIC_LINKS.docsFacilitatorAdapters,
+            label: "HTTP 402 Flow",
+            description: "Inspect quote, retry, and receipt-binding requirements.",
+            href: PUBLIC_LINKS.docsHttp402,
             icon: "shield",
           },
           {
             label: "Test Matrix",
-            description: "Program and SDK checks for payment gates.",
+            description: "Contract and SDK checks for payment admission.",
             href: PUBLIC_LINKS.docsGatePayment,
             icon: "grid",
           },

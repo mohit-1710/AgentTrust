@@ -6,11 +6,11 @@
   <circle cx="172" cy="100" r="5" fill="#fbfaf9" opacity="0.45"/>
   <circle cx="194" cy="100" r="5" fill="#fbfaf9" opacity="0.28"/>
   <g font-family="monospace" font-size="18" letter-spacing="1.8">
-    <text x="154" y="174" fill="#fbfaf9">npm install @agenttrust-sdk/trustgate</text>
-    <text x="154" y="228" fill="#6f4cff">gatePayment(request)</text>
-    <text x="154" y="282" fill="#fbfaf9" opacity="0.7">policy: velocity_counter_le_limit</text>
-    <text x="154" y="336" fill="#fbfaf9" opacity="0.7">registry: validation_expiry_correct</text>
-    <text x="154" y="390" fill="#fbfaf9" opacity="0.7">result: allow before settlement</text>
+    <text x="154" y="174" fill="#fbfaf9">. scripts/env.sh &amp;&amp; pnpm check:fast</text>
+    <text x="154" y="228" fill="#6f4cff">executePayment(args)</text>
+    <text x="154" y="282" fill="#fbfaf9" opacity="0.7">policy: owner caps and service trust</text>
+    <text x="154" y="336" fill="#fbfaf9" opacity="0.7">registry: scoped issuer credential</text>
+    <text x="154" y="390" fill="#fbfaf9" opacity="0.7">state: pending until finalized</text>
   </g>
   <path d="M570 182L612 224L570 266" stroke="#6f4cff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M594 224H488" stroke="#6f4cff" stroke-width="4" stroke-linecap="round"/>

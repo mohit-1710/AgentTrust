@@ -17,9 +17,9 @@ export interface FooterSocialLink extends FooterLink {
 }
 
 export const NEWSLETTER_CONTENT = {
-  title: "Subscribe to AgentTrust Notes",
-  body: "Proof updates, SDK notes, and payment-risk integration logs.",
-  helper: "Monthly field notes for builders shipping agent payments.",
+  title: "AgentTrust build notes",
+  body: "Implementation notes, SDK progress, and native payment checks.",
+  helper: "Email subscriptions are unavailable. Read the build notes on the blog.",
 };
 
 export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
@@ -28,7 +28,7 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     links: [
       { href: "#home", label: "Home" },
       { href: "#trust-stack", label: "Trust Stack" },
-      { href: "#performance", label: "Performance" },
+      { href: "#performance", label: "Payment Model" },
       { href: "#network", label: "Network" },
       { href: PUBLIC_LINKS.blog, label: "Blog" },
     ],
@@ -38,15 +38,15 @@ export const FOOTER_LINK_GROUPS: readonly FooterLinkGroup[] = [
     links: [
       { href: PUBLIC_LINKS.docs, label: "Documentation" },
       { href: PUBLIC_LINKS.docsQuickstart, label: "Quickstart" },
-      { href: PUBLIC_LINKS.docsFacilitatorAdapters, label: "Route Adapters" },
-      { href: PUBLIC_LINKS.docsPayShAdapter, label: "Live Adapter Example" },
+      { href: PUBLIC_LINKS.docsHttp402, label: "HTTP 402 Flow" },
+      { href: PUBLIC_LINKS.docsAuditExample, label: "Audit Capability" },
     ],
   },
   {
-    title: "Proofs",
+    title: "Verification",
     links: [
-      { href: "#benchmark", label: "Benchmark" },
-      { href: PUBLIC_LINKS.docsFormalVerification, label: "Kani Checks" },
+      { href: "#benchmark", label: "Spending Boundary" },
+      { href: PUBLIC_LINKS.docsVerification, label: "Checks and Gaps" },
       { href: PUBLIC_LINKS.docsChangelog, label: "Field Notes" },
     ],
   },
@@ -67,5 +67,5 @@ export const FOOTER_UTILITY_LINKS: readonly FooterUtilityLink[] = [
 
 export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] = [
   { href: SOCIAL_LINKS.x, icon: "x", label: "X" },
-  { href: SOCIAL_LINKS.discord, icon: "discord", label: "Discord" },
+  { href: PUBLIC_LINKS.blogFeed, icon: "rss", label: "RSS" },
 ];

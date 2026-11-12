@@ -17,49 +17,49 @@ export interface NetworkSignal {
 }
 
 export const NETWORK_HEADLINE = {
-  firstLine: "Bring any route.",
-  secondLine: "Keep trust intact.",
+  firstLine: "Choose a supplier.",
+  secondLine: "Keep control.",
 } as const;
 
 export const NETWORK_LABELS: readonly NetworkLabel[] = [
   {
-    text: "/ Trust contract",
-    caption: "One decision shape for every payment path.",
+    text: "/ One native core",
+    caption: "Owner policy stays on the payment path.",
   },
   {
-    text: "/ Live x402 route",
-    caption: "Pay.sh proves the first integration path.",
+    text: "/ Custom HTTP 402",
+    caption: "One native adapter in development; no standard-exact claim.",
   },
   {
-    text: "/ Next route",
-    caption: "Future facilitators stay explicit, not hard-coded.",
+    text: "/ Controlled demonstration",
+    caption: "Planned: two controlled providers, one invoice-audit capability.",
   },
 ] as const;
 
 export const NETWORK_COPY: readonly NetworkCopySegment[] = [
-  { text: "AgentTrust owns the decision path: who is paid, which rules apply, and what feedback is recorded. " },
-  { text: "Adapters only translate the route around it.", isDim: true },
+  { text: "The buyer selects from explicitly configured suppliers. Owner policy determines who may be paid and how much. " },
+  { text: "An endpoint in the catalog is not permission to spend.", isDim: true },
 ] as const;
 
 export const NETWORK_CTA = {
-  href: PUBLIC_LINKS.docsFacilitatorAdapters,
-  label: "Add A Route",
+  href: PUBLIC_LINKS.docsHttp402,
+  label: "Read the HTTP Flow",
 } as const;
 
 export const NETWORK_SIGNALS: readonly NetworkSignal[] = [
   {
     eyebrow: "01 / Identity",
     title: "Recipient known",
-    body: "Agent and counterparty signals resolve before value moves.",
+    body: "A signed invoice binds the exact request and registered payout.",
   },
   {
     eyebrow: "02 / Policy",
     title: "Rules enforced",
-    body: "Limits and route controls sit in the payment path.",
+    body: "A restricted worker calls one payment method with zero attached deposit.",
   },
   {
-    eyebrow: "03 / Feedback",
-    title: "Receipt emitted",
-    body: "Every allow or deny decision leaves a readable trail.",
+    eyebrow: "03 / Settlement",
+    title: "State observed",
+    body: "Only a final settled payment releases output. Previews never invent receipts.",
   },
 ] as const;

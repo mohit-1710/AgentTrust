@@ -13,7 +13,7 @@ export interface HeroAction {
 }
 
 export const HERO_FOUNDATION_LINE =
-  "Live on Solana devnet · 7 / 7 Kani proofs · 662 sub-checks";
+  "NEAR prototype · local checks passed · runtime verification pending";
 
 export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
   [
@@ -26,20 +26,20 @@ export const HERO_HEADLINE_LINES: readonly (readonly HeadlineWord[])[] = [
     { text: "AI-agent" },
     { text: "payments" },
     { text: "on" },
-    { text: "Solana." },
+    { text: "NEAR." },
   ],
 ];
 
 export const HERO_HEADLINE =
-  "The trust layer for AI-agent payments on Solana.";
+  "The trust layer for AI-agent payments on NEAR.";
 
 export const HERO_BODY =
-  "AgentTrust completes Solana's ERC-8004 trust stack — three Anchor programs that gate every payment by counterparty identity, reputation, and capability validation. Drop-in for Pay.sh and the next x402 facilitator.";
+  "Give an agent a spending limit and a list of permitted suppliers. AgentTrust checks signed invoices, capability evidence, and owner rules before reserving native NEAR for payment.";
 
 export const HERO_ACTIONS: readonly HeroAction[] = [
   {
     icon: "globe",
-    label: "Integrate SDK",
+    label: "Read the Quickstart",
     href: PUBLIC_LINKS.docsQuickstart,
     variant: "primary",
   },

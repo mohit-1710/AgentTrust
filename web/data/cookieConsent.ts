@@ -6,7 +6,7 @@ export const COOKIE_CONSENT_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
 export const COOKIE_CONSENT_COPY = {
   title: "We value your privacy.",
-  body: "This site uses cookies to improve your browsing experience, analyze site traffic, and show personalized content.",
+  body: "This site stores your preference choice locally. Optional analytics may be available in a hosted build; no personalized advertising is configured.",
   accept: "Accept All",
   reject: "Reject All",
   manage: "Manage Preferences",

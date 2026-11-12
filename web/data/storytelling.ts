@@ -7,7 +7,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
   {
     eyebrow: "01 / Identity",
     title: "Know the counterparty first",
-    body: "Resolve who an agent is paying, which attestations are current, and whether the recipient is trusted before value moves.",
+    body: "Bind a supplier account, version, signing key, endpoint, and payout. Registration alone never makes a service trusted.",
     action: {
       label: "Read Trust Model",
       href: PUBLIC_LINKS.docsArchitecture,
@@ -17,7 +17,7 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
   {
     eyebrow: "02 / Policy",
     title: "Put rules in the payment path",
-    body: "Limits, allowlists, pause state, and velocity checks sit directly on the route, so unsafe transfers fail before settlement.",
+    body: "Purchase and daily caps, explicit trust, blocks, pause, and a fixed dispatch rate are enforced before the core reserves funds.",
     action: {
       label: "View Payment Gate",
       href: PUBLIC_LINKS.docsGatePayment,
@@ -25,11 +25,11 @@ export const STORYTELLING_PANELS: readonly StoryPanel[] = [
     visual: "policy",
   },
   {
-    eyebrow: "03 / Feedback",
-    title: "Make trust decisions auditable",
-    body: "Feedback records the reason a route passed or stopped, giving builders a clear trail after every payment decision.",
+    eyebrow: "03 / Settlement",
+    title: "Keep uncertainty visible",
+    body: "Follow each stable payment ID through pending, settled, or failed. A missing callback keeps the reservation; a timeout never authorizes a second payment.",
     action: {
-      label: "Inspect Feedback",
+      label: "Inspect Settlement",
       href: PUBLIC_LINKS.docsTrustGate,
     },
     visual: "proofs",

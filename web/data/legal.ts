@@ -24,14 +24,14 @@ export const PRIVACY_PAGE: LegalPageContent = {
     {
       title: "External Services",
       body: [
-        "The documentation is hosted separately at docs.agenttrust.tech, and outbound links may open GitHub, npm, or social platforms.",
+        "Documentation uses the configured native docs origin. Development defaults to localhost; outbound links may open GitHub or social platforms.",
         "Those services may process requests according to their own privacy terms.",
       ],
     },
     {
       title: "Contact",
       body: [
-        "For privacy or data questions, use the public repository issue tracker or the contact channel listed in the documentation.",
+        "For privacy or data questions, use the repository issue tracker when accessible or the contact channel listed in the documentation.",
       ],
     },
   ],
@@ -45,7 +45,7 @@ export const TERMS_PAGE: LegalPageContent = {
     {
       title: "Developer Information",
       body: [
-        "Website and documentation content is provided for builders evaluating the AgentTrust SDK and Solana programs.",
+        "Website and documentation content is provided for builders evaluating the native NEAR AgentTrust prototype.",
         "The material is not financial, legal, or compliance advice.",
       ],
     },
@@ -59,8 +59,8 @@ export const TERMS_PAGE: LegalPageContent = {
     {
       title: "Availability",
       body: [
-        "The landing page, docs, and devnet references may change as the project evolves.",
-        "Program IDs, package names, and integration examples should be verified against the current documentation before deployment.",
+        "The landing page, docs, and testnet configuration may change as the project evolves.",
+        "Contract accounts, source packages, and integration examples should be verified against the current documentation before deployment.",
       ],
     },
   ],

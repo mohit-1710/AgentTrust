@@ -9,6 +9,7 @@ export interface PostFrontmatter {
   readonly description: string;
   readonly date: string;
   readonly author: string;
+  readonly coverImage?: string;
 }
 
 export interface PostMeta extends PostFrontmatter {
@@ -44,7 +45,7 @@ async function readPostFile(slug: string): Promise<Post | null> {
     date: data.date,
     author: data.author,
     readingTime: stats.text,
-    coverImage: `/blog/covers/${slug}.png`,
+    coverImage: data.coverImage ?? "/media/explore-trust-layer.svg",
     content: parsed.content,
   };
 }

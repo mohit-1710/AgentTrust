@@ -28,7 +28,7 @@ export default function HeroReveal({ children }: HeroRevealProps) {
         timeline.kill();
       };
     },
-    { dependencies: [shouldReduceMotion], scope: rootRef },
+    { dependencies: [shouldReduceMotion], revertOnUpdate: true, scope: rootRef },
   );
 
   return <div ref={rootRef}>{children}</div>;

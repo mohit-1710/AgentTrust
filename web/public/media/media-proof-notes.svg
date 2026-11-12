@@ -32,9 +32,9 @@
     <circle cx="213" cy="134" r="5" fill="#836EF9"/>
     <circle cx="232" cy="134" r="5" fill="#FBFAF9" fill-opacity=".38"/>
     <circle cx="251" cy="134" r="5" fill="#FBFAF9" fill-opacity=".22"/>
-    <text x="213" y="197" fill="#FBFAF9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="2">PAY.SH ADAPTER</text>
-    <text x="213" y="232" fill="#836EF9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="21" font-weight="700" letter-spacing="1">SERVICE-SIGNED</text>
-    <text x="213" y="260" fill="#FBFAF9" fill-opacity=".66" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="1">challenge envelope</text>
+    <text x="213" y="197" fill="#FBFAF9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="2">SUPPLIER IDENTITY</text>
+    <text x="213" y="232" fill="#836EF9" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="21" font-weight="700" letter-spacing="1">SIGNED INVOICE</text>
+    <text x="213" y="260" fill="#FBFAF9" fill-opacity=".66" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="1">exact request binding</text>
     <path d="M216 286H374" stroke="#FBFAF9" stroke-width="5" stroke-linecap="round"/>
     <path d="M216 306H326" stroke="#FBFAF9" stroke-opacity=".48" stroke-width="5" stroke-linecap="round"/>
   </g>
@@ -44,7 +44,7 @@
     <path class="dash" d="M475 196C411 162 365 162 309 194C270 216 232 214 190 190" stroke="#FBFAF9" stroke-opacity=".42" stroke-width="2"/>
   </g>
   <text x="40" y="58" fill="#FBFAF9" fill-opacity=".76" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="3">/// 001</text>
-  <text x="40" y="366" fill="#FBFAF9" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="650" letter-spacing="-1">Pay.sh integration notes</text>
+  <text x="40" y="366" fill="#FBFAF9" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="650" letter-spacing="-1">Supplier identity notes</text>
   <defs>
     <radialGradient id="ambient" cx="0" cy="0" r="1" gradientTransform="translate(328 220) rotate(90) scale(310 460)" gradientUnits="userSpaceOnUse">
       <stop stop-color="#31235F"/>

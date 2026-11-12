@@ -13,47 +13,47 @@ export interface EventItem {
 export const EVENTS_HEADING = "Trust work happens onchain - and in review.";
 
 export const EVENTS_COPY =
-  "Follow SDK labs, proof reviews, and settlement sessions for teams routing AI-agent payments through AgentTrust.";
+  "Read implementation guides and verification notes from the native NEAR build. These are documentation topics, not scheduled events.";
 
 export const EVENTS: readonly EventItem[] = [
   {
     date: "SDK",
     description:
-      "Install the package, call the payment gate, and inspect the allow or deny branch.",
-    event: "AgentTrust quickstart lab",
+      "Prepare the source checkout and run the pure local checks.",
+    event: "Native build quickstart",
     href: PUBLIC_LINKS.docsQuickstart,
     imageAlt: "Abstract trust gate route diagram",
     imageSrc: "/media/event-trust-gate.svg",
-    location: "Remote",
+    location: "Local checkout",
   },
   {
-    date: "Proofs",
+    date: "Checks",
     description:
-      "Review the invariants that keep policy checks and route state consistent.",
-    event: "Formal verification review",
-    href: PUBLIC_LINKS.docsFormalVerification,
-    imageAlt: "Proof grid with verified check paths",
+      "Review tested properties and the native runtime evidence still required.",
+    event: "Verification boundary",
+    href: PUBLIC_LINKS.docsVerification,
+    imageAlt: "Decorative grid of verification paths",
     imageSrc: "/media/event-proof-review.svg",
     location: "GitHub",
   },
   {
     date: "Settlement",
     description:
-      "Review how policy, transfer, and feedback stay in one signed settlement path.",
-    event: "Atomic route session",
-    href: PUBLIC_LINKS.docsAtomicSettlement,
+      "Follow reservation, transfer, callback, and indefinite pending states.",
+    event: "Asynchronous receipt model",
+    href: PUBLIC_LINKS.docsSettlement,
     imageAlt: "SDK integration cards connected by purple lines",
     imageSrc: "/media/event-sdk-lab.svg",
-    location: "Solana builders",
+    location: "NEAR model",
   },
   {
-    date: "Adapters",
+    date: "HTTP 402",
     description:
-      "Bring a new route into the same AgentTrust decision path without rewriting policy logic.",
-    event: "New route lab",
-    href: PUBLIC_LINKS.docsFacilitatorAdapters,
+      "Inspect the planned signed-quote and settled-receipt flow for one native adapter.",
+    event: "Custom HTTP 402 flow",
+    href: PUBLIC_LINKS.docsHttp402,
     imageAlt: "Verifier nodes around an AgentTrust triangle",
     imageSrc: "/media/event-operator-briefing.svg",
-    location: "Partner call",
+    location: "Integration notes",
   },
 ];

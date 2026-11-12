@@ -21,7 +21,7 @@
   <g font-family="monospace" font-size="12" letter-spacing="1.5" fill="#fbfaf9" opacity="0.42">
     <text x="40" y="110">REQUEST</text>
     <text x="728" y="110" text-anchor="end">ALLOW / DENY</text>
-    <text x="384" y="470" text-anchor="middle">ONE SIGNED SOLANA TRANSACTION</text>
+    <text x="384" y="470" text-anchor="middle">SEPARATE NATIVE NEAR RECEIPTS</text>
   </g>
 
   <path d="M120 102H156" stroke="#fbfaf9" stroke-width="1.5" opacity="0.32"/>
@@ -34,15 +34,15 @@
 
   <circle class="pulse" cx="192" cy="102" r="5" fill="#6f4cff"/>
   <g font-family="monospace" fill="#fbfaf9">
-    <text x="212" y="107" font-size="14" font-weight="700" letter-spacing="2">PAY.SH FACILITATOR</text>
+    <text x="212" y="107" font-size="14" font-weight="700" letter-spacing="2">NATIVE PAYMENT CORE</text>
   </g>
-  <text x="586" y="107" font-family="monospace" font-size="11" letter-spacing="1.5" fill="#fbfaf9" opacity="0.42" text-anchor="end">SOLANA · DEVNET</text>
+  <text x="586" y="107" font-family="monospace" font-size="11" letter-spacing="1.5" fill="#fbfaf9" opacity="0.42" text-anchor="end">NEAR · PROTOTYPE</text>
 
   <path d="M164 130H604" stroke="#27272a"/>
 
   <g font-family="monospace" fill="#fbfaf9">
     <text x="192" y="184" font-size="34" font-weight="500" letter-spacing="0.5" opacity="0.3">01</text>
-    <text x="252" y="178" font-size="17" font-weight="700" letter-spacing="1.5">GATE_PAYMENT</text>
+    <text x="252" y="178" font-size="17" font-weight="700" letter-spacing="1.5">EXECUTE_PAYMENT</text>
     <text x="252" y="202" font-size="12" letter-spacing="1" opacity="0.52">Policy decision · allow, deny, or require validation</text>
   </g>
 
@@ -51,15 +51,15 @@
   <g font-family="monospace" fill="#fbfaf9">
     <text x="192" y="286" font-size="34" font-weight="500" letter-spacing="0.5" opacity="0.3">02</text>
     <text x="252" y="280" font-size="17" font-weight="700" letter-spacing="1.5">TRANSFER</text>
-    <text x="252" y="304" font-size="12" letter-spacing="1" opacity="0.52">Value moves on Solana, x402 settlement</text>
+    <text x="252" y="304" font-size="12" letter-spacing="1" opacity="0.52">Native transfer runs in its own receipt</text>
   </g>
 
   <path d="M164 334H604" stroke="#27272a"/>
 
   <g font-family="monospace" fill="#fbfaf9">
     <text x="192" y="388" font-size="34" font-weight="500" letter-spacing="0.5" opacity="0.3">03</text>
-    <text x="252" y="382" font-size="17" font-weight="700" letter-spacing="1.5">EMIT_FEEDBACK</text>
-    <text x="252" y="406" font-size="12" letter-spacing="1" opacity="0.52">ERC-8004 record · counterparty reputation update</text>
+    <text x="252" y="382" font-size="17" font-weight="700" letter-spacing="1.5">PRIVATE CALLBACK</text>
+    <text x="252" y="406" font-size="12" letter-spacing="1" opacity="0.52">Record final state · pending is not paid</text>
   </g>
 
   <g stroke="#6f4cff" stroke-width="2" opacity="0.7">

@@ -14,18 +14,18 @@ export interface TrilemmaCopy {
 }
 
 export const TRILEMMA_COPY: TrilemmaCopy = {
-  center: "All before settlement.",
-  centerLines: ["All before", "settlement."],
+  center: "Check before dispatch.",
+  centerLines: ["Check before", "dispatch."],
   leadLines: [
-    "AI-agent payments used to split identity,",
-    "policy, and feedback into separate trust moments.",
+    "An agent can choose the next useful service.",
+    "Its owner decides the spending boundary.",
   ],
   pillars: [
-    { label: "Identity", caption: "Counterparty signal" },
-    { label: "Policy", caption: "Gate decision" },
-    { label: "Feedback", caption: "Reputation record" },
+    { label: "Identity", caption: "Signed supplier" },
+    { label: "Policy", caption: "Owner constraints" },
+    { label: "Settlement", caption: "Final payment state" },
   ],
-  resolveEmphasis: "atomically",
-  resolvePrefix: "AgentTrust composes all three",
-  resolveSuffix: "on Solana.",
+  resolveEmphasis: "with reservations",
+  resolvePrefix: "AgentTrust connects the steps",
+  resolveSuffix: "on NEAR.",
 };

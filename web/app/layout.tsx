@@ -28,13 +28,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(PUBLIC_LINKS.site),
   title: "AgentTrust",
   description:
-    "AgentTrust verifies identity, policy, and feedback before AI-agent payments settle on Solana.",
+    "AgentTrust is a native NEAR prototype for supplier-bound agent payments, owner spending limits, and explicit settlement states.",
   alternates: {
     canonical: PUBLIC_LINKS.site,
   },
   openGraph: {
     description:
-      "AgentTrust verifies identity, policy, and feedback before AI-agent payments settle on Solana.",
+      "AgentTrust is a native NEAR prototype for supplier-bound agent payments, owner spending limits, and explicit settlement states.",
     siteName: "AgentTrust",
     title: "AgentTrust",
     type: "website",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     description:
-      "AgentTrust verifies identity, policy, and feedback before AI-agent payments settle on Solana.",
+      "AgentTrust is a native NEAR prototype for supplier-bound agent payments, owner spending limits, and explicit settlement states.",
     title: "AgentTrust",
   },
 };

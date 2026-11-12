@@ -23,7 +23,7 @@ export async function GET(): Promise<Response> {
   const feedUrl = `${site}${PUBLIC_LINKS.blogFeed}`;
   const channelTitle = "AgentTrust";
   const channelDescription =
-    "Field notes from AgentTrust on agent identity, payment policy, and formal verification.";
+    "Build notes on native NEAR agent payments, owner policy, and verification boundaries.";
 
   const items = posts
     .map((post) => {

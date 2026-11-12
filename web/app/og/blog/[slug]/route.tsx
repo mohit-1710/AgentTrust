@@ -1,7 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { ImageResponse } from "next/og";
-import { notFound } from "next/navigation";
 import { getPost, getPostSlugs } from "@/lib/posts";
 
 export const runtime = "nodejs";
@@ -30,7 +29,7 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 export async function GET(_req: Request, context: OgRouteContext) {
   const { slug } = await context.params;
   const post = await getPost(slug);
-  if (!post) notFound();
+  if (!post) return new Response("Post not found", { status: 404 });
 
   const [fraunces, geistMono] = await Promise.all([
     loadFont("Fraunces-SemiBold.ttf"),
@@ -149,7 +148,7 @@ export async function GET(_req: Request, context: OgRouteContext) {
             }}
           >
             <span style={{ display: "flex" }}>{post.author}</span>
-            <span style={{ display: "flex" }}>agenttrust.tech</span>
+            <span style={{ display: "flex" }}>AgentTrust · NEAR build</span>
           </div>
         </div>
       </div>

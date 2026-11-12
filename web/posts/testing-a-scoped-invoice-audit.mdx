@@ -1,0 +1,29 @@
+---
+title: "What an invoice-audit credential actually says"
+description: "A named fixture suite checks a narrow behavior. It does not turn a controlled demo into a general service-quality guarantee."
+date: "2026-11-12"
+author: "Mohit"
+coverImage: "/media/media-proof-notes.svg"
+---
+
+The useful task in this build is an invoice-CSV structural audit. It reads vendor IDs, invoice IDs, amounts, and currencies; reports duplicate groups and rejected rows; and calculates exact totals without floating-point money arithmetic.
+
+The supported demonstration currencies are labels in the audit input. Payment for the service uses native NEAR only. A total in the report is not an instruction to pay it.
+
+## Test the same named inputs
+
+The conformance route accepts only one of four committed fixture IDs. It loads the corresponding public bytes and uses the audit engine. It cannot accept arbitrary uploaded CSV through the free test route.
+
+The validator checks a fresh identity challenge against the registered service key, payout, endpoint, and version. It compares fixture results against manually checked golden reports, then rechecks that the registered identity has not changed.
+
+The suite hash identifies the fixed test definition. A separate evidence hash identifies a particular validation run. Keeping them separate prevents a new run from silently changing what the owner's profile requires.
+
+## Trust stays with the owner
+
+The issuer's assertion is scoped to the service version, capability, suite, and validity window. The owner's profile names accepted issuers. A valid credential alone does not grant the supplier permission to receive money.
+
+The demonstration issuer and providers are project-controlled. Passing public fixtures is a limited behavioral check, not remote attestation or proof of every future result. The buyer also checks the returned report against its exact input.
+
+## Current build boundary
+
+The audit engine, output checker, identity challenge, and validator preparation have passed local checks. Provider route integration, direct issuer submission, and the complete native purchase remain to be demonstrated. The repository's verification notes separate those future runtime claims from the checks already run.

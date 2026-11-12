@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import styles from "@/components/ProgramsSection.module.css";
 import {
-  DEVNET_PROGRAMS,
+  CORE_RESPONSIBILITIES,
   PROGRAMS_EYEBROW,
   PROGRAMS_INTRO,
   PROGRAMS_TITLE,
@@ -12,14 +12,7 @@ import {
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { createProgramsReveal } from "@/lib/animations/programsReveal";
 import { getExternalLinkAttributes } from "@/lib/linkAttributes";
-
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 4)}…${address.slice(-4)}`;
-}
-
-function explorerHref(address: string): string {
-  return `https://explorer.solana.com/address/${address}?cluster=devnet`;
-}
+import { PUBLIC_LINKS } from "@/data/links";
 
 export default function ProgramsContent() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -56,8 +49,8 @@ export default function ProgramsContent() {
       </header>
 
       <ol className={styles.grid}>
-        {DEVNET_PROGRAMS.map((program, index) => {
-          const explorer = explorerHref(program.address);
+        {CORE_RESPONSIBILITIES.map((program, index) => {
+          const source = `${PUBLIC_LINKS.github}/blob/main/${program.sourcePath}`;
 
           return (
             <li className={styles.card} key={program.name} data-programs-card>
@@ -75,14 +68,14 @@ export default function ProgramsContent() {
               <p className={styles.role}>{program.role}</p>
               <a
                 className={styles.address}
-                href={explorer}
-                aria-label={`View ${program.name} on Solana Explorer (devnet)`}
-                {...getExternalLinkAttributes(explorer)}
+                href={source}
+                aria-label={`Read ${program.name} source`}
+                {...getExternalLinkAttributes(source)}
               >
-                <span className={styles.addressLabel}>Program ID</span>
+                <span className={styles.addressLabel}>Source module</span>
                 <span className={styles.addressRow}>
                   <span className={styles.addressValue}>
-                    {truncateAddress(program.address)}
+                    {program.sourcePath.split("/").at(-1)}
                   </span>
                   <span className={styles.addressArrow} aria-hidden="true">
                     ↗
@@ -146,7 +139,7 @@ export default function ProgramsContent() {
           />
         </svg>
         <span className={styles.connectorCaption} data-programs-fade>
-          gate_payment
+          execute_payment
         </span>
       </div>
     </div>

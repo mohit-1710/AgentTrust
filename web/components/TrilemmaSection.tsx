@@ -9,7 +9,7 @@ export default function TrilemmaSection() {
       aria-labelledby="trilemma-title"
     >
       <h2 id="trilemma-title" className={styles.visuallyHidden}>
-        The Trilemma
+        Payment Steps
       </h2>
       <TrilemmaScroll />
     </section>

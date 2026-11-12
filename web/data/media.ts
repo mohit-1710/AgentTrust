@@ -12,31 +12,31 @@ export interface MediaCard {
 export const MEDIA_HEADING = "AgentTrust Media";
 
 export const MEDIA_COPY =
-  "Follow proof notes, builder updates, and settlement writeups from the AgentTrust team.";
+  "Read identity, implementation, and settlement notes from the native NEAR build.";
 
 export const MEDIA_CARDS: readonly MediaCard[] = [
   {
     eyebrow: "Trust decisions",
     href: PUBLIC_LINKS.docsArchitecture,
-    imageAlt: "AgentTrust trust decision cover art with policy and feedback notes",
+    imageAlt: "Signed supplier identity and invoice notes",
     imageSrc: "/media/media-proof-notes.svg",
-    summary: "Identity, policy, and feedback checks before settlement.",
-    title: "Proof Notes",
+    summary: "Registered supplier identity and signed requests before dispatch.",
+    title: "Identity Notes",
   },
   {
     eyebrow: "Builder updates",
-    href: PUBLIC_LINKS.docsFacilitatorAdapters,
-    imageAlt: "Adapter playbook cover showing facilitator files connected to AgentTrust",
+    href: PUBLIC_LINKS.docsHttp402,
+    imageAlt: "Native SDK and invoice audit modules connected to the core",
     imageSrc: "/media/media-builder-log.svg",
-    summary: "SDK wiring, adapter notes, and route integration details.",
+    summary: "Local SDK wiring, quote handling, and integration boundaries.",
     title: "Builder Log",
   },
   {
-    eyebrow: "Atomic settlement",
-    href: PUBLIC_LINKS.docsAtomicSettlement,
-    imageAlt: "Atomic settlement cover showing gate, transfer, and feedback in one route",
+    eyebrow: "Asynchronous settlement",
+    href: PUBLIC_LINKS.docsSettlement,
+    imageAlt: "Reservation, transfer, and callback in separate steps",
     imageSrc: "/media/media-field-notes.svg",
-    summary: "Gate payment, SPL transfer, and feedback composed into one signed transaction.",
+    summary: "Reserve funds before dispatch and observe a final payment state.",
     title: "Settlement Notes",
   },
 ];

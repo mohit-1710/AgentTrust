@@ -37,11 +37,11 @@
   <path class="ledger" d="M102 174H188M102 204H168M452 174H538M452 204H508M266 302H374M266 318H326" stroke="#FBFAF9" stroke-width="4" stroke-linecap="round" stroke-dasharray="24 16"/>
   <path d="M320 82L384 192H256L320 82Z" fill="#836EF9" fill-opacity=".18" stroke="#8F78FF" stroke-width="4"/>
   <circle cx="320" cy="192" r="18" fill="#836EF9"/>
-  <text x="105" y="126" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">GATE</text>
+  <text x="105" y="126" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">RESERVE</text>
   <text x="437" y="126" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">TRANSFER</text>
-  <text x="263" y="360" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">FEEDBACK</text>
+  <text x="263" y="360" fill="#FBFAF9" fill-opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">CALLBACK</text>
   <text x="40" y="58" fill="#FBFAF9" fill-opacity=".76" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="3">/// 003</text>
-  <text x="40" y="366" fill="#FBFAF9" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="650" letter-spacing="-1">Atomic settlement notes</text>
+  <text x="40" y="366" fill="#FBFAF9" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" font-weight="650" letter-spacing="-1">Native settlement notes</text>
   <defs>
     <radialGradient id="wash" cx="0" cy="0" r="1" gradientTransform="translate(320 190) rotate(90) scale(294 430)" gradientUnits="userSpaceOnUse">
       <stop stop-color="#312363"/>

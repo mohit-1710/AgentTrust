@@ -2,7 +2,7 @@ import styles from "@/components/AskAgentTrustSection.module.css";
 import { getExternalLinkAttributes } from "@/lib/linkAttributes";
 
 const PROMPT =
-  "Read https://docs.agenttrust.tech/llms.txt for context about AgentTrust. In 2 to 3 conversational sentences, explain what AgentTrust is and what's live on Solana devnet today, grounded in real programs and integrations where possible. Focus on what this enables for the visitor. Then ask whether I'm here as a developer, evaluating for an institution, or just curious, so you can tailor what comes next.";
+  "Explain this project description in plain language: AgentTrust on NEAR is a prototype that gates native NEAR payments by owner permissions, spending limits, signed supplier identity and scoped capability credentials. A restricted local worker key calls one payment method. Reservations and private callbacks track asynchronous settlement. The build is in progress: local checks are not live runtime evidence, and no deployment is claimed. The planned demo is invoice-CSV auditing with two controlled providers. Do not assume a public package, hosted service, numerical reputation score, or atomic transfer-plus-callback. Ask which part I want to understand next.";
 
 const ENCODED_PROMPT = encodeURIComponent(PROMPT);
 
@@ -96,7 +96,7 @@ export default function AskAgentTrustSection() {
         </a>
       </div>
         <p className={styles.disclaimer}>
-          AI responses may contain errors. For anything material, contact our team directly.
+          These links open an external AI with a project summary. Check current implementation status in the documentation.
         </p>
       </div>
     </section>

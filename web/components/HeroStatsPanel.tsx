@@ -3,7 +3,7 @@ import styles from "@/components/Hero.module.css";
 
 export default function HeroStatsPanel() {
   return (
-    <aside className={styles.panel} aria-label="AgentTrust proofs">
+    <aside className={styles.panel} aria-label="AgentTrust prototype scope">
       <dl className={styles.stats}>
         {HERO_STATS.map((stat) => (
           <div className={styles.stat} key={stat.label} data-hero-fade>

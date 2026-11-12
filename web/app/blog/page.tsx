@@ -10,7 +10,7 @@ import styles from "@/app/blog/blog.module.css";
 export const metadata: Metadata = {
   title: "Blog | AgentTrust",
   description:
-    "Field notes from AgentTrust on agent identity, payment policy, and formal verification.",
+    "Build notes on native NEAR agent payments, owner policy, and verification boundaries.",
   alternates: {
     canonical: `${PUBLIC_LINKS.site}/blog`,
   },
@@ -18,14 +18,14 @@ export const metadata: Metadata = {
     type: "website",
     title: "Blog | AgentTrust",
     description:
-      "Field notes from AgentTrust on agent identity, payment policy, and formal verification.",
+      "Build notes on native NEAR agent payments, owner policy, and verification boundaries.",
     url: `${PUBLIC_LINKS.site}/blog`,
   },
   twitter: {
     card: "summary_large_image",
     title: "Blog | AgentTrust",
     description:
-      "Field notes from AgentTrust on agent identity, payment policy, and formal verification.",
+      "Build notes on native NEAR agent payments, owner policy, and verification boundaries.",
   },
 };
 
@@ -40,8 +40,8 @@ export default async function BlogIndexPage() {
           <p className={styles.eyebrow}>AGENTTRUST</p>
           <h1 className={styles.indexTitle}>Writing</h1>
           <p className={styles.indexLede}>
-            Notes on identity, policy, and feedback as AgentTrust ships toward the
-            Solana mainnet payment lane.
+            Notes from the native NEAR build: supplier identity, spending policy,
+            asynchronous settlement, and what remains to verify.
           </p>
         </header>
 

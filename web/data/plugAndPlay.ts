@@ -12,16 +12,16 @@ export interface PlugCopySegment {
   readonly text: string;
 }
 
-export const PLUG_SECTION_TITLE = "Plug and play.";
+export const PLUG_SECTION_TITLE = "A bounded tool call.";
 
 export const PLUG_COPY: readonly PlugCopySegment[] = [
-  { text: "Use AgentTrust where agents already pay. " },
-  { text: "The SDK gives apps one verification path while adapters handle route-specific wire formats.", isDim: true },
+  { text: "A local agent should ask for a service, not raw signing power. " },
+  { text: "The planned six-tool MCP surface keeps owner management separate and accepts a stable payment ID for every purchase.", isDim: true },
 ] as const;
 
 export const PLUG_CTA = {
   href: PUBLIC_LINKS.docsQuickstart,
-  label: "Check Integration Briefing",
+  label: "Read the Integration Plan",
 } as const;
 
 export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [
@@ -31,10 +31,10 @@ export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [
     labels: [
       "Identity",
       "Policy",
-      "Feedback",
-      "SERVICE Signature",
+      "Settlement",
+      "Signed Invoice",
       "Gate Decision",
-      "SPL Transfer",
+      "Native NEAR",
       "Receipt",
     ],
   },
@@ -45,24 +45,24 @@ export const PLUG_CHIP_ROWS: readonly PlugChipRow[] = [
     labels: [
       "SDK",
       "Verifier",
-      "Replay Cache",
-      "Proof Validator",
+      "Stable Payment ID",
+      "Fixture Validator",
       "Policy Route",
       "Audit Trail",
-      "Devnet",
+      "Testnet Scope",
     ],
   },
   {
     duration: "44s",
     offset: "-10vw",
     labels: [
-      "Pay.sh",
-      "Dexter",
-      "atxp_ai",
-      "MCPay",
+      "invoice.audit.v1",
+      "Issuer Scope",
+      "Owner Trust",
+      "Restricted Key",
       "Adapter",
       "Route",
-      "Atomic Tx",
+      "Private Callback",
     ],
   },
 ] as const;
