@@ -21,6 +21,20 @@ export function fixtureEnvironment(environment, sandbox, command) {
   for (const name of ['PATH', 'TMPDIR']) if (environment[name]) env[name] = environment[name];
   return env;
 }
+// Read-only observation of a known owned process group. EPERM is unresolved;
+// only ESRCH proves disappearance, including after a zombie has been reaped.
+export async function observeGroupDisappearance(pid, deadline) {
+  if (!Number.isSafeInteger(pid) || pid <= 1) throw Error('OWNED_GROUP_PID_REQUIRED');
+  for (;;) {
+    try { process.kill(-pid, 0); }
+    catch (error) {
+      if (error.code === 'ESRCH') return true;
+      if (error.code !== 'EPERM') throw error;
+    }
+    if (Date.now() >= deadline) return false;
+    await new Promise((resolve) => setTimeout(resolve, Math.min(50, deadline - Date.now())));
+  }
+}
 export async function runMidnight(args) {
   if (process.platform === 'win32') throw Error('POSIX_REQUIRED');
   const values = parseArguments(args);
@@ -49,9 +63,14 @@ export async function runMidnight(args) {
   const terminate = () => { interruptedCode ??= 143; controller.abort(); };
   // Persistent listeners cover repeated signals through group cleanup.
   process.on('SIGINT', interrupt); process.on('SIGTERM', terminate);
-  let child, deadline = 0, escalation, cleanupFailure, rejectCleanup;
+  let child, deadline = 0, escalation, cleanupFailure, rejectCleanup, epermObservationDeadline, recoverableEpermOnly = true;
   const cleanupFailed = new Promise((_, reject) => { rejectCleanup = reject; });
-  const recordCleanupFailure = (error) => { cleanupFailure ??= error; };
+  const recordCleanupFailure = (error) => {
+    cleanupFailure ??= error;
+    recoverableEpermOnly &&= process.platform === 'darwin' && error.code === 'EPERM'
+      && child?.pid && (child.exitCode !== null || child.signalCode !== null);
+    if (recoverableEpermOnly) epermObservationDeadline ??= Date.now() + 2000;
+  };
   const group = (signal) => {
     if (!child?.pid) return false;
     try { process.kill(-child.pid, signal); return true; }
@@ -87,12 +106,28 @@ export async function runMidnight(args) {
   } finally {
     controller.signal.removeEventListener('abort', stop);
     try {
-      stop(); // Early fixture exit must not leave its node alive.
-      while (group(0) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50));
-      if (group(0)) group('SIGKILL');
-    } catch (error) {
-      recordCleanupFailure(error);
-      try { group('SIGKILL'); } catch (error) { recordCleanupFailure(error); }
+      try {
+        stop(); // Early fixture exit must not leave its node alive.
+        if (!cleanupFailure) {
+          while (group(0) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50));
+          if (group(0)) group('SIGKILL');
+        }
+      } catch (error) { recordCleanupFailure(error); }
+      if (cleanupFailure) {
+        if (escalation) clearTimeout(escalation);
+        if (recoverableEpermOnly) {
+          // Darwin can report EPERM for a zombie-only group. Do not assume that
+          // cause or send further signals: wait only for observed disappearance.
+          try {
+            if (await observeGroupDisappearance(child.pid, epermObservationDeadline)) {
+              cleanupFailure = undefined;
+              console.error('MIDNIGHT_OWNED_GROUP_OBSERVED_ABSENT_AFTER_EPERM');
+            }
+          } catch (error) { recordCleanupFailure(error); }
+        } else {
+          try { group('SIGKILL'); } catch (error) { recordCleanupFailure(error); }
+        }
+      }
     } finally {
       // A failed group probe/signal must not strand the launcher on its wall timer.
       clearTimeout(timeout); if (escalation) clearTimeout(escalation);
