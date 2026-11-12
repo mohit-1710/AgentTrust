@@ -24,7 +24,7 @@ Ruling: no new memories written | user did not request memory updates | all task
 
 Current machine observation: Node26.7.0, pnpm11.24.0; rustc/cargo/near absent from PATH. Toolchain compatibility/setup is T02; no dependencies installed in planning.
 
-Next: inspect the user-run T13 native evidence when provided; finish T14 SDK review, then T17 paid HTTP flow. T01–T12 and T15 accepted locally; T13/T16 prepared and integrated, T14/T24/T25 in isolated worktrees. T13 runtime gates remain open. No deployment, funding, key installation, live payment, public release, X post or submission performed.
+Next: inspect the user-run T13 native evidence when provided; implement T17 paid HTTP flow and integrate reviewed T24/T25 docs. T01–T12,T14,T15 accepted locally; T13/T16 prepared and integrated; T17/T22/T24/T25 in isolated worktrees. T13 runtime gates remain open. No deployment, funding, key installation, live payment, public release, X post or submission performed.
 
 Ruling: user authorized implementation and regular private commits/pushes on 11 November | proceed through frozen tasks without repeated design approval | public release, restricted runtime, deployment and spending remain separate gates
 
@@ -95,3 +95,7 @@ T13 user-run handoff prepared c4a3dde, tag native-runtime-candidate-1 | clean de
 T15 done cc4ee45 | integrated reviewed invoice audit engine, independent output checker and four manually checked golden fixtures from sprint/t15 | 64 focused tests; integrated214TS tests and typecheck passed | gate: fresh spec/quality pass, no findings | exact integer totals include valid duplicates, totals are not payable amounts; no provider runtime claim
 
 T16 preparation integrated 5ee0b54 | signed identity challenge, fixed-fixture conformance route logic and scoped validator assertion/evidence draft | 69 focused tests; integrated283TS tests and typecheck passed | gate: fresh spec/quality pass, no findings | live HTTP route and credential issuance remain T17/T18; no runtime attestation claim
+
+T14 done 750ec72 | bounded policy/profile/service/payment views, read-only preview, explicit service directory and local restricted-key SDK with finality-aware recovery; owner helpers are a separate entrypoint | integrated99Rust+340TS tests/typecheck/fmt; production381,471-byte WASM inspected without execution | gate: fresh review P2 exact-submission binding fixed with9 regression cases, bounded recheck passed; T11/T12 exports and fault guards preserved | no live RPC or native runtime evidence; final admission is not necessarily settlement
+
+Day2 burn check, 12November16:26IST: official deadline reverified unchanged, about61h to submission and43.5h to feature freeze | prioritize T17/T18 paid path and native runtime evidence, with independent surface migration in isolated worktrees | no scope expansion; task estimates remain assumptions, no completed end-to-end demo claim
