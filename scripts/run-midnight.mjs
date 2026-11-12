@@ -1,0 +1,89 @@
+// USER-RUN ONLY. Owns the fixed fixture and its Sandbox as one POSIX process group.
+import { spawn } from 'node:child_process';
+import { constants } from 'node:fs';
+import { access, lstat, mkdir, readFile, realpath } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+export const usage = 'USER-RUN ONLY: node scripts/run-midnight.mjs --user-run --sandbox-bin /absolute/pinned/near-sandbox --wasm /absolute/production.wasm --output /absolute/repository/artifacts/local/runtime/NEW-directory\nBuild agenttrust-midnight first. Creates one local Sandbox; no remote keys, deployment or automatic retry.';
+export function parseArguments(args) {
+  if (args.length !== 7 || args[0] !== '--user-run') throw Error('EXPLICIT_USER_RUN_ARGUMENTS_REQUIRED');
+  const values = new Map();
+  for (let i = 1; i < args.length; i += 2) {
+    const name = args[i], value = args[i + 1];
+    if (!['--sandbox-bin', '--wasm', '--output'].includes(name) || !path.isAbsolute(value ?? '') || values.has(name)) throw Error('INVALID_MIDNIGHT_ARGUMENTS');
+    values.set(name, value);
+  }
+  return values;
+}
+export function fixtureEnvironment(environment, sandbox, command) {
+  const env = { NEAR_SANDBOX_BIN_PATH: sandbox, AGENTTRUST_RUNTIME_COMMAND: command };
+  for (const name of ['PATH', 'TMPDIR']) if (environment[name]) env[name] = environment[name];
+  return env;
+}
+export async function runMidnight(args) {
+  if (process.platform === 'win32') throw Error('POSIX_REQUIRED');
+  const values = parseArguments(args);
+  const root = await realpath(fileURLToPath(new URL('../', import.meta.url)));
+  const fixture = path.join(root, 'tests/runtime/target/debug/agenttrust-midnight');
+  const sandbox = await realpath(values.get('--sandbox-bin'));
+  const wasm = await realpath(values.get('--wasm'));
+  for (const file of [fixture, sandbox, wasm]) if (!(await lstat(file)).isFile()) throw Error('REGULAR_INPUT_FILE_REQUIRED');
+  await access(fixture, constants.X_OK); await access(sandbox, constants.X_OK);
+  const bytes = await readFile(wasm);
+  if (!bytes.subarray(0, 4).equals(Buffer.from([0, 97, 115, 109])) || bytes.includes(Buffer.from('RUNTIME_TEST_CALLBACK_FAILURE')) || bytes.includes(Buffer.from('AGENTTRUST_RUNTIME_HELPER_ONLY'))) throw Error('PRODUCTION_WASM_REQUIRED');
+  const output = path.resolve(values.get('--output'));
+  if (!output.startsWith(path.join(root, 'artifacts/local/runtime') + path.sep)) throw Error('IGNORED_RUNTIME_OUTPUT_REQUIRED');
+  for (let dir = path.dirname(output); dir !== root; dir = path.dirname(dir)) {
+    try { if ((await lstat(dir)).isSymbolicLink()) throw Error('SYMLINK_OUTPUT_PARENT'); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  try { await lstat(output); throw Error('OUTPUT_EXISTS'); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  await mkdir(path.dirname(output), { recursive: true });
+  const controller = new AbortController();
+  let interruptedCode = null;
+  const interrupt = () => { interruptedCode ??= 130; controller.abort(); };
+  const terminate = () => { interruptedCode ??= 143; controller.abort(); };
+  // Persistent listeners cover repeated signals through group cleanup.
+  process.on('SIGINT', interrupt); process.on('SIGTERM', terminate);
+  let child, deadline = 0, escalation;
+  const group = (signal) => {
+    if (!child?.pid) return false;
+    try { process.kill(-child.pid, signal); return true; }
+    catch (error) { if (error.code === 'ESRCH') return false; throw error; }
+  };
+  const stop = () => {
+    if (deadline) return;
+    deadline = Date.now() + 2000;
+    if (group('SIGTERM')) escalation = setTimeout(() => { group('SIGKILL'); }, 2000);
+  };
+  const timeout = setTimeout(() => { interruptedCode ??= 124; controller.abort(); }, 900_000);
+  try {
+    const command = 'node scripts/run-midnight.mjs ' + args.map((arg) => JSON.stringify(arg)).join(' ');
+    child = spawn(fixture, ['--user-run', '--wasm', wasm, '--out', output], {
+      cwd: root, env: fixtureEnvironment(process.env, sandbox, command), stdio: 'inherit', detached: true,
+    });
+    controller.signal.addEventListener('abort', stop, { once: true });
+    if (controller.signal.aborted) stop();
+    const code = await new Promise((resolve, reject) => {
+      child.once('error', reject); child.once('close', (code) => resolve(code ?? 1));
+    });
+    return interruptedCode ?? code;
+  } finally {
+    controller.signal.removeEventListener('abort', stop);
+    stop(); // Early fixture exit must not leave its node alive.
+    while (group(0) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50));
+    if (group(0)) group('SIGKILL');
+    clearTimeout(timeout); if (escalation) clearTimeout(escalation);
+    process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', terminate);
+  }
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const args = process.argv.slice(2);
+  if (args.length === 1 && args[0] === '--help') console.log(usage);
+  else runMidnight(args).then((code) => { process.exitCode = code; }).catch(() => {
+    console.error('MIDNIGHT_FIXTURE_REFUSED_OR_FAILED: retain any original capture; no automatic retry.');
+    process.exitCode = 1;
+  });
+}
