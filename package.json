@@ -24,9 +24,15 @@
     "evidence:check": "node scripts/runtime-evidence.ts",
     "check:runtime:compile": "cargo check --locked --manifest-path tests/runtime/Cargo.toml",
     "build:services": "tsc -p tsconfig.services.json && node scripts/copy-service-fixtures.mjs",
-    "start:invoice-audit": "node dist/examples/invoice-audit/src/run-server.js"
+    "start:invoice-audit": "node dist/examples/invoice-audit/src/run-server.js",
+    "start:mcp": "node dist/packages/mcp/src/run-server.js",
+    "test:mcp:stdio": "pnpm build:services && node packages/mcp/test/stdio-smoke.mjs"
   },
-  "dependencies": { "near-api-js": "7.4.0" },
+  "dependencies": {
+    "near-api-js": "7.4.0",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "zod": "4.6.7"
+  },
   "devDependencies": {
     "@types/node": "24.19.2",
     "typescript": "6.0.3",
