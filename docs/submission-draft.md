@@ -1,6 +1,6 @@
 # Submission preparation
 
-**Draft only, 12 November 2026.** The repository remains private. Nothing has been submitted or posted. The r2 scripted paid task and 20 of 21 native case groups are recorded; the refund-gap, actual-model buyer, two full rehearsals and video are still open gates. This document does not close them.
+**Draft only, 12 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The r2 scripted paid task and 20 of 21 native case groups are recorded; the refund-gap, actual-model buyer, two full rehearsals and video are still open gates. This document does not close them.
 
 ## Intended project and tracks
 

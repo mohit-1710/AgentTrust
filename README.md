@@ -6,6 +6,8 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 
 Local checks cover 99 pure Rust tests and 682 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks. Its actual testnet decision feed returned both settled payments and all three verified refusals; browser interaction remains untested.
 
+The read-only [website](https://www.agenttrust.tech) and [docs](https://docs.agenttrust.tech) are live on Vercel. The website's [NEAR decision feed](https://www.agenttrust.tech/decisions) reads the dated r2 testnet core; it does not initiate payments. The paid providers, MCP and model buyer still run locally. See the [hosting evidence](docs/hosting-evidence.md) for checked routes and limits.
+
 The [native execution evidence](docs/native-runtime-evidence.md) supports 20 of 21 case groups: the broad Sandbox run passes 19 groups, and a separate midnight run proves owner edits preserve pending funds, settlement charges the original day and exact replay adds no payout. The latest midnight command completes with exit 0 and observed process-group cleanup. The refund-gap case remains open; distinct callback-fault and helper builds in the broad run are disclosed.
 
 ## Start here
@@ -13,7 +15,7 @@ The [native execution evidence](docs/native-runtime-evidence.md) supports 20 of 
 ### Judge path without keys
 
 1. Follow the [local quickstart](docs/quickstart.md#1-prepare-the-pinned-tools) through `pnpm check:fast` to verify the pure contract logic, SDK and buyer behavior. This runs no NEAR transaction.
-2. Run `pnpm build:services` and `pnpm test:mcp:stdio` to inspect the six real stdio tool interfaces against loopback mock RPC. The resulting transcript is labeled mock-only; the [local website and docs](docs/quickstart.md#2-start-the-website-and-docs) can also be started without keys.
+2. Run `pnpm build:services` and `pnpm test:mcp:stdio` to inspect the six real stdio tool interfaces against loopback mock RPC. The resulting transcript is labeled mock-only; the [public website](https://www.agenttrust.tech) and [docs](https://docs.agenttrust.tech) can be read without keys, or [started locally](docs/quickstart.md#2-start-the-website-and-docs).
 3. Read the [public r2 proof extract](docs/evidence/r2-native/README.md) and [full evidence review](docs/testnet-r2-evidence.md#accepted-native-transactions): one missing-credential rejection, a settled 0.002 NEAR purchase, an exact retry with no second payout, and later revocation/identity refusals. The [evidence map](docs/evidence-map.md) distinguishes these native results from the scripted buyer and the remaining model/runtime gates.
 
 - [Local quickstart](docs/quickstart.md): pinned tools, local checks, surfaces, provider/MCP setup and separate native handoffs.
@@ -23,7 +25,8 @@ The [native execution evidence](docs/native-runtime-evidence.md) supports 20 of 
 - [Reuse baseline](docs/sprint/baseline.md): exactly what the existing AgentTrust provides.
 - [Sprint ledger](docs/sprint/ledger.md): completed work and material decisions.
 - [Runtime runbook](docs/runtime-runbook.md): explicit user-run capture, evidence inspection and remaining cases.
-- [Local demo environment](docs/local-demo.md): reproducible website, docs and two HTTPS providers without cloud hosting.
+- [Local demo environment](docs/local-demo.md): reproducible website, docs and two HTTPS providers without a cloud dependency for the paid flow.
+- [Hosting evidence](docs/hosting-evidence.md): public website/docs deployment, HTTP checks and remaining local services.
 - [Testnet bootstrap](docs/testnet-bootstrap.md): offline private role/config preparation and explicit user-run account provisioning.
 - [Operator route](docs/testnet-operator.md): fixed role loading, paid task, model buyer, recovery and two fresh rehearsals.
 - [Verification matrix](docs/sprint/verification.md): each claim and the evidence required.
@@ -53,6 +56,6 @@ A successful transfer followed by a failed callback can leave funds reserved ind
 
 ## Verification and execution boundary
 
-Run `. scripts/env.sh`, `pnpm check:fast` and `pnpm build:contract` for the implemented local checks. `pnpm build:services` and `pnpm build:surfaces` compile the provider and existing website/docs. See [toolchain setup and results](docs/sprint/toolchain.md) and the [ledger](docs/sprint/ledger.md) for actual verification. Native runtime and testnet commands are explicit operations: reading this repository never authorizes them. Sandbox writes a local chain database; under the current repository restriction its runner is user-run. The accepted native captures were executed under a past, one-time exception that has ended. Ordinary in-memory tests and builds are separate from database-writing Sandbox/integration operations. No cloud infrastructure, production deployment, public release or event submission has been performed.
+Run `. scripts/env.sh`, `pnpm check:fast` and `pnpm build:contract` for the implemented local checks. `pnpm build:services` and `pnpm build:surfaces` compile the provider and existing website/docs. See [toolchain setup and results](docs/sprint/toolchain.md) and the [ledger](docs/sprint/ledger.md) for actual verification. Native runtime and testnet commands are explicit operations: reading this repository never authorizes them. Sandbox writes a local chain database; under the current repository restriction its runner is user-run. The accepted native captures were executed under a past, one-time exception that has ended. Ordinary in-memory tests and builds are separate from database-writing Sandbox/integration operations. Vercel hosts only the read-only website/docs; no mainnet contract deployment, public repository release or event submission has been performed.
 
 Event deadline: **14 November 2026, 23:59 UTC / 15 November 2026, 05:29 IST**. The repository is private during preparation and must be made public before submission through a later explicit release action. [Official rules](https://nearhackathon.com/HACKATHON.md).

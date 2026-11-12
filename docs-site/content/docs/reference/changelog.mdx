@@ -1,9 +1,9 @@
 ---
 title: "Implementation status"
-description: "Accepted local milestones, pending runtime gates and the prior-work boundary."
+description: "Accepted milestones, pending runtime gates and the prior-work boundary."
 ---
 
-The table below lists local tasks explicitly marked accepted in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Separate [native runtime captures](https://github.com/mohit-1710/AgentTrust/blob/main/docs/native-runtime-evidence.md) support 20 of 21 case groups, and the [r2 testnet run](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) records a deployed core, two settled payments, contract refusals and a scripted MCP purchase. The full runtime gate remains open because the refund-gap case was not observed. Local acceptance, native execution and actual-model autonomy are separate facts.
+The table below lists tasks explicitly marked accepted in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Separate [native runtime captures](https://github.com/mohit-1710/AgentTrust/blob/main/docs/native-runtime-evidence.md) support 20 of 21 case groups, and the [r2 testnet run](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r2-evidence.md) records a deployed core, two settled payments, contract refusals and a scripted MCP purchase. The full runtime gate remains open because the refund-gap case was not observed. Local acceptance, public hosting, native execution and actual-model autonomy are separate facts.
 
 {/* BEGIN AUTO-GEN: changelog */}
 
@@ -27,16 +27,17 @@ The table below lists local tasks explicitly marked accepted in the [sprint ledg
 | T21 | operator-pinned read-only native activity adapter, exact24-decimal NEAR values, bounded final public views and explicit verified rejection references |
 | T22 | truthful native website claims, metadata, SVGs and three posts; six byte-exact upstream archives excluded from served paths; existing design preserved |
 | T19 | exactly six local stdio MCP tools, strict fixed-context schemas, dedicated restricted-worker environment and uncertain-safe payment result mapping |
+| T26 | read-only NEAR website and docs deployed from clean tracked-file archives to verified production domains |
 
-Generated from explicit accepted-task entries in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Source SHA-256: `f2702a710c92c0a67644b4a9b055d095da528e312e371b072c80e90d6f1b084e`.
+Generated from explicit accepted-task entries in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Source SHA-256: `d8aecc1303995d22f205a24a3569b4ec188cbc8dd3e7f746043c2a8757bb6edc`.
 
-The table records local acceptance only. Runtime, deployment and useful paid-output claims require their separate evidence gates.
+The table records accepted milestones. Local checks, native execution, public hosting and useful paid output have separate evidence gates.
 
 {/* END AUTO-GEN: changelog */}
 
 The local implementation includes ordered policy gates, exact service trust/block management, reservations, dispatch, private callbacks and available-fund withdrawals. Pure tests, typechecks and WASM inspection do not establish protocol key restrictions, actual storage/refund ordering or a paid service run.
 
-The SDK, audit engine, validator and custom HTTP/MCP purchase flow are implemented. R2 verifies a controlled testnet purchase and checked report; its MCP buyer was scripted. The native refund-gap case, actual-model run, two full rehearsals, browser visual QA and public hosting remain open. No published native package, production deployment or general service-quality guarantee is claimed.
+The SDK, audit engine, validator and custom HTTP/MCP purchase flow are implemented. R2 verifies a controlled testnet purchase and checked report; its MCP buyer was scripted. The read-only website and docs are live on Vercel, while paid providers, MCP and the model buyer remain local. The native refund-gap case, actual-model run, two full rehearsals and browser visual QA remain open. No published native package, mainnet contract deployment or general service-quality guarantee is claimed.
 
 ## Prior work
 

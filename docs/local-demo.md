@@ -24,7 +24,7 @@ pnpm --filter docs-site exec next start --hostname 127.0.0.1 --port 3001
 
 Local URLs are `http://localhost:3000` and `http://localhost:3001`. The website's public origin configuration defaults to those values. For hosting, set the actual `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_DOCS_URL` before building. There is no public hosting claim from these defaults. Vercel telemetry components render only when `VERCEL=1`, avoiding nonexistent local telemetry endpoints.
 
-The decisions feed is disconnected until its three server-only network/core/owner variables are set, as documented in `web/.env.example`. Those are public identifiers, not signing keys. Never give the website an owner, issuer, merchant or worker private key. Rebuild/restart after configuration changes. No public deployment addresses are supplied by this repository.
+The decisions feed is disconnected until its three server-only network/core/owner variables are set, as documented in `web/.env.example`. Those are public identifiers, not signing keys. Never give the website an owner, issuer, merchant or worker private key. Rebuild/restart after configuration changes. The separate [public read-only deployment](hosting-evidence.md) does not supply a paid-provider origin for this local launcher.
 
 ## One terminal for the local stack
 

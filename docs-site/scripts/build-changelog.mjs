@@ -17,5 +17,5 @@ await writeBlock('reference/changelog.mdx', 'changelog', [
   '',
   `Generated from explicit accepted-task entries in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/${sourcePath}). Source SHA-256: \`${sourceHash(ledger)}\`.`,
   '',
-  'The table records local acceptance only. Runtime, deployment and useful paid-output claims require their separate evidence gates.',
+  'The table records accepted milestones. Local checks, native execution, public hosting and useful paid output have separate evidence gates.',
 ].join('\n'));
