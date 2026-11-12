@@ -1,0 +1,34 @@
+[package]
+name = "agenttrust-contract-memory"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97.1"
+publish = false
+autotests = false
+license = "MIT"
+
+# Separate dependency graph: never enable SDK test features in production WASM.
+[workspace]
+
+[lib]
+name = "agenttrust_contract_memory"
+path = "../../contracts/agenttrust-core/src/lib.rs"
+crate-type = ["rlib"]
+test = false
+doctest = false
+bench = false
+
+[features]
+default = []
+runtime-test-callback-failure = []
+
+[[test]]
+name = "host_contract"
+path = "tests/host_contract.rs"
+
+[dependencies]
+agenttrust-domain = { path = "../../crates/agenttrust-domain" }
+near-sdk = { version = "=5.30.1", default-features = false, features = ["unit-testing"] }
+
+[dev-dependencies]
+ed25519-dalek = { version = "=2.2.0", default-features = false, features = ["std"] }

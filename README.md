@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: local implementation checked; native execution pending.** The native policy/vault core, local SDK, paid HTTP flow, six MCP tools, bounded buyer and testnet preparation pass local checks: 99 pure Rust tests and 563 TypeScript tests, plus five isolated RPC-error regression tests. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks; compiled buyer/MCP exchanges pass against mock RPC, and checked completed jobs replay without keys or network access. Actual native settlement, real model execution and full rehearsals remain unverified. No contract has been deployed, and no native runtime gate is claimed passed.
+**Status: local implementation checked; native execution pending.** The native policy/vault core, local SDK, paid HTTP flow, six MCP tools, bounded buyer and testnet preparation pass local checks: 99 pure Rust tests and 563 TypeScript tests, plus five isolated RPC-error tests and 15 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks; compiled buyer/MCP exchanges pass against mock RPC, and checked completed jobs replay without keys or network access. Actual native settlement, real model execution and full rehearsals remain unverified. No contract has been deployed, and no native runtime gate is claimed passed.
 
 ## Start here
 

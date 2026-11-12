@@ -7,6 +7,7 @@ Verification requirements frozen 11 November 2026. Actual task results are recor
 | Lane | What it establishes | Current execution rule |
 |---|---|---|
 | D: pure Rust domain | Encoding, deterministic policy and accounting over ordinary in-memory values | May run during implementation; no database/runtime |
+| H: Rust contract memory host | Actual contract methods, serialized storage and recorded promise actions through SDK map-backed host | Explicit isolated `tests/contract-memory` suite; ordinary Rust maps/vectors only, no database/chain. Context and promise results are supplied; no WASM/rollback/receipt execution proof. |
 | T: pure TypeScript/HTTP | Client byte agreement, parsing, tool schemas, request/receipt checks | May run if effects are inspected and no database/live mutation |
 | W: WASM build | Contract compiles for target | May run; does not establish runtime correctness |
 | U: UI/docs | Visual preservation, truthful data mapping, generated corpus | Local/read-only smoke allowed; no auto-deploy |
