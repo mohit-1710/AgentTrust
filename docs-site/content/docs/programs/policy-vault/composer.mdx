@@ -19,7 +19,7 @@ New admission then follows these stages:
 
 Trust never overrides a block or missing required capability. Registration is not owner permission. There is no one-off approval or score threshold that skips a stage.
 
-The pure evaluator supports deterministic tests and the planned client preview. Only the native write method can authenticate the real signing key and reserve funds. A preview explicitly reports `authorization: "not_proven_by_view"` and can become stale before execution.
+The pure evaluator supports deterministic tests and the implemented client preview. Only the native write method can authenticate the real signing key and reserve funds. A preview explicitly reports `authorization: "not_proven_by_view"` and can become stale before execution.
 
 An authoritative business rejection may emit a decision event without allocating a payment record. A transaction that panics must not be presented as a persisted rejection event. Rejected calls can still cost gas.
 

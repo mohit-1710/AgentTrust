@@ -3,11 +3,11 @@ title: "Issuer validation flow"
 description: "Validate a pinned endpoint and a public fixture suite before issuing a scoped credential."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+The validator and fixed-fixture handlers are implemented and locally tested. Live HTTP validation and issuer submission remain separate gates in [implementation status](/reference/changelog).
 
 The demonstration issuer is operated by the project and explicitly accepted by the owner. Its assertion is a bounded trust claim, not a decentralized reputation score or runtime attestation.
 
-The planned validation procedure is:
+The validator prepares an assertion through this procedure:
 
 1. Read the current service identity and resolve its configured HTTPS origin.
 2. Check the origin's endpoint commitment against the registry.
@@ -15,7 +15,7 @@ The planned validation procedure is:
 4. Verify the signed descriptor against the registered key, nonce, network/core, service/version, payout, endpoint and dates.
 5. Call `POST /v1/conformance` with only committed public fixture IDs; compare responses with manually checked goldens.
 6. Record separate suite and run-evidence hashes, including the verified descriptor hash.
-7. Re-read the registry version before issuing the credential through the issuer account.
+7. Re-read the registry version and return a scoped assertion draft only if every check passes. A separate direct issuer account must submit that assertion; the validator does not issue credentials itself.
 
 The conformance route cannot accept arbitrary user CSV. This avoids making the validator pay for an unqualified service before it can test it, without exposing the paid arbitrary-input audit for free.
 
@@ -25,4 +25,4 @@ Keep issuer keys out of the buyer's SDK/MCP process. Issuing a credential never 
 
 ## Source and verification
 
-[Validation design](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Issuer contract methods](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/registry.rs) · [Endpoint/fixture acceptance requirements](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md)
+[Validator implementation](https://github.com/mohit-1710/AgentTrust/blob/main/examples/invoice-audit/src/validate.ts) · [Issuer contract methods](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/registry.rs) · [Endpoint/fixture acceptance requirements](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md)

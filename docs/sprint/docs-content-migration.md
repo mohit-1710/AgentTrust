@@ -1,6 +1,6 @@
 # T24 documentation content migration
 
-Initial content preparation used `f2f7bc0` (accepted T07), 11 November 2026. The T25 integration refresh uses `594b981` (accepted T12 plus prepared, unexecuted T13 harness); this is not runtime acceptance. This inventory accounts for all **44** inherited MDX pages: **33 rewritten**, **11 archived**, plus **one new native trust/block page**, leaving **34 active pages**. It does not mark T24 accepted in the main sprint ledger.
+Initial content preparation used `f2f7bc0` (accepted T07), 11 November 2026. The T25 integration refresh uses `d360d15` (accepted T01–T12/T14/T15, prepared T13/T16), 12 November; this is not runtime acceptance. This inventory accounts for all **44** inherited MDX pages: **33 rewritten**, **11 archived**, plus **one new native trust/block page**, leaving **34 active pages**. It does not mark T24 accepted in the main sprint ledger.
 
 The upstream source is `agenttrust-labs/agenttrust@21a3b111b7677d0b06ab1b063d647e4f52ea3b17`. [Baseline provenance](baseline.md) and the [exact import manifest](ui-baseline-manifest.json) remain authoritative for prior work and original SHA-256 values. The 11 archived MDX files are byte-identical to both that manifest and the preparation base. License notices remain unchanged.
 
@@ -95,7 +95,7 @@ The repeatable static-check helpers and raw preparation results are local scratc
 
 ## Integration handoff
 
-This is content preparation, not rendered acceptance. The T25 refresh reconciles the status/quickstart/runtime pages to accepted T12 and prepared T13. Later accepted tasks still require reconciliation against the ledger. In particular, a later implementation can update the quickstart, SDK/runtime and useful-audit grammar pages only with its actual exported interfaces, commands and observed results.
+This is content preparation until rendered acceptance checks pass. The T25 refresh reconciles status, SDK interfaces, validator/audit behavior and runtime boundaries to the integrated milestones above. Later accepted tasks still require reconciliation against the ledger. In particular, a later implementation can update the quickstart, SDK/runtime and useful-audit grammar pages only with its actual exported interfaces, commands and observed results.
 
 T25 preparation replaces the namespace/changelog generators with native source-derived blocks, removes unused old claim components/constants, migrates shell metadata/links and assistant context, and implements explicit `pnpm build:surfaces`. Local generation, source-hash drift checks, corpus/archive checks, search behavior tests, lint, typecheck and both production surface builds passed in its isolated worktree. Read-only HTTP checks covered all 34 active HTML and Markdown routes, all 11 archived routes returning 404, both LLM exports, four native search queries, negotiation and the assistant availability response. A direct execution of the actual context loader contained exactly 34 current pages. No provider request was made.
 

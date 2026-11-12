@@ -278,14 +278,17 @@ All views are read-only. `preview_payment` evaluates claimed owner/session data 
 ```ts
 interface AgentTrustClient {
   previewPayment(args: ExecutePaymentArgs): Promise<PreviewResult>;
-  executePayment(args: ExecutePaymentArgs): Promise<ExecutionResult>;
+  executePayment(args: ExecutePaymentArgs, options?: BroadcastOptions): Promise<SubmissionResult>;
+  resolveSubmission(transaction: TransactionLocator, args: ExecutePaymentArgs): Promise<SubmissionResult>;
   getPayment(ownerId: AccountId, paymentId: Hash32): Promise<PaymentView | null>;
   awaitPayment(ownerId: AccountId, paymentId: Hash32, timeoutMs: number): Promise<PaymentObservation>;
   payService(args: {serviceId: AccountId; csvUtf8: string; paymentId: Hash32}): Promise<PaidAuditResult>;
 }
 ```
 
-`awaitPayment` timeout returns uncertainty with the existing operation ID. `payService` requires a caller-supplied stable payment ID for the purchase attempt. The buyer keeps it across retries/restarts. Before broadcasting, the SDK durably saves the exact signed quote, selected credential reference, owner/network/core, service/version, request hash and payment ID in an ordinary local JSON attempt file under a configured private directory (0700 directory/0600 files, no database engine). Do not store private keys or CSV content. Use atomic replacement and ensure persistence succeeds before broadcast. Failure to save stops submission. An existing attempt with different immutable context is a conflict, never overwritten.
+`SubmissionResult` preserves the transaction locator on uncertainty. A final call result wraps the on-chain `ExecutionResult` plus matching receipt IDs; its admission record may still be pending. The optional `beforeBroadcast` hook checkpoints the known transaction locator before a single send. Recovery matches the exact submitted invoice, signature and credential reference. These T14 details preserve the settlement boundary rather than treating a successful RPC call as a paid result.
+
+`awaitPayment` timeout returns uncertainty with the existing operation ID. `payService` requires a caller-supplied stable payment ID for the purchase attempt. The buyer keeps it across retries/restarts. Before broadcasting, the SDK durably saves the exact signed quote, selected credential reference, owner/network/core, service/version, request hash and payment ID in an ordinary local JSON attempt file under a configured private directory (0700 directory/0600 files, no database engine). Do not store private keys or CSV content. Use atomic create-if-absent publication for the immutable attempt and ensure persistence succeeds before broadcast. Failure to save stops submission. An existing attempt with different immutable context is a conflict, never overwritten.
 
 On timeout/restart, load that exact attempt and query its original ID. If outcome is unknown, `not found` is not proof the broadcast cannot still execute. Resume observation or rebroadcast only the identical quote/ID; do not fetch a replacement invoice, switch suppliers or generate a fresh ID automatically. An expired unresolved quote remains uncertain until an authoritative terminal result is established. A definitive non-dispatch rejection or failed transfer can be surfaced to the caller for a separately identified new attempt; never silently treat an unknown result as that evidence. Deliberately fresh IDs remain budget/rate constrained, not semantically deduplicated.
 

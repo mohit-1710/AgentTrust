@@ -17,7 +17,7 @@ This table is a scope declaration, not a list of deployed credentials. There is 
 
 A profile pins `conformance_suite_version` and `conformance_suite_hash` plus its accepted issuers. A credential also carries an `evidence_manifest_hash` for one validation run. The suite identity and run evidence are different commitments.
 
-The planned report binds the exact input hash and contains logical row counts, duplicate vendor/invoice groups, rejected rows and exact per-currency totals. Valid duplicate rows remain included in those totals, which are not amounts to pay. Fixture behavior and supported CSV grammar must be documented before a conformance assertion is made.
+The implemented audit report binds the exact input hash and contains logical row counts, duplicate vendor/invoice groups, rejected rows and exact per-currency totals. Valid duplicate rows remain included in those totals, which are not amounts to pay. The engine accepts bounded UTF-8 CSV with the four required headers, quoted fields and LF/CRLF records; the committed [fixture suite](https://github.com/mohit-1710/AgentTrust/blob/main/fixtures/invoice-audit/v1/suite.json) pins the controlled conformance cases. A passing suite is a bounded behavior claim, not a general accuracy guarantee.
 
 No deployed suite hash, issuer record or credential ID is supplied here until it is backed by reviewed evidence. The explicit native generator reads the profile validator. It does not read a deployment catalog or invent credentials.
 

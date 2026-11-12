@@ -21,7 +21,7 @@ A valid signature proves only the signed bytes. These helpers do not establish c
 
 Shared fixture keys are public test material. Never use or fund them as real accounts or merchant keys. Rust and TypeScript fixtures prove local byte agreement; equivalence with the native host's execution still needs runtime verification.
 
-Client, owner-management, MCP and HTTP integration APIs are documented as design separately until their tasks are accepted.
+The main entrypoint also exports `AgentTrustClient`, `ServiceDirectory`, endpoint commitment helpers and finality validators. `AgentTrustOwner` is available only from the separate `/owner` entrypoint. These local implementations are not published npm packages. MCP and the paid HTTP flow remain under implementation.
 
 ## Source and verification
 

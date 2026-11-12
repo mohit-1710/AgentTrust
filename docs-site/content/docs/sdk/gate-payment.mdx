@@ -3,23 +3,23 @@ title: "Preview, execute and resume"
 description: "A preview explains policy; authoritative execution and final state determine payment."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+The local client methods below are implemented and tested against mocked RPC responses. Native runtime and live payment verification remain separate gates in [implementation status](/reference/changelog).
 
-The frozen client surface is:
+The implemented client surface includes:
 
 ```ts
 previewPayment(args: ExecutePaymentArgs): Promise<PreviewResult>;
-executePayment(args: ExecutePaymentArgs): Promise<ExecutionResult>;
+executePayment(args: ExecutePaymentArgs, options?: BroadcastOptions): Promise<SubmissionResult>;
+resolveSubmission(transaction: TransactionLocator, args: ExecutePaymentArgs): Promise<SubmissionResult>;
 getPayment(ownerId: AccountId, paymentId: Hash32): Promise<PaymentView | null>;
 awaitPayment(ownerId: AccountId, paymentId: Hash32, timeoutMs: number): Promise<PaymentObservation>;
-payService(args: {serviceId: AccountId; csvUtf8: string; paymentId: Hash32}): Promise<PaidAuditResult>;
 ```
 
-These are interface contracts, not a claim that every integration method is implemented in this snapshot.
+`SubmissionResult` is either `final`, with the transaction locator, matching receipt IDs and on-chain admission result, or `uncertain`, with the original locator. A final admission can still contain a pending payment; it does not authorize content release. Recovery checks the exact submitted invoice, signature and credential reference. `beforeBroadcast` can durably checkpoint the locator before any send.
 
 A preview declares `authorization: "not_proven_by_view"`. It cannot prove possession of a worker key or reserve capacity. The write method checks the actual signer/key and current state.
 
-Before broadcast, `payService` must durably save the exact signed quote and immutable attempt context in a private local JSON file. The journal contains no private key or CSV content. Failure to persist it stops submission; a conflicting saved ID is never overwritten.
+The higher-level `payService({serviceId, csvUtf8, paymentId})` flow remains under implementation. Its required retry behavior follows. Before broadcast, it must durably save the exact signed quote and immutable attempt context in a private local JSON file. The journal contains no private key or CSV content. Failure to persist it stops submission; a conflicting saved ID is never overwritten.
 
 On timeout or restart, load the same attempt and query its original ID. Not-found after an uncertain broadcast is not proof that it cannot execute later. Observe or rebroadcast only the identical quote/ID; do not silently requote, switch providers or generate a replacement ID.
 

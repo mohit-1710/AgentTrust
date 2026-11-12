@@ -3,7 +3,7 @@ title: "Implementation status"
 description: "Accepted local milestones, pending runtime gates and the prior-work boundary."
 ---
 
-The accepted local implementation in this documentation snapshot reaches **T12** (11 November 2026). **T13 is prepared, with no native runtime gate passed.** The [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md) is the task record; source existence, compilation and runtime success are separate facts.
+This snapshot includes locally accepted **T01–T12, T14 and T15** (12 November 2026). **T13 runtime preparation and T16 validator preparation are integrated; no native runtime gate has passed.** The [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md) is the task record; source existence, compilation and runtime success are separate facts.
 
 {/* BEGIN AUTO-GEN: changelog */}
 
@@ -21,8 +21,10 @@ The accepted local implementation in this documentation snapshot reaches **T12**
 | T10 | authoritative worker admission, registry-key host signature call, immutable retries, priced reservation/index and actual-balance guard before one explicit native Promise transfer |
 | T11 | private self/exactly-one-result callback, bounded native result handling, fixed-size finalization and receipt-local backing observations |
 | T12 | direct owner-only available withdrawal to self, immutable replay/status views, priced backing guard and private exactly-once callback |
+| T15 | integrated reviewed invoice audit engine, independent output checker and four manually checked golden fixtures from sprint/t15 |
+| T14 | bounded policy/profile/service/payment views, read-only preview, explicit service directory and local restricted-key SDK with finality-aware recovery; owner helpers are a separate entrypoint |
 
-Generated from explicit accepted-task entries in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Source SHA-256: `b3286294d28eabaa8f07c5af5b5dd4d9eaacbafa077b6c6b6ca81555ba27dadc`.
+Generated from explicit accepted-task entries in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Source SHA-256: `0485f6c2350ecee2bea54517e798932c3822f5b262302e53e8e5462aefed2a74`.
 
 The table records local acceptance only. Runtime, deployment and useful paid-output claims require their separate evidence gates.
 
@@ -30,7 +32,7 @@ The table records local acceptance only. Runtime, deployment and useful paid-out
 
 The local implementation includes ordered policy gates, exact service trust/block management, reservations, dispatch, private callbacks and available-fund withdrawals. Pure tests, typechecks and WASM inspection do not establish protocol key restrictions, actual storage/refund ordering or a paid service run.
 
-The runtime harness and evidence checker are prepared, but unexecuted host cases and matrix gaps remain. The broader SDK is prepared separately; audit-service and validator work are reviewed on isolated branches, not accepted as an integrated HTTP/MCP flow in this snapshot. No native package, public endpoint, deployment or successful purchase is claimed.
+The runtime harness and evidence checker are prepared, but unexecuted host cases and matrix gaps remain. The local SDK, audit engine and signed identity/conformance validator are integrated. The HTTP/MCP purchase flow remains under implementation. No published native package, public endpoint, deployment or successful purchase is claimed.
 
 ## Prior work
 
