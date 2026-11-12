@@ -6,6 +6,8 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 
 Local checks cover 99 pure Rust tests and 672 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks. Its actual testnet decision feed returned both settled payments and all three verified refusals; browser interaction remains untested.
 
+The [native Sandbox capture](docs/native-runtime-evidence.md) passes 19 of 21 case groups with 116 assertions and 1,038 checked artifacts. Refund-gap and midnight/edit ordering remain separate incomplete cases. The distinct callback-fault and helper builds are disclosed in that record.
+
 ## Start here
 
 - [Local quickstart](docs/quickstart.md): pinned tools, local checks, surfaces, provider/MCP setup and separate native handoffs.
