@@ -6,7 +6,7 @@ The operator loads the fixed step's key into its child only: core/owner/issuer/m
 
 ## 1. Prepare a fresh bundle
 
-Use one operator terminal for the setup, worker and buyer commands. These public variables and shortcuts remain in that shell. Every capture name below is exclusive; change `r1` to another fresh prefix if those captures already exist. Changing a capture prefix never makes a previously submitted operation safe to resend.
+Use one operator terminal for the setup, worker and buyer commands. These public variables and shortcuts remain in that shell. Every capture name below is exclusive; replace **every** `r1` in both terminal snippets with the same fresh run label when prior captures exist. Changing a capture prefix never makes a previously submitted operation safe to resend.
 
 ```sh
 . scripts/env.sh
@@ -251,7 +251,7 @@ Check every retained T18 capture, including preparation, failure and observation
 )
 ```
 
-The checker establishes file/hash/shape integrity and required evidence, not independent RPC truth or full hackathon readiness. Inspect the original raw outcomes and payout intervals too. To display actual refusal rows, use the [local feed instructions](local-demo.md#one-terminal-for-the-local-stack) with this run's `r1-16-missing`, `r1-20-revoked` and `r1-23-identity-refusal` transaction locator paths; restart the stack after setting the public references. This route performs no visual/browser check.
+The checker establishes file/hash/shape integrity and required evidence, not independent RPC truth or full hackathon readiness. Inspect the original raw outcomes and payout intervals too. To display actual refusal rows, use the [local feed instructions](local-demo.md#one-terminal-for-the-local-stack) with this run's `16-missing`, `20-revoked` and `23-identity-refusal` transaction locator paths under the chosen capture prefix; restart the stack after setting the public references. This route performs no visual/browser check.
 
 ## Recovery and stopping
 
