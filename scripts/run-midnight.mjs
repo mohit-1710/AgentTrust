@@ -49,7 +49,9 @@ export async function runMidnight(args) {
   const terminate = () => { interruptedCode ??= 143; controller.abort(); };
   // Persistent listeners cover repeated signals through group cleanup.
   process.on('SIGINT', interrupt); process.on('SIGTERM', terminate);
-  let child, deadline = 0, escalation;
+  let child, deadline = 0, escalation, cleanupFailure, rejectCleanup;
+  const cleanupFailed = new Promise((_, reject) => { rejectCleanup = reject; });
+  const recordCleanupFailure = (error) => { cleanupFailure ??= error; };
   const group = (signal) => {
     if (!child?.pid) return false;
     try { process.kill(-child.pid, signal); return true; }
@@ -58,7 +60,16 @@ export async function runMidnight(args) {
   const stop = () => {
     if (deadline) return;
     deadline = Date.now() + 2000;
-    if (group('SIGTERM')) escalation = setTimeout(() => { group('SIGKILL'); }, 2000);
+    let needsEscalation = true;
+    try { needsEscalation = group('SIGTERM'); }
+    catch (error) { recordCleanupFailure(error); }
+    if (needsEscalation) escalation = setTimeout(() => {
+      try { group('SIGKILL'); }
+      catch (error) {
+        recordCleanupFailure(error);
+        rejectCleanup(cleanupFailure); // Reject through the awaited path, not the timer callback.
+      }
+    }, 2000);
   };
   const timeout = setTimeout(() => { interruptedCode ??= 124; controller.abort(); }, 900_000);
   try {
@@ -68,17 +79,37 @@ export async function runMidnight(args) {
     });
     controller.signal.addEventListener('abort', stop, { once: true });
     if (controller.signal.aborted) stop();
-    const code = await new Promise((resolve, reject) => {
+    const exited = new Promise((resolve, reject) => {
       child.once('error', reject); child.once('close', (code) => resolve(code ?? 1));
     });
+    const code = await Promise.race([exited, cleanupFailed]);
     return interruptedCode ?? code;
   } finally {
     controller.signal.removeEventListener('abort', stop);
-    stop(); // Early fixture exit must not leave its node alive.
-    while (group(0) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50));
-    if (group(0)) group('SIGKILL');
-    clearTimeout(timeout); if (escalation) clearTimeout(escalation);
-    process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', terminate);
+    try {
+      stop(); // Early fixture exit must not leave its node alive.
+      while (group(0) && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 50));
+      if (group(0)) group('SIGKILL');
+    } catch (error) {
+      recordCleanupFailure(error);
+      try { group('SIGKILL'); } catch (error) { recordCleanupFailure(error); }
+    } finally {
+      // A failed group probe/signal must not strand the launcher on its wall timer.
+      clearTimeout(timeout); if (escalation) clearTimeout(escalation);
+      process.removeListener('SIGINT', interrupt); process.removeListener('SIGTERM', terminate);
+    }
+    if (cleanupFailure) {
+      // Group failure leaves descendant status unknown. Try only our direct
+      // child as a fallback, then release its handle so reporting cannot hang.
+      if (child?.pid && child.exitCode === null && child.signalCode === null) {
+        try { child.kill('SIGKILL'); } catch { /* Report the original group error. */ }
+        child.unref();
+      }
+      const failure = Object.assign(Error('GROUP_CLEANUP_FAILED'), {
+        code: cleanupFailure.code, descendantCleanupUnconfirmed: true,
+      });
+      throw failure;
+    }
   }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -86,6 +117,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (args.length === 1 && args[0] === '--help') console.log(usage);
   else runMidnight(args).then((code) => { process.exitCode = code; }).catch((error) => {
     if (error.message?.startsWith('PINNED_NODE_REQUIRED:')) console.error(error.message);
+    const code = typeof error.code === 'string' && /^[A-Z][A-Z0-9_]{0,39}$/.test(error.code) ? error.code : 'UNKNOWN';
+    const name = ['Error', 'TypeError', 'RangeError', 'ReferenceError', 'SyntaxError', 'URIError', 'EvalError', 'AggregateError'].includes(error.name) ? error.name : 'UnknownError';
+    console.error(`MIDNIGHT_LAUNCHER_ERROR: ${code}${code === 'UNKNOWN' ? ` (${name})` : ''}`);
+    if (error.descendantCleanupUnconfirmed) console.error('MIDNIGHT_DESCENDANT_CLEANUP_UNCONFIRMED: inspect the owned process group; cleanup did not prove it stopped.');
     console.error('MIDNIGHT_FIXTURE_REFUSED_OR_FAILED: retain any original capture; no automatic retry.');
     process.exitCode = 1;
   });
