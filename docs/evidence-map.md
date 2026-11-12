@@ -1,0 +1,46 @@
+# Evidence map
+
+Use this alongside the [quickstart](quickstart.md), [verification matrix](sprint/verification.md) and dated [sprint ledger](sprint/ledger.md). The ledger records checks actually run at a commit; the matrix records required checks, including uncompleted ones. Old T02/toolchain and baseline reports remain historical snapshots. Source or a planned command is not execution evidence.
+
+## Feature → source → command → expected result → actual evidence
+
+Commands are from the repository root after `. scripts/env.sh`. The first rows are local checks; native runtime, testnet spending and real model runs are separate handoffs.
+
+| Feature and source | Reproduction command | Expected observation | Recorded evidence / gap |
+| --- | --- | --- | --- |
+| Native encoding, authority, money and state: [domain crate](../crates/agenttrust-domain), [unit/SDK tests](../tests/unit) | `pnpm check:fast` | Pure Rust/TS assertions and typecheck pass | Passing local checks are recorded in T14/T17/T23 and later ledger entries. No protocol-key enforcement, actual payout or host refund-order claim follows. |
+| Production contract: [core](../contracts/agenttrust-core), [WASM inspector](../scripts/check-wasm.mjs) | `pnpm build:contract` | Production artifact, required NEAR imports/exports, hash, `executed:false` | Local compile/inspection recorded. A hash without an observed deployed code hash is not deployment evidence. Fault-injection WASM must remain separate. |
+| CSV audit and independent output checker: [service source](../examples/invoice-audit/src), [public goldens](../fixtures/invoice-audit/v1) | `pnpm exec vitest run examples/invoice-audit/test` | Exact totals, duplicate/invalid-row behavior, conformance and HTTP checks pass | T15/T16/T17 local results recorded. Controlled synthetic fixtures, not customer demand or proof that a remote provider behaves identically. |
+| Signed quote, finality, durable retry: [paid client](../packages/near-sdk/src/pay-service.ts), [journal](../packages/near-sdk/src/attempts.ts) | `pnpm exec vitest run packages/near-sdk/test` | Binding, recovery and filesystem-failure cases pass; no fresh purchase on uncertainty | T14/T17 local checks and loopback HTTP recorded. Chain methods in tests are doubles; actual paid redemption remains T18. |
+| Six local MCP tools: [server](../packages/mcp/src/server.ts), [stdio smoke](../packages/mcp/test/stdio-smoke.mjs) | `pnpm test:mcp:stdio` | Real compiled stdio initialize/list/call exchange; no-worker pay refusal | Writes `artifacts/local/mcp/stdio-mock-<time>.json`, explicitly mock-only with capture time. T19 accepted implementation; consult latest ledger for integrated results. No LLM autonomy or native payment established. |
+| Website/docs native copy: [web](../web), [active docs](../docs-site/content/docs), [generators](../docs-site/scripts) | `pnpm build:surfaces` | Generated corpus checks and both production builds pass | T22/T24/T25 builds, corpus/search and HTTP checks recorded. New browser interaction is prohibited; historical captures are not a current visual rehearsal. |
+| Native payment/evidence view: [adapter](../web/lib/near/server.ts), [details](../web/lib/near/evidence.ts) | `pnpm exec vitest run tests/unit/web-decisions.test.ts tests/unit/web-evidence.test.ts`; then local `GET /api/decisions` | Exact amounts, bounded final views, explicit origins and unavailable evidence | T21/T23 mock RPC, SSR and production GET checks recorded. No live chain feed claimed. Historical credential suite/expiry and checked HTTP output are unavailable in this payment view. |
+| Local HTTPS providers: [TLS/server](../examples/invoice-audit/src/tls.ts), [environment runbook](local-demo.md) | Build/start using the runbook; `curl --cacert <local-cert> https://localhost:4041/health` and port 4042 | Trusted local listener; `configured`, `chain_verification:not_checked` | T26 isolated two-provider signed-quote checks recorded. Health does not verify registration or settlement; no public hosting or complete rehearsal. |
+| Native protocol/receipt cases: [runtime harness](../tests/runtime), [runbook](runtime-runbook.md) | `pnpm check:runtime:compile`; user-run launcher only as documented | Compile first; actual runtime capture identifies production/fault hashes, FINAL responses, balances and case statuses | Compile/pure RPC-error checks recorded. Native capture has not been accepted. Refund-gap/midnight cases and further matrix variants remain open; exit 2 is incomplete. |
+| Testnet allowed purchase and authoritative refusals: [T18 source](../examples/testnet-demo/src), [runbook](testnet-demo-runbook.md) | Runbook's `demo:prepare:testnet` / `demo:run:testnet` steps with actual public config and `--user-run`; inspect with `pnpm demo:evidence:check <manifest.json>` | Actual missing/revoked/changed-identity rejection receipts; eligible payment settles once; returned report checked; exact retry has no second payout | Implemented preparation is separate from execution. No accepted testnet purchase/refusal capture is recorded here. A's missing credential does not imply bad audit output. Native runtime and two rehearsals remain open. |
+| Buyer adapts through tools: T20 buyer entry point and MCP | Accepted buyer CLI and its explicit execution gate | Trace identifies scripted versus real model calls; stops on uncertain payment; checked useful result | Buyer preparation does not establish actual model calls, chain spending or completion. Paid API use and the two full T27 rehearsals remain separate evidence. |
+| Reuse/source provenance: [baseline manifest](sprint/ui-baseline-manifest.json), [inventory](sprint/baseline.md) | `python3 scripts/verify-ui-baseline.py --ref upstream-ui-baseline`; `git diff --stat upstream-ui-baseline..HEAD` | Original imported bytes match preserved tag; native changes visible in later commits | T01 import and MIT notices recorded. Upstream Solana tests/badges and the older separate Monad repository are not NEAR results. |
+
+## Reading an execution capture
+
+For a user-provided T13 capture, run only the read-only checker:
+
+```sh
+pnpm evidence:check artifacts/local/runtime/<actual-run>/manifest.json
+```
+
+This checks structure, contained paths, artifact hashes, explicit finality and consistent reported statuses. It does **not** independently establish assertion truth, trusted authorship or a light-client proof. Inspect the referenced raw public RPC evidence. A replay retains its original capture time, source commit/dirty flag, tool versions and artifact hashes; reading it today is not a new run.
+
+For each T18 step, use `pnpm demo:evidence:check artifacts/local/testnet/<actual-step>/manifest.json` after building services. Its manifest keeps `native_runtime_gate:user_run_required`; a passing named testnet step cannot complete T13. Validation and setup observation commands report `prepared`; successful setup operations and worker checks report `passed`. Successful worker recovery additionally carries `observation_only:true`, so it is not a new payment execution. Unresolved submissions report `uncertain`. Follow the runbook's observation commands without resending.
+
+For a paid demonstration, connect the exact source/WASM and deployed code hash to role/account configuration, request hash, stable payment ID, canonical invoice hash, exact submitted quote/credential, real transaction/receipt IDs, final contract state and checked report hash. Do not substitute transaction inclusion, a successful HTTP response, a screenshot or a current registry credential for missing historical facts.
+
+The evidence boundaries are explicit:
+
+- `preview`: read-only policy evaluation; no proven key possession or transaction receipt.
+- `executed_rejection`: verified result of that exact call; not proof that another submission for the purchase is unpaid.
+- `final_contract_view`: current final RPC observation of a retained payment; admitted, settled and output checked remain separate facts.
+- `recorded_replay` / `recorded_capture`: dated prior evidence; never relabeled as a fresh live result.
+- `pending`, `uncertain`, `not_run`, `unavailable` and `user_run_required`: retain the limitation. Never infer a refund or safe new payment ID.
+
+Unreviewed captures stay under ignored `artifacts/local/`; private attempt journals stay outside Git. Publish only reviewed public artifacts without keys, API tokens, environment dumps or sensitive CSV. Providers, issuer and public fixtures are controlled demo components. No native-runtime completion, live-agent completion, new visual acceptance, two full rehearsals, public deployment or submission is certified by this map.

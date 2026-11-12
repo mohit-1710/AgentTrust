@@ -6,6 +6,8 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 
 ## Start here
 
+- [Local quickstart](docs/quickstart.md): pinned tools, local checks, surfaces, provider/MCP setup and separate native handoffs.
+- [Evidence map](docs/evidence-map.md): feature, source, command, expected result and actual evidence gaps.
 - [Build plan](docs/sprint/plan.md): ordered tasks, acceptance checks, deadlines and cut rules.
 - [Architecture](docs/sprint/architecture.md): authority, state, interfaces, settlement and custody.
 - [Reuse baseline](docs/sprint/baseline.md): exactly what the existing AgentTrust provides.
