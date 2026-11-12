@@ -29,7 +29,7 @@
     "start:mcp": "node dist/packages/mcp/src/run-server.js",
     "test:mcp:stdio": "pnpm build:services && node packages/mcp/test/stdio-smoke.mjs",
     "start:buyer": "node dist/examples/buyer-agent/src/run.js",
-    "test:buyer:stdio": "pnpm build:services && node examples/buyer-agent/test/stdio-smoke.mjs"
+    "test:buyer:stdio": "pnpm build:services && node examples/buyer-agent/test/stdio-smoke.mjs && node examples/buyer-agent/test/replay-smoke.mjs"
   },
   "dependencies": {
     "near-api-js": "7.4.0",

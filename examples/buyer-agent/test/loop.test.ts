@@ -39,8 +39,8 @@ it("restarts locked to the selected original attempt after uncertain/crashed exe
   s.driver = driver([pay()]); s.client.callTool.mockResolvedValue({ structuredContent: { result: paid() } }); expect((await runBuyer(s)).kind).toBe("paid");
 });
 it("never pays again after durable completion, even in another process invocation", async () => {
-  const s = await setup([paid()]); await runBuyer(s); s.client.callTool.mockClear(); s.driver = driver([pay(b)]);
-  expect((await runBuyer(s)).kind).toBe("paid"); expect(s.client.callTool).not.toHaveBeenCalled(); expect(s.driver.next).not.toHaveBeenCalled();
+  const s = await setup([paid()]); await runBuyer(s); s.client.callTool.mockClear(); s.client.listTools.mockClear(); s.driver = driver([pay(b)]);
+  expect(await runBuyer(s)).toMatchObject({ kind: "paid", replayed: true, model_responses: 0 }); expect(s.client.listTools).not.toHaveBeenCalled(); expect(s.client.callTool).not.toHaveBeenCalled(); expect(s.driver.next).not.toHaveBeenCalled();
 });
 it("read-only missing/failed observations do not authorize a different purchase", async () => {
   const s = await setup([{ kind: "uncertain" }]); await runBuyer(s);

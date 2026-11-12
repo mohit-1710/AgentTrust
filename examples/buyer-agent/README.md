@@ -7,7 +7,7 @@ Two explicit modes share the same host checks:
 - `near-ai`: actual NEAR AI Cloud chat completions with a caller-selected model and API key. A successful run can provide actual model/tool trace evidence. No such paid run has been executed during implementation.
 - `scripted`: deterministic list/policy/purchase sequence for a reproducible scenario. Its output is labeled `scripted_harness_not_autonomous`. It can still move native funds when the real worker is configured; it is not a no-cost simulation.
 
-Both modes use the official MCP `Client` and `StdioClientTransport`, launching the compiled local AgentTrust MCP server. No owner/issuer management tool, generic signing, arbitrary model endpoint or alternative chain is added.
+When a job needs execution, both modes use the official MCP `Client` and `StdioClientTransport`, launching the compiled local AgentTrust MCP server. No owner/issuer management tool, generic signing, arbitrary model endpoint or alternative chain is added.
 
 ## Prepare, then explicitly execute
 
@@ -43,7 +43,7 @@ Uncertainty, pending, not-found, retrieval failure, errors, malformed output or 
 
 Do not delete the journals, change CSV/IDs, or create a new job to work around an uncertain outcome. Changing the job's fixed config is a conflict. An unavailable/corrupt job record stops the buyer before dispatch. There is no reset or reconciliation authority in this CLI.
 
-The current CLI checks its worker credentials and, in `near-ai` mode, model credentials/catalog readiness before loading a saved terminal outcome. Those prerequisites are still required for CLI replay, even though a terminal replay makes no new inference or payment call. If they are unavailable, the saved checked report remains in its private outcome file. Use keyless MCP `get_payment` with the original payment ID to inspect chain state. T18 `resume` applies only when the original CSV and payment ID match its fixed demo configuration. This startup limitation never authorizes a replacement purchase.
+The CLI validates the same public config, immutable job context, original payment and checked report before requiring execution credentials. A saved terminal paid outcome can be replayed with the same command and files even when worker/model keys or network access are unavailable. Replay makes no model catalog, inference, RPC or payment call and starts no MCP child. It returns the saved checked outcome, not a fresh chain observation. An unfinished job still requires its worker key and, in `near-ai` mode, model key and catalog readiness before any model call. Keyless MCP `get_payment` can separately inspect the original payment on chain; it does not authorize a replacement purchase.
 
 ## Records and verification
 
@@ -54,7 +54,7 @@ For a configured `job_id`, `prefix = sha256(JSON.stringify(job_id))`. Under `job
 - `<prefix>.outcome-0.json`, optionally `outcome-1.json`: only validated definitive denials/failed/paid results. A paid outcome includes the useful checked report for the synthetic input. Uncertain outcomes do not create a definitive record.
 - `<prefix>.run-<run_id>-NNN.json`: immutable timed trace events, source Git commit, config hash, explicit mode/evidence label, actual model request/response hashes and response ID when available, tool requests with CSV replaced by hash/size, result hashes and validated payment outcome summaries. Raw model prose/reasoning, raw errors, CSV, keys and authorization headers are not stored.
 
-A `near-ai` configuration alone is not evidence of model execution. Final output reports `model_responses`; a run with no received model response is labeled `no_model_response_this_run`. Saved report replay does not manufacture a new agent session. These records depend on trusted local code/files and configured RPC; they are not cryptographic attestation of model behavior or a light-client proof of chain finality.
+A `near-ai` configuration alone is not evidence of model execution. Final output preserves the configured `mode` and reports `model_responses`. Saved paid report replay has `evidence: "recorded_replay"`, `replayed: true` and zero model responses in either mode. Other `near-ai` invocations with no received model response are labeled `no_model_response_this_run`. Saved report replay does not manufacture a new agent session. These records depend on trusted local code/files and configured RPC; they are not cryptographic attestation of model behavior or a light-client proof of chain finality.
 
 Safe implementation checks:
 
@@ -65,4 +65,4 @@ pnpm check:fast
 pnpm test:buyer:stdio
 ```
 
-Pure tests use temporary ordinary files, model-fetch doubles and MCP doubles. The explicit stdio smoke builds the real code and connects the compiled buyer to the compiled MCP server through the official transport and loopback mock RPC, with **no worker or model key**. It proves stopping and restart boundaries, not payment. Its redacted capture is explicitly mock-only under ignored `artifacts/local/buyer/stdio-mock-<timestamp>.json`. Native settlement, actual paid-provider success, actual model selection and final submission remain separate evidence gates.
+Pure tests use temporary ordinary files, model-fetch doubles and MCP doubles. The explicit stdio smoke builds the real code and connects the compiled buyer to the compiled MCP server through the official transport and loopback mock RPC, with **no worker or model key**. It proves stopping and restart boundaries, not payment. Its redacted capture is explicitly mock-only under ignored `artifacts/local/buyer/stdio-mock-<timestamp>.json`. The same command also runs the actual compiled buyer CLI against checked mock saved outcomes under preloaded network/process denial guards: keyless replay, corrupt/context-conflicting records and unfinished missing-key stops. Native settlement, actual paid-provider success, actual model selection and final submission remain separate evidence gates.
