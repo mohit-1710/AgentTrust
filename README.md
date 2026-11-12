@@ -10,6 +10,12 @@ The [native execution evidence](docs/native-runtime-evidence.md) supports 20 of 
 
 ## Start here
 
+### Judge path without keys
+
+1. Follow the [local quickstart](docs/quickstart.md#1-prepare-the-pinned-tools) through `pnpm check:fast` to verify the pure contract logic, SDK and buyer behavior. This runs no NEAR transaction.
+2. Run `pnpm build:services` and `pnpm test:mcp:stdio` to inspect the six real stdio tool interfaces against loopback mock RPC. The resulting transcript is labeled mock-only; the [local website and docs](docs/quickstart.md#2-start-the-website-and-docs) can also be started without keys.
+3. Read the [r2 testnet evidence](docs/testnet-r2-evidence.md#accepted-native-transactions) and its public transaction IDs: one missing-credential rejection, a settled 0.002 NEAR purchase, an exact retry with no second payout, and later revocation/identity refusals. The [evidence map](docs/evidence-map.md) distinguishes these native results from the scripted buyer and the remaining model/runtime gates.
+
 - [Local quickstart](docs/quickstart.md): pinned tools, local checks, surfaces, provider/MCP setup and separate native handoffs.
 - [Evidence map](docs/evidence-map.md): feature, source, command, expected result and actual evidence gaps.
 - [Build plan](docs/sprint/plan.md): ordered tasks, acceptance checks, deadlines and cut rules.

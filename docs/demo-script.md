@@ -1,6 +1,6 @@
 # Demo recording plan
 
-**Preparation only, 12 November 2026.** The r2 scripted buyer and two native testnet payments were captured, but no actual model buyer, full rehearsal or video has been captured. This is a 140-second recording plan, not a transcript of something that happened. Record only after the actual-model, runtime and two-rehearsal gates pass. Preparing this document does not authorize opening or recording a browser.
+**Preparation only, 12 November 2026.** The r2 scripted buyer and two native testnet payments were captured, but no actual model buyer, full rehearsal or video has been captured. This is a 140-second recording plan, not a transcript of something that happened. Record only after the actual-model purchase and two full rehearsals have passed evidence review. The native refund-gap case is still open: if it remains open at recording, show the accepted native payment and refusal evidence, disclose the unresolved case, and make no complete-runtime-gate claim. Preparing this document does not authorize opening or recording a browser.
 
 The central question: **Can an agent buy a useful service without choosing its own spending authority?** Show the existing product and one real invoice audit. Do not lead with an architecture diagram, a test count or an award claim.
 
