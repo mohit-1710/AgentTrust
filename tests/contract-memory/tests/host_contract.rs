@@ -512,3 +512,5 @@ fn host_backing_shortfall_rejects_before_reserving_or_scheduling() {
     assert_eq!(env::storage_read(b"STATE"), root_before);
     assert_eq!(env::storage_usage(), storage_before);
 }
+
+mod registry_limits;

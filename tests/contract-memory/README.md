@@ -18,4 +18,6 @@ These tests execute native Rust methods, not production WASM or generated JSON e
 
 The initial resolved dependency audit found no database engine or WASM runtime; `near-vm-runner` 0.38.1 has no enabled features. Its host functions and ordinary-map mock match the inspected published 0.38.0 source byte for byte. Build scripts perform compiler/platform probes, generated source and bundled local cryptography/compression builds. Re-audit dependencies and build effects before changing the lock.
 
-Initial validation: 15 tests passed, 0 failed, 0 ignored; formatting and unchanged production-source/manifest checks passed. No production defect was reproduced by these cases.
+Validation: 24 tests passed, 0 failed, 0 ignored; formatting and unchanged production-source/manifest checks passed. No production defect was reproduced by these cases.
+
+The nine supplemental registry/limit tests cover issuer storage charges; credential revocation, renewal and issuer-scoped IDs; exact subject/version/suite/reference binding; identity rotation and renewed owner trust; inactive trust versus immutable retry; preview under the host's read-only mode; seven payments across sibling sessions plus one withdrawal consuming the eight-transfer limit; and exact purchase/daily caps versus one yocto over. Preview allow/deny/validation results leave persisted account views, root bytes, storage size, registry records, payment index, logs and promised actions unchanged.
