@@ -3,6 +3,7 @@
 /.claude/
 /.sprint/
 /.gstack/
+/.playwright-mcp/
 /.agenttrust
 .DS_Store
 
