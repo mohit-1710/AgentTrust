@@ -1,9 +1,11 @@
 use crate::{AgentTrustCore, AgentTrustCoreExt};
 use agenttrust_domain::{
     owner::{AccountLedger, ActorState, OwnerPolicy, Profile, Session, TrustEntry},
-    payments::PaymentView,
-    policy::DAY_NS,
-    types::{Hash32, U64String, U128String},
+    payments::{PaymentView, payment_storage_bound},
+    policy::{BackingSnapshot, CredentialEvidence, DAY_NS},
+    registry::{CredentialRef, ServiceIdentity},
+    types::{Hash32, ProfileId, SignedInvoiceV1, U64String, U128String},
+    views::{PreviewResult, PreviewSnapshot, page_indices, preview_payment as domain_preview},
 };
 use near_sdk::{AccountId, env, near, serde::Serialize};
 
@@ -20,6 +22,26 @@ pub struct OwnerPolicyView {
     pub owner_id: AccountId,
     #[serde(flatten)]
     pub policy: OwnerPolicy,
+    pub trusted_services: Vec<TrustEntry>,
+    pub blocked_services: Vec<AccountId>,
+    pub blocked_payouts: Vec<AccountId>,
+}
+impl OwnerPolicyView {
+    pub(crate) fn from_actor(actor: &ActorState) -> Self {
+        Self {
+            owner_id: actor.owner_id.clone(),
+            policy: actor.policy.clone(),
+            trusted_services: actor.trusted_services.values().cloned().collect(),
+            blocked_services: actor.blocked_services.iter().cloned().collect(),
+            blocked_payouts: actor.blocked_payouts.iter().cloned().collect(),
+        }
+    }
+}
+#[derive(Serialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Page<T: Serialize> {
+    pub items: Vec<T>,
+    pub next_cursor: Option<U64String>,
 }
 #[derive(Serialize)]
 #[serde(crate = "near_sdk::serde")]
@@ -125,10 +147,7 @@ impl AgentTrustCore {
         }
     }
     pub fn get_policy(&self, owner_id: AccountId) -> Option<OwnerPolicyView> {
-        self.actors.get(&owner_id).map(|actor| OwnerPolicyView {
-            owner_id,
-            policy: actor.policy.clone(),
-        })
+        self.actors.get(&owner_id).map(OwnerPolicyView::from_actor)
     }
     pub fn get_session(&self, owner_id: AccountId, session_id: Hash32) -> Option<SessionView> {
         self.actors
@@ -139,5 +158,109 @@ impl AgentTrustCore {
                 owner_id,
                 session: session.clone(),
             })
+    }
+}
+
+#[near]
+impl AgentTrustCore {
+    pub fn get_profile(&self, owner_id: AccountId, profile_id: ProfileId) -> Option<ProfileView> {
+        self.actors
+            .get(&owner_id)?
+            .profiles
+            .get(&profile_id)
+            .map(|profile| ProfileView {
+                owner_id,
+                profile: profile.clone(),
+            })
+    }
+    /// Cursor is the next append index, in registration order; it grants no trust.
+    pub fn list_services(&self, cursor: Option<U64String>, limit: u32) -> Page<ServiceIdentity> {
+        let page = page_indices(self.service_ids.len(), cursor, limit, false)
+            .unwrap_or_else(|e| env::panic_str(e));
+        let items = (page.start..page.end)
+            .map(|index| {
+                let id = self
+                    .service_ids
+                    .get(index)
+                    .unwrap_or_else(|| env::panic_str("INCONSISTENT_SERVICE_INDEX"));
+                self.services
+                    .get(id)
+                    .cloned()
+                    .unwrap_or_else(|| env::panic_str("INCONSISTENT_SERVICE_INDEX"))
+            })
+            .collect();
+        Page {
+            items,
+            next_cursor: page.next_cursor,
+        }
+    }
+    /// Null starts at current length. Subsequent cursors are exclusive insertion
+    /// indices, so newly appended records cannot duplicate an earlier page.
+    pub fn list_recent_payments(
+        &self,
+        owner_id: AccountId,
+        cursor: Option<U64String>,
+        limit: u32,
+    ) -> Page<PaymentView> {
+        let ids = self.payment_ids.get(&owner_id);
+        let total = ids.map_or(0, |ids| ids.len() as u32);
+        let page = page_indices(total, cursor, limit, true).unwrap_or_else(|e| env::panic_str(e));
+        let items = (page.start..page.end)
+            .rev()
+            .map(|index| {
+                let id = ids
+                    .and_then(|ids| ids.get(index as usize))
+                    .unwrap_or_else(|| env::panic_str("INCONSISTENT_PAYMENT_INDEX"));
+                let record = self
+                    .payments
+                    .get(&(owner_id.clone(), *id))
+                    .unwrap_or_else(|| env::panic_str("INCONSISTENT_PAYMENT_INDEX"));
+                PaymentView::new(record.clone(), env::block_timestamp())
+            })
+            .collect();
+        Page {
+            items,
+            next_cursor: page.next_cursor,
+        }
+    }
+    /// Current new-admission eligibility only, not key possession or an
+    /// authenticated exact-replay result. The view never reserves or writes.
+    pub fn preview_payment(
+        &self,
+        quote: SignedInvoiceV1,
+        credential: Option<CredentialRef>,
+    ) -> PreviewResult {
+        let invoice = &quote.invoice;
+        let core = env::current_account_id();
+        let byte_cost = env::storage_byte_cost().as_yoctonear();
+        let snapshot = PreviewSnapshot {
+            now_ns: env::block_timestamp(),
+            network: &self.network,
+            core_account: &core,
+            owner: self.actors.get(&invoice.owner_id),
+            service: self.services.get(&invoice.service_id),
+            backing: BackingSnapshot {
+                runtime_balance_yocto: env::account_balance().as_yoctonear(),
+                storage_stake_yocto: u128::from(env::storage_usage()).saturating_mul(byte_cost),
+                operating_reserve_yocto: self.operating_reserve_yocto,
+                aggregate_available_yocto: self.total_available_yocto,
+                aggregate_storage_credit_yocto: self.total_storage_credit_yocto,
+                storage_charge_yocto: u128::from(payment_storage_bound(
+                    &quote,
+                    credential.as_ref(),
+                ))
+                .saturating_mul(byte_cost),
+            },
+        };
+        let evidence = CredentialEvidence {
+            reference: credential.as_ref(),
+            record: credential.as_ref().and_then(|r| {
+                self.credentials
+                    .get(&(r.issuer_id.clone(), r.credential_id))
+            }),
+        };
+        domain_preview(&snapshot, &quote, evidence, |signature, bytes, key| {
+            env::ed25519_verify(signature, bytes, key)
+        })
     }
 }

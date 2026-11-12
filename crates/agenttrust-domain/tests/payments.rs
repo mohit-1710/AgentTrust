@@ -425,3 +425,54 @@ fn reconciliation_display_never_mutates_a_record_or_releases_a_reservation() {
         );
     }
 }
+
+#[test]
+fn preview_uses_registered_key_and_shared_policy_without_authority_or_mutation() {
+    use agenttrust_domain::views::{PreviewSnapshot, preview_payment};
+    let f = Fixture::new();
+    let before = f.owner.clone();
+    let snapshot = PreviewSnapshot {
+        now_ns: NOW,
+        network: "near:testnet",
+        core_account: &f.core,
+        owner: Some(&f.owner),
+        service: Some(&f.service),
+        backing: f.backing,
+    };
+    let yes = preview_payment(
+        &snapshot,
+        &f.quote,
+        CredentialEvidence::default(),
+        |sig, bytes, key| {
+            assert_eq!(key, &f.service.invoice_key.0);
+            assert_eq!(bytes, encode_invoice(&f.quote.invoice));
+            assert_eq!(sig, &f.quote.signature.0);
+            true
+        },
+    );
+    assert_eq!(yes.authorization, "not_proven_by_view");
+    assert_eq!(yes.decision, Decision::Allow);
+    assert_eq!(f.owner, before);
+    let no = preview_payment(
+        &snapshot,
+        &f.quote,
+        CredentialEvidence::default(),
+        |_, _, _| false,
+    );
+    assert_eq!(no.decision, Decision::deny(DenialCode::InvalidInvoice));
+    assert_eq!(f.owner, before);
+    let missing = PreviewSnapshot {
+        owner: None,
+        ..snapshot
+    };
+    assert_eq!(
+        preview_payment(
+            &missing,
+            &f.quote,
+            CredentialEvidence::default(),
+            |_, _, _| panic!("missing actor must not verify")
+        )
+        .decision,
+        Decision::deny(DenialCode::Unauthorized)
+    );
+}

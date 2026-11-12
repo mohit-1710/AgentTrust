@@ -24,4 +24,5 @@ pub mod registry;
 
 pub mod payments;
 
+pub mod views;
 pub mod withdrawals;

@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { encodeIdentityDescriptor, verifyIdentityDescriptorSignature } from "../../../packages/near-sdk/src/codec.js";
 import type { IdentityDescriptorV1 } from "../../../packages/near-sdk/src/types.js";
 
@@ -18,19 +17,8 @@ export interface IdentityHandlerConfig extends IdentityContext {
   sign: (bytes: Uint8Array) => string;
 }
 
-/** An operator-configured origin, not discovery from request or registry data. */
-export function canonicalOrigin(origin: string): string {
-  const parsed = new URL(origin);
-  if (typeof origin !== "string" || parsed.protocol !== "https:" || parsed.origin !== origin ||
-      !/^[\x21-\x7e]+$/.test(origin) || parsed.username || parsed.password || parsed.search || parsed.hash) {
-    throw new TypeError("INVALID_ORIGIN");
-  }
-  return origin;
-}
-
-export function endpointHash(origin: string): string {
-  return createHash("sha256").update(`agenttrust-http402-v1\nPOST\n${canonicalOrigin(origin)}\n/v1/invoice-audit\n`, "utf8").digest("base64");
-}
+export { canonicalOrigin, endpointHash } from "../../../packages/near-sdk/src/directory.js";
+import { endpointHash } from "../../../packages/near-sdk/src/directory.js";
 
 function exactObject(value: unknown, fields: readonly string[]): Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value) ||

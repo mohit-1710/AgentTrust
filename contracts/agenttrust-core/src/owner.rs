@@ -95,14 +95,14 @@ impl AgentTrustCore {
     ) -> OwnerPolicyView {
         let (owner_id, mut actor) = self.managed_actor();
         let storage_before = env::storage_usage();
-        let policy = must(actor.set_policy(
+        must(actor.set_policy(
             expected_revision,
             daily_cap_yocto,
             max_dispatches_per_minute,
             paused,
         ));
-        self.save_actor_charging_growth(owner_id.clone(), actor, storage_before);
-        OwnerPolicyView { owner_id, policy }
+        let actor = self.save_actor_charging_growth(owner_id, actor, storage_before);
+        OwnerPolicyView::from_actor(&actor)
     }
     #[payable]
     pub fn set_profile(

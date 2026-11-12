@@ -178,3 +178,14 @@ export function verifyIdentityDescriptorSignature(
     return false;
   }
 }
+
+/** Shared strict wire validation for native read/call adapters. */
+export function validateAccountId(value: string): void { stringBytes(value, "account_id", "account"); }
+export function validateProfileId(value: string): void { stringBytes(value, "profile_id", "profile"); }
+export function validateHash32(value: string): void { fixedBytes(value, 32, "hash"); }
+export function validateU64(value: string): void { decimalInteger(value, 8, "u64"); }
+export function validateU128(value: string): void { decimalInteger(value, 16, "u128"); }
+export function validateSignedInvoice(quote: import("./types.js").SignedInvoiceV1): void {
+  record(quote, ["invoice", "signature"], "signed invoice");
+  encodeInvoice(quote.invoice); fixedBytes(quote.signature, 64, "signature");
+}
