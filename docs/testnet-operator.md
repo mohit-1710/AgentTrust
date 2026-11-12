@@ -2,7 +2,7 @@
 
 Use this route on macOS/Linux from the accepted repository root. It joins the existing bootstrap, local stack, T18 cases and buyer commands; it does not automatically advance or retry. **The commands marked `--user-run` can create accounts, deploy/change contracts or spend testnet NEAR. The model buyer also consumes NEAR AI Cloud credits.** No browser is opened. Native/runtime acceptance, actual model execution and two completed rehearsals require their own captured results; a build or local listener is insufficient.
 
-The operator loads the fixed step's key into its child only: core/owner/issuer/merchant for setup, restricted worker for purchases, and each provider's invoice seed for that provider. The web/docs receive no signing keys. Do not print secret files, export owner keys manually, put keys in commands or send them in chat. The only interactive secret below is the model API key, entered locally with echo disabled.
+The operator loads the fixed step's key into its child only: core/owner/issuer/merchant for setup, restricted worker for purchases, and each provider's invoice seed for that provider. The web/docs receive no signing keys. Do not print secret files, export owner keys manually, put keys in commands or send them in chat. Enter the model API key locally with echo disabled or load the private local file as shown below.
 
 ## 1. Prepare a fresh bundle
 
@@ -184,6 +184,26 @@ Enter the NEAR AI Cloud API key **only in this local terminal**, never in chat o
 (
   set -eu
   read -rs 'NEAR_AI_API_KEY?NEAR AI Cloud API key (hidden): '
+  export NEAR_AI_API_KEY
+  pnpm demo:operator --user-run --directory "$AGENTTRUST_DEMO_DIR" --buyer near-ai
+)
+```
+
+If the key was already saved at `.agenttrust/near-ai-api-key`, use this alternative instead. It requires a nonempty regular file owned by the current user with mode `0600`; the key is never printed or placed in command arguments:
+
+```sh
+(
+  set -eu
+  key_file="$PWD/.agenttrust/near-ai-api-key"
+  test -f "$key_file" && test -s "$key_file"
+  case "$(uname -s)" in
+    Darwin) key_uid="$(stat -f %u "$key_file")"; key_mode="$(stat -f %Lp "$key_file")" ;;
+    Linux) key_uid="$(stat -c %u "$key_file")"; key_mode="$(stat -c %a "$key_file")" ;;
+    *) exit 1 ;;
+  esac
+  test "$key_uid" = "$(id -u)" && test "$key_mode" = 600
+  NEAR_AI_API_KEY="$(cat "$key_file")"
+  test -n "$NEAR_AI_API_KEY"
   export NEAR_AI_API_KEY
   pnpm demo:operator --user-run --directory "$AGENTTRUST_DEMO_DIR" --buyer near-ai
 )

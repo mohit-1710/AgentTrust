@@ -1,6 +1,6 @@
 # Demo recording plan
 
-**Preparation only, 12 November 2026.** No native paid run or video has been captured. This is a 140-second recording plan, not a transcript of something that happened. Record only after the actual runtime, paid-task and two rehearsal gates pass. The current no-browser instruction remains in force; preparing this document does not authorize opening or recording a browser.
+**Preparation only, 12 November 2026.** The r2 scripted buyer and two native testnet payments were captured, but no actual model buyer, full rehearsal or video has been captured. This is a 140-second recording plan, not a transcript of something that happened. Record only after the actual-model, runtime and two-rehearsal gates pass. Preparing this document does not authorize opening or recording a browser.
 
 The central question: **Can an agent buy a useful service without choosing its own spending authority?** Show the existing product and one real invoice audit. Do not lead with an architecture diagram, a test count or an award claim.
 

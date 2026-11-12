@@ -1,6 +1,6 @@
 # Submission preparation
 
-**Draft only, 12 November 2026.** The repository remains private. Nothing has been submitted or posted. Native runtime, the complete paid task, actual buyer-agent trace, rehearsals and video are still open gates; this document does not close them.
+**Draft only, 12 November 2026.** The repository remains private. Nothing has been submitted or posted. The r2 scripted paid task and 20 of 21 native case groups are recorded; the refund-gap, actual-model buyer, two full rehearsals and video are still open gates. This document does not close them.
 
 ## Intended project and tracks
 
