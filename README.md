@@ -14,6 +14,7 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 - [Sprint ledger](docs/sprint/ledger.md): completed work and material decisions.
 - [Runtime runbook](docs/runtime-runbook.md): explicit user-run capture, evidence inspection and remaining cases.
 - [Local demo environment](docs/local-demo.md): reproducible website, docs and two HTTPS providers without cloud hosting.
+- [Testnet bootstrap](docs/testnet-bootstrap.md): offline private role/config preparation and explicit user-run account provisioning.
 - [Verification matrix](docs/sprint/verification.md): each claim and the evidence required.
 - [Commit and scope policy](docs/sprint/workflow.md): real incremental history and change control.
 - [Planning review](docs/sprint/review.md): material findings, incorporated fixes and remaining runtime gates.

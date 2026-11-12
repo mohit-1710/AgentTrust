@@ -64,6 +64,8 @@ Omit `AGENTTRUST_NEAR_DECISION_REFS` unless you have actual rejected-call transa
 
 ## 3. Providers and read-only MCP
 
+For a fresh testnet environment, the [bootstrap runbook](testnet-bootstrap.md) creates a private local bundle with independent role keys and matching public configuration. Its offline preparation makes no network call. The separate user-run provisioning steps request one faucet parent and create the five funded role accounts; they preserve uncertain operations without resending. This replaces manual account/key/config copying, while T18 still owns deployment and service setup.
+
 For the two controlled providers, follow [local-demo.md](local-demo.md): complete public provider configs, an isolated localhost certificate, HTTPS origins `https://localhost:4041` and `https://localhost:4042`, and separate invoice-signing seeds. The [provider README](../examples/invoice-audit/README.md) defines the full config and routes. The named service/payout accounts and registered endpoint commitments must come from the actual prepared environment; localhost origins alone do not create registrations.
 
 The [T18 runbook](testnet-demo-runbook.md#public-configuration-and-local-build) creates a public template and renders the complete provider/MCP configs. These two preparation commands do not send transactions; fill every required public binding before rendering:
