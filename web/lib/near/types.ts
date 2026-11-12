@@ -1,9 +1,11 @@
 import type { InvoiceV1 } from "../../../packages/near-sdk/src/types.js";
-import type { Decision, Page, PaymentView, TransactionLocator } from "../../../packages/near-sdk/src/views.js";
+import type { CredentialRef, Decision, Page, PaymentView, TransactionLocator } from "../../../packages/near-sdk/src/views.js";
 
 export type RejectedCall = {
   origin: "executed_rejection";
   invoice: InvoiceV1;
+  invoice_hash: string;
+  credential: CredentialRef | null;
   decision: Exclude<Decision, { kind: "allow" }>;
   transaction: TransactionLocator;
   receipt_ids: string[];

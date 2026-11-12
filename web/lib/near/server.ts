@@ -1,9 +1,10 @@
 // Imported only by the server-only API route; never configure a signer here.
 import { AgentTrustClient, bounded } from "../../../packages/near-sdk/src/client.js";
-import { validateAccountId } from "../../../packages/near-sdk/src/codec.js";
+import { invoiceHash, validateAccountId } from "../../../packages/near-sdk/src/codec.js";
 import { finalAdmission } from "../../../packages/near-sdk/src/finality.js";
 import type { ExecutePaymentArgs, TransactionLocator } from "../../../packages/near-sdk/src/views.js";
 import { transactionUrl } from "./format.js";
+import { publicDecision, publicPayment } from "./evidence.js";
 import type { DecisionsResponse, RejectedCall } from "./types.js";
 
 const PAGE_LIMIT = 20;
@@ -48,7 +49,8 @@ async function rejectedCall(client: AgentTrustClient, transaction: TransactionLo
     if (!result || result.admission.kind !== "rejected" || args.quote.invoice.network !== client.network ||
         args.quote.invoice.schema_version !== 1 || args.quote.invoice.asset !== "NEAR" ||
         args.quote.invoice.owner_id !== transaction.sender_account_id) return null;
-    return { origin: "executed_rejection", invoice: args.quote.invoice, decision: result.admission.decision,
+    return { origin: "executed_rejection", invoice: args.quote.invoice, invoice_hash: invoiceHash(args.quote.invoice),
+      credential: args.credential === null ? null : { issuer_id: args.credential.issuer_id, credential_id: args.credential.credential_id, revision: args.credential.revision }, decision: publicDecision(result.admission.decision),
       transaction, receipt_ids: result.receipt_ids };
   } catch { return null; }
 }
@@ -73,7 +75,7 @@ export async function readDecisions(search: URLSearchParams, env: Record<string,
     const rejections = observations.filter((item): item is RejectedCall => item !== null);
     return { status: 200, body: {
       kind: "ready", origin: "final_contract_view", network: "near:testnet", core_account: coreAccount,
-      owner_id: ownerId, observed_at: new Date().toISOString(), page, rejections,
+      owner_id: ownerId, observed_at: new Date().toISOString(), page: { ...page, items: page.items.map(publicPayment) }, rejections,
       unresolved_references: observations.length - rejections.length,
     } };
   } catch (error) {

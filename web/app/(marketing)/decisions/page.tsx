@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { accountUrl, formatNear, paymentLabel, transactionUrl } from "@/lib/near/format";
+import { paymentEvidence, rejectionEvidence } from "@/lib/near/evidence";
+import { EvidenceDetails } from "./EvidenceDetails";
 import type { DecisionsResponse } from "@/lib/near/types";
 import styles from "./page.module.css";
 
@@ -131,6 +133,7 @@ export default function DecisionsPage() {
             <span className={styles.when} title={new Date(Number(BigInt(payment.dispatched_at_ns) / BigInt(1_000_000))).toISOString()}>
               {timeAgo(payment.dispatched_at_ns, now)}
             </span>
+            <EvidenceDetails detail={paymentEvidence(payment, data.observed_at)} />
           </article>
         ))}
         {data?.rejections.map((rejection) => (
@@ -147,6 +150,7 @@ export default function DecisionsPage() {
               {truncate(rejection.transaction.tx_hash, 6, 6)}
             </a>
             <span className={styles.when}>Not dispatched by this call</span>
+            <EvidenceDetails detail={rejectionEvidence(rejection, data.observed_at)} />
           </article>
         ))}
       </section>
@@ -160,7 +164,8 @@ export default function DecisionsPage() {
         <p>
           Source: <code className={styles.code}>list_recent_payments</code> at finality <code className={styles.code}>final</code>,
           20 records per page. Rejected calls appear only for configured transaction references with a verified final core response;
-          this is not a complete denial history. Previews have no transaction receipt. RPC observations are not light-client proofs.
+          this is not a complete denial history. Previews have no transaction receipt and are not included here.
+          Recorded replays must retain their capture date; this feed does not load replay files. RPC observations are not light-client proofs.
         </p>
         {data && <p>Last successful read: <time dateTime={data.observed_at}>{new Date(data.observed_at).toUTCString()}</time>.</p>}
         {!!data?.unresolved_references && <p role="status">{data.unresolved_references} configured transaction reference(s) could not be established as final rejected calls.</p>}

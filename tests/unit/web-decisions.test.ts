@@ -118,6 +118,19 @@ describe("read-only NEAR decisions adapter", () => {
       decision: { kind: "deny", code: "DAILY_CAP" }, transaction: tx, receipt_ids: ["core-receipt"] }] });
     expect(calls.find((c) => c.method === "EXPERIMENTAL_tx_status")!.params).toMatchObject({ ...tx, wait_until: "FINAL" });
   });
+  it("projects only public evidence fields and keeps the submitted credential reference", async () => {
+    const record = { ...payment(), private_key: "do-not-expose", credential: { issuer_id: "issuer.testnet", credential_id: Buffer.alloc(32, 4).toString("base64"), revision: 1, report: "private-report" } };
+    const raw = rejection();
+    const credential = { issuer_id: "issuer.testnet", credential_id: Buffer.alloc(32, 5).toString("base64"), revision: 2 };
+    raw.transaction.actions[0]!.FunctionCall.args = Buffer.from(JSON.stringify({ quote: { invoice, signature: Buffer.alloc(64).toString("base64") }, credential })).toString("base64");
+    const value = Buffer.from(JSON.stringify({ kind: "rejected", decision: { kind: "deny", code: "DAILY_CAP", csv_utf8: "private-csv" } })).toString("base64");
+    raw.status.SuccessValue = value;
+    raw.receipts_outcome[0]!.outcome.status.SuccessValue = value;
+    rpc({ records: [record], receipt: raw });
+    const response = await readDecisions(new URLSearchParams(), { ...env, AGENTTRUST_NEAR_DECISION_REFS: JSON.stringify([tx]) });
+    expect(response.body).toMatchObject({ kind: "ready", rejections: [{ invoice_hash: invoiceHash(invoice), credential }] });
+    expect(JSON.stringify(response.body)).not.toMatch(/private_key|do-not-expose|private-report|private-csv|csv_utf8/);
+  });
   it("never renders optimistic, foreign or failed-receipt rejection evidence as final", async () => {
     for (const raw of [
       { ...rejection(), final_execution_status: "INCLUDED" },

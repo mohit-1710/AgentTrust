@@ -300,3 +300,80 @@
 .footer p + p {
   margin-top: 0.75rem;
 }
+
+/* Evidence stays inside the existing row, with native keyboard disclosure. */
+.evidence {
+  grid-column: 1 / -1;
+  color: var(--ink);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.evidence summary {
+  color: var(--ink-dim);
+  cursor: pointer;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  width: fit-content;
+}
+
+.evidence summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.evidenceNote {
+  color: var(--ink-dim);
+  margin: 1rem 0;
+  max-width: 64rem;
+}
+
+.evidenceFields {
+  margin: 0;
+}
+
+.evidenceFields > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  padding: 0.4rem 0;
+}
+
+.evidenceFields dt {
+  color: var(--ink-dim);
+}
+
+.evidenceFields dd {
+  margin: 0;
+  font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.evidenceFields a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.evidenceJson {
+  margin-top: 1rem;
+}
+
+.evidenceJson pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  margin: 0.75rem 0 0;
+  max-height: 28rem;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  padding: 1rem;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 560px) {
+  .evidenceFields > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+    padding: 0.5rem 0;
+  }
+}
