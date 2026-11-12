@@ -1,7 +1,7 @@
 /** Offline bundle preparation and explicit, single-step USER-RUN testnet provisioning. */
 import { createPrivateKey, createPublicKey, randomBytes } from "node:crypto";
 import { constants } from "node:fs";
-import { lstat, mkdir, open, readFile, realpath } from "node:fs/promises";
+import { link, lstat, mkdir, open, readFile, realpath, rename, unlink } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
@@ -9,9 +9,10 @@ import { Account, JsonRpcProvider, KeyPair, KeyPairSigner, PublicKey, actions, b
 import { AccountDoesNotExistError } from "near-api-js/rpc-errors";
 import { bounded } from "../../../packages/near-sdk/src/client.js";
 import { ensure, finalTransaction, publicOnly } from "./capture.js";
-import { exact, publicTemplate, renderPublicConfigs, sha256, validateConfig, type DemoConfig } from "./config.js";
+import { exact, publicTemplate, renderPublicConfigs, sha256, validateConfig, fixedRpcMigrationIntent, LEGACY_TESTNET_RPC_URL, RPC_MIGRATION_FILE, TESTNET_RPC_URL, type DemoConfig } from "./config.js";
 
-const RPC = "https://rpc.testnet.near.org", HELPER = "https://helper.nearprotocol.com/account";
+const RPC = TESTNET_RPC_URL, LEGACY_RPC = LEGACY_TESTNET_RPC_URL, HELPER = "https://helper.nearprotocol.com/account";
+const MIGRATION_FILE = RPC_MIGRATION_FILE;
 const NEAR = 10n ** 24n, MARGIN = NEAR / 10n;
 export const bootstrapRoles = ["parent", "core", "owner", "issuer", "provider-a", "provider-b", "worker"] as const;
 export type BootstrapRole = typeof bootstrapRoles[number];
@@ -22,13 +23,13 @@ const steps = ["faucet", ...children.map((role) => `create-${role}`)] as const;
 export interface BootstrapKey { schema_version: 1; role: BootstrapRole; account_id: string; public_key: string; private_key: string }
 export interface BootstrapInvoice { schema_version: 1; role: "provider-a" | "provider-b"; public_key: string; seed_base64: string }
 interface Manifest { schema_version: 1; network: "near:testnet"; rpc_url: string; helper_url: string; parent_id: string; expected_wasm_sha256: string; public_keys: Record<BootstrapRole, string>; invoice_keys: { a: string; b: string }; demo_sha256: string }
-export interface BootstrapBundle { directory: string; manifest: Manifest; demo: DemoConfig; keys: Record<BootstrapRole, BootstrapKey>; invoices: { a: BootstrapInvoice; b: BootstrapInvoice } }
-export const bootstrapUsage = "Usage (offline): node dist/examples/testnet-demo/src/bootstrap.js --prepare --directory /absolute/NEW-private-directory\nUsage (USER-RUN only): node dist/examples/testnet-demo/src/bootstrap.js --user-run --directory /absolute/prepared-directory --step NAME\nSteps: " + steps.join(", ") + ". Prefix any step with observe- to inspect its immutable saved claim; never resend an uncertain operation. No deploy, registration, worker installation or model call is performed.";
+export interface BootstrapBundle { directory: string; manifest: Manifest; demo: DemoConfig; keys: Record<BootstrapRole, BootstrapKey>; invoices: { a: BootstrapInvoice; b: BootstrapInvoice }; rpc_migration_sha256: string | null }
+export const bootstrapUsage = "Usage (offline): node dist/examples/testnet-demo/src/bootstrap.js --prepare --directory /absolute/NEW-private-directory\nUsage (offline RPC migration): node dist/examples/testnet-demo/src/bootstrap.js --migrate-rpc-fastnear|--resume-rpc-fastnear --directory /absolute/prepared-directory\nUsage (USER-RUN only): node dist/examples/testnet-demo/src/bootstrap.js --user-run --directory /absolute/prepared-directory --step NAME\nSteps: " + steps.join(", ") + ". Prefix any step with observe- to inspect its immutable saved claim; never resend an uncertain operation. No deploy, registration, worker installation or model call is performed.";
 export function bootstrapArguments(argv: readonly string[]): { directory: string; step: string } {
-  const prepare = argv.length === 3 && argv[0] === "--prepare" && argv[1] === "--directory";
+  const offline = argv.length === 3 && ["--prepare", "--migrate-rpc-fastnear", "--resume-rpc-fastnear"].includes(argv[0]!) && argv[1] === "--directory";
   const operate = argv.length === 5 && argv[0] === "--user-run" && argv[1] === "--directory" && argv[3] === "--step" && [...steps, ...steps.map((s) => `observe-${s}`)].includes(argv[4]!);
-  ensure((prepare || operate) && path.isAbsolute(argv[2] ?? "") && path.resolve(argv[2]!) === argv[2], "BOOTSTRAP_ARGUMENTS_REQUIRED");
-  return { directory: argv[2]!, step: prepare ? "prepare" : argv[4]! };
+  ensure((offline || operate) && path.isAbsolute(argv[2] ?? "") && path.resolve(argv[2]!) === argv[2], "BOOTSTRAP_ARGUMENTS_REQUIRED");
+  return { directory: argv[2]!, step: offline ? argv[0]!.slice(2) : argv[4]! };
 }
 export function inspectProductionWasm(bytes: Uint8Array): string {
   ensure(!Buffer.from(bytes).includes(Buffer.from("RUNTIME_TEST_CALLBACK_FAILURE")) && !Buffer.from(bytes).includes(Buffer.from("AGENTTRUST_RUNTIME_HELPER_ONLY")), "PRODUCTION_WASM_REQUIRED");
@@ -48,26 +49,36 @@ async function privateDirectory(directory: string): Promise<void> {
   const stat = await lstat(directory);
   ensure(path.isAbsolute(directory) && await realpath(directory) === directory && stat.isDirectory() && !stat.isSymbolicLink() && (stat.mode & 0o777) === 0o700 && stat.uid === process.getuid?.(), "PRIVATE_DIRECTORY_REQUIRED");
 }
-async function readPrivate(file: string): Promise<unknown> {
+async function readPrivateBytes(file: string): Promise<Buffer> {
   const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const stat = await handle.stat();
     ensure(stat.isFile() && (stat.mode & 0o777) === 0o600 && stat.uid === process.getuid?.() && stat.size <= 128 * 1024, "PRIVATE_FILE_REQUIRED");
-    return JSON.parse(await handle.readFile("utf8"));
+    return await handle.readFile();
   } finally { await handle.close(); }
 }
+const readPrivate = async (file: string): Promise<unknown> => JSON.parse((await readPrivateBytes(file)).toString("utf8"));
 async function exclusive(file: string, value: unknown): Promise<void> {
   const handle = await open(file, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY | constants.O_NOFOLLOW, 0o600);
   try { await handle.writeFile(JSON.stringify(value, (_k, v: unknown) => typeof v === "bigint" ? v.toString() : v, 2) + "\n"); await handle.sync(); } finally { await handle.close(); }
   const directory = await open(path.dirname(file), constants.O_RDONLY | constants.O_NOFOLLOW);
   try { await directory.sync(); } finally { await directory.close(); }
 }
+type PublicRpcFile = { name: string; bytes: Buffer; value: Record<string, unknown> };
 /** Reads and validates only: no provider, signer, network request or transaction is constructed. */
 export async function loadBootstrapBundle(directory: string, root = process.cwd()): Promise<BootstrapBundle> {
+  return (await readBootstrapBundle(directory, root)).bundle;
+}
+async function readBootstrapBundle(directory: string, root: string, transition = false) {
   await privateDirectory(directory);
   for (const child of ["secrets", "operations", "evidence"]) await privateDirectory(path.join(directory, child));
-  const manifest = await readPrivate(path.join(directory, "bootstrap.json")) as Manifest;
-  ensure(exact(manifest, ["schema_version", "network", "rpc_url", "helper_url", "parent_id", "expected_wasm_sha256", "public_keys", "invoice_keys", "demo_sha256"]) && manifest.schema_version === 1 && manifest.network === "near:testnet" && manifest.rpc_url === RPC && manifest.helper_url === HELPER && /^agenttrust-[a-f0-9]{24}\.testnet$/.test(manifest.parent_id) && exact(manifest.public_keys, [...bootstrapRoles]) && exact(manifest.invoice_keys, ["a", "b"]), "BOOTSTRAP_MANIFEST_MISMATCH");
+  const manifestBytes = await readPrivateBytes(path.join(directory, "bootstrap.json"));
+  const manifest = JSON.parse(manifestBytes.toString("utf8")) as Manifest;
+  ensure(exact(manifest, ["schema_version", "network", "rpc_url", "helper_url", "parent_id", "expected_wasm_sha256", "public_keys", "invoice_keys", "demo_sha256"]) && manifest.schema_version === 1 && manifest.network === "near:testnet" && [LEGACY_RPC, RPC].includes(manifest.rpc_url) && manifest.helper_url === HELPER && /^agenttrust-[a-f0-9]{24}\.testnet$/.test(manifest.parent_id) && exact(manifest.public_keys, [...bootstrapRoles]) && exact(manifest.invoice_keys, ["a", "b"]), "BOOTSTRAP_MANIFEST_MISMATCH");
+  let migrationBytes: Buffer | null = null;
+  try { migrationBytes = await readPrivateBytes(path.join(directory, MIGRATION_FILE)); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
+  if (migrationBytes) ensure(manifest.rpc_url === LEGACY_RPC && isDeepStrictEqual(JSON.parse(migrationBytes.toString("utf8")), fixedRpcMigrationIntent(manifest, manifestBytes)), "RPC_MIGRATION_INTENT_MISMATCH");
+  const allowedRpc = migrationBytes ? transition ? [LEGACY_RPC, RPC] : [RPC] : [manifest.rpc_url];
   const keys = {} as BootstrapBundle["keys"], invoices = {} as BootstrapBundle["invoices"];
   for (const role of bootstrapRoles) {
     const key = await readPrivate(path.join(directory, "secrets", `${role}.json`)) as BootstrapKey;
@@ -82,19 +93,63 @@ export async function loadBootstrapBundle(directory: string, root = process.cwd(
     invoices[label] = invoice;
   }
   ensure(new Set([...Object.values(keys).map((k) => Buffer.from(PublicKey.from(k.public_key).data).toString("base64")), ...Object.values(invoices).map((i) => i.public_key)]).size === 9, "INDEPENDENT_KEYS_REQUIRED");
-  const demo = validateConfig(await readPrivate(path.join(directory, "demo.json")));
-  ensure(sha256(JSON.stringify(demo)) === manifest.demo_sha256 && demo.expected_wasm_sha256 === manifest.expected_wasm_sha256 && await artifactHash(root) === manifest.expected_wasm_sha256, "BOOTSTRAP_CONFIG_OR_WASM_MISMATCH");
-  ensure(demo.rpc_url === RPC && demo.core_account === keys.core.account_id && demo.owner_id === keys.owner.account_id && demo.issuer_id === keys.issuer.account_id && demo.worker_public_key === keys.worker.public_key && demo.rotated_payout_account === manifest.parent_id && demo.profile_id === "invoice-audit" && demo.attempts_directory === path.join(directory, "attempts"), "BOOTSTRAP_ROLE_BINDING_MISMATCH");
+  const demoBytes = await readPrivateBytes(path.join(directory, "demo.json")), demo = validateConfig(JSON.parse(demoBytes.toString("utf8")));
+  const publicFiles: PublicRpcFile[] = [{ name: "demo.json", bytes: demoBytes, value: demo as unknown as Record<string, unknown> }];
+  ensure(allowedRpc.includes(demo.rpc_url) && sha256(JSON.stringify({ ...demo, rpc_url: manifest.rpc_url })) === manifest.demo_sha256 && demo.expected_wasm_sha256 === manifest.expected_wasm_sha256 && await artifactHash(root) === manifest.expected_wasm_sha256, "BOOTSTRAP_CONFIG_OR_WASM_MISMATCH");
+  ensure(demo.core_account === keys.core.account_id && demo.owner_id === keys.owner.account_id && demo.issuer_id === keys.issuer.account_id && demo.worker_public_key === keys.worker.public_key && demo.rotated_payout_account === manifest.parent_id && demo.profile_id === "invoice-audit" && demo.attempts_directory === path.join(directory, "attempts"), "BOOTSTRAP_ROLE_BINDING_MISMATCH");
   ensure(new Set([demo.session_id, demo.credential_id, ...Object.values(demo.payment_ids)]).size === 6, "DISTINCT_DEMO_IDS_REQUIRED");
   const rendered = renderPublicConfigs(demo);
   for (const label of ["a", "b"] as const) {
     const p = demo.providers[label], expected = rendered[`provider_${label}`];
     ensure(p.service_id === keys[`provider-${label}`].account_id && p.payout_account === p.service_id && p.invoice_key === invoices[label].public_key && p.port === (label === "a" ? 4041 : 4042) && p.origin === `https://localhost:${p.port}` && p.amount_yocto === "2000000000000000000000", "BOOTSTRAP_PROVIDER_BINDING_MISMATCH");
-    const actual = await readPrivate(path.join(directory, `provider-${label}.json`));
-    ensure(exact(actual, Object.keys(expected)) && exact(actual.tls, ["cert_file", "key_file"]) && Object.values(actual.tls).every((v) => typeof v === "string" && path.isAbsolute(v)) && isDeepStrictEqual({ ...actual, tls: expected.tls }, expected), "BOOTSTRAP_PROVIDER_CONFIG_MISMATCH");
+    const bytes = await readPrivateBytes(path.join(directory, `provider-${label}.json`)), actual: unknown = JSON.parse(bytes.toString("utf8"));
+    ensure(exact(actual, Object.keys(expected)) && exact(actual.tls, ["cert_file", "key_file"]) && Object.values(actual.tls).every((v) => typeof v === "string" && path.isAbsolute(v)) && allowedRpc.includes(actual.rpc_url as string) && isDeepStrictEqual({ ...actual, rpc_url: demo.rpc_url, tls: expected.tls }, expected), "BOOTSTRAP_PROVIDER_CONFIG_MISMATCH");
+    publicFiles.push({ name: `provider-${label}.json`, bytes, value: actual });
   }
-  ensure(isDeepStrictEqual(await readPrivate(path.join(directory, "mcp.json")), rendered.mcp), "BOOTSTRAP_MCP_MISMATCH");
-  return { directory, manifest, demo, keys, invoices };
+  const mcpBytes = await readPrivateBytes(path.join(directory, "mcp.json")), mcp: unknown = JSON.parse(mcpBytes.toString("utf8"));
+  ensure(exact(mcp, Object.keys(rendered.mcp)) && allowedRpc.includes(mcp.rpc_url as string) && isDeepStrictEqual({ ...mcp, rpc_url: demo.rpc_url }, rendered.mcp), "BOOTSTRAP_MCP_MISMATCH");
+  publicFiles.push({ name: "mcp.json", bytes: mcpBytes, value: mcp });
+  const bundle: BootstrapBundle = { directory, manifest, demo, keys, invoices, rpc_migration_sha256: migrationBytes ? sha256(migrationBytes) : null };
+  return { bundle, manifestBytes, publicFiles };
+}
+async function beforePaymentWork(bundle: BootstrapBundle): Promise<void> {
+  for (const file of [bundle.demo.attempts_directory, ...["buyer-jobs", "buyer-scripted.json", "buyer-near-ai.json"].map((name) => path.join(bundle.directory, name))]) {
+    try { await lstat(file); } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") continue; throw error; }
+    throw new Error("RPC_MIGRATION_REQUIRES_NO_T18_OR_BUYER_WORK");
+  }
+}
+/** Fixed offline repair only. Original manifest, keys, claims and captures are never rewritten. */
+export async function migrateBootstrapRpc(directory: string, resume = false, root = process.cwd()) {
+  const original = await readBootstrapBundle(directory, root, resume);
+  ensure(original.bundle.manifest.rpc_url === LEGACY_RPC, "LEGACY_BOOTSTRAP_REQUIRED");
+  ensure(resume ? original.bundle.rpc_migration_sha256 !== null : original.bundle.rpc_migration_sha256 === null, resume ? "SAVED_RPC_MIGRATION_REQUIRED" : "RPC_MIGRATION_ALREADY_CLAIMED_USE_RESUME");
+  await beforePaymentWork(original.bundle);
+  if (!resume) {
+    const temporary = path.join(directory, `.rpc-migration-intent-${randomBytes(12).toString("hex")}.tmp`);
+    try {
+      await exclusive(temporary, fixedRpcMigrationIntent(original.bundle.manifest, original.manifestBytes));
+      await link(temporary, path.join(directory, MIGRATION_FILE)); // Atomic publication, never overwrite an existing intent.
+    } finally { await unlink(temporary).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT") throw error; }); }
+  }
+  const intentDirectory = await open(directory, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try { await intentDirectory.sync(); } finally { await intentDirectory.close(); }
+  // The immutable intent is durable before any public RPC field can change.
+  const current = await readBootstrapBundle(directory, root, true);
+  await beforePaymentWork(current.bundle);
+  for (const file of current.publicFiles) {
+    if (file.value.rpc_url === RPC) continue;
+    ensure((await readPrivateBytes(path.join(directory, file.name))).equals(file.bytes), "RPC_MIGRATION_FILE_CHANGED");
+    const temporary = path.join(directory, `.rpc-migration-${file.name}-${randomBytes(12).toString("hex")}.tmp`);
+    try {
+      await exclusive(temporary, { ...file.value, rpc_url: RPC });
+      ensure((await readPrivateBytes(path.join(directory, file.name))).equals(file.bytes), "RPC_MIGRATION_FILE_CHANGED");
+      await rename(temporary, path.join(directory, file.name));
+      const handle = await open(directory, constants.O_RDONLY | constants.O_NOFOLLOW);
+      try { await handle.sync(); } finally { await handle.close(); }
+    } finally { await unlink(temporary).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT") throw error; }); }
+  }
+  const migrated = await loadBootstrapBundle(directory, root);
+  return { status: "rpc_migrated", directory, rpc_url: migrated.demo.rpc_url, rpc_migration_sha256: migrated.rpc_migration_sha256, network_contacted: false };
 }
 export async function prepareBootstrap(directory: string, root = process.cwd()): Promise<BootstrapBundle> {
   ensure(path.isAbsolute(directory) && path.resolve(directory) === directory && await realpath(path.dirname(directory)) === path.dirname(directory), "CANONICAL_NEW_DIRECTORY_REQUIRED");
@@ -137,7 +192,7 @@ async function claimFor(bundle: BootstrapBundle, step: string): Promise<Claim | 
   return claim as unknown as Claim;
 }
 async function evidence(bundle: BootstrapBundle, step: string, status: "prepared" | "created" | "observed" | "uncertain", result: unknown) {
-  const record = { schema_version: 1, kind: "agenttrust_testnet_bootstrap", captured_at: new Date().toISOString(), bundle_sha256: sha256(JSON.stringify(bundle.manifest)), network: "near:testnet", step, status, result, native_runtime_gate: "not_evaluated", model_gate: "not_evaluated" };
+  const record = { schema_version: 1, kind: "agenttrust_testnet_bootstrap", captured_at: new Date().toISOString(), bundle_sha256: sha256(JSON.stringify(bundle.manifest)), network: "near:testnet", rpc_url: bundle.demo.rpc_url, rpc_migration_sha256: bundle.rpc_migration_sha256, step, status, result, native_runtime_gate: "not_evaluated", model_gate: "not_evaluated" };
   publicOnly(record);
   const file = path.join(bundle.directory, "evidence", `${step}-${randomBytes(12).toString("hex")}.json`);
   await exclusive(file, record);
@@ -174,7 +229,7 @@ export async function runBootstrapStep(directory: string, requestedStep: string,
     const now = BigInt(Date.now()) * 1_000_000n;
     ensure(BigInt(bundle.demo.session_expires_at_ns) > now && BigInt(bundle.demo.credential_expires_at_ns) > now, "DEMO_EXPIRED_NO_NEW_PROVISIONING");
   }
-  const provider = new JsonRpcProvider({ url: RPC }, { retries: 1 });
+  const provider = new JsonRpcProvider({ url: bundle.demo.rpc_url }, { retries: 1 });
   ensure((await bounded(provider.sendJsonRpc("status", []))).chain_id === "testnet", "TESTNET_REQUIRED");
   if (observation) {
     try {
@@ -225,6 +280,7 @@ export async function runBootstrap(argv: readonly string[]): Promise<void> {
   if (argv.length === 1 && argv[0] === "--help") { console.log(bootstrapUsage); return; }
   const args = bootstrapArguments(argv);
   if (args.step === "prepare") { await prepareBootstrap(args.directory); console.log(JSON.stringify({ status: "prepared", directory: args.directory, accounts_created: false, native_runtime_gate: "not_evaluated", model_gate: "not_evaluated" })); return; }
+  if (args.step === "migrate-rpc-fastnear" || args.step === "resume-rpc-fastnear") { console.log(JSON.stringify(await migrateBootstrapRpc(args.directory, args.step === "resume-rpc-fastnear"))); return; }
   const result = await runBootstrapStep(args.directory, args.step);
   console.log(JSON.stringify(result));
   if (result.status === "uncertain") process.exitCode = 2;

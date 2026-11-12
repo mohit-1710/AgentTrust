@@ -1,5 +1,6 @@
 /** Actual compiled CLI: offline preparation and pure faucet doubles; all outbound network is denied. */
 import assert from "node:assert/strict";
+import {createHash} from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -18,6 +19,13 @@ try {
     assert(!output.includes(value.private_key ?? value.seed_base64));
   }
   assert(!output.includes("DO_NOT_READ"));
+  // Convert this newly generated temporary fixture into the exact legacy public forms.
+  const rpcFiles = ["demo.json", "provider-a.json", "provider-b.json", "mcp.json"];
+  for (const name of rpcFiles) { const file = path.join(bundle,name), value=JSON.parse(await readFile(file,"utf8")); assert.equal(value.rpc_url,"https://test.rpc.fastnear.com"); value.rpc_url="https://rpc.testnet.near.org"; await writeFile(file,JSON.stringify(value)+"\n"); }
+  const manifestFile=path.join(bundle,"bootstrap.json"), manifest=JSON.parse(await readFile(manifestFile,"utf8"));
+  manifest.rpc_url="https://rpc.testnet.near.org"; manifest.demo_sha256=createHash("sha256").update(JSON.stringify(JSON.parse(await readFile(path.join(bundle,"demo.json"),"utf8")))).digest("hex");
+  await writeFile(manifestFile,JSON.stringify(manifest)+"\n");
+  const originalManifest=await readFile(manifestFile,"utf8");
   const original = await readFile(path.join(bundle, "demo.json"), "utf8");
   assert.throws(() => run(["--prepare", "--directory", bundle]), (error) => error.status === 1 && error.stderr.includes("BOOTSTRAP_REFUSED_OR_FAILED") && !error.stderr.includes("ed25519:"));
   assert.equal(await readFile(path.join(bundle, "demo.json"), "utf8"), original);
@@ -33,5 +41,18 @@ try {
   assert.equal(await readFile(path.join(bundle, "operations/faucet.json"), "utf8"), claim);
   assert.equal(await readFile(trace, "utf8"), dispatched);
   assert.throws(() => run(["--user-run", "--directory", bundle, "--step", "observe-faucet"], [mock]), (error) => error.status === 2 && JSON.parse(error.stdout).status === "uncertain");
-  console.log(JSON.stringify({ compiled_help: "passed", compiled_offline_prepare: "passed", outbound_network: "denied", overwrite_refusal: "passed", mocked_faucet_restart_no_resend: "passed", actual_chain_or_faucet_execution: false }));
+  const interrupt=path.join(directory,"interrupt-rename.mjs");
+  await writeFile(interrupt,`import fs from "node:fs/promises"; import {syncBuiltinESMExports} from "node:module"; const original=fs.rename;let count=0;fs.rename=async(...args)=>{if(count++===1)throw new Error("MOCK_INTERRUPTED_MIGRATION");return original(...args)};syncBuiltinESMExports();`,{mode:0o600});
+  assert.throws(()=>run(["--migrate-rpc-fastnear","--directory",bundle],[interrupt]),error=>error.status===1);
+  assert.equal(JSON.parse(await readFile(path.join(bundle,"demo.json"),"utf8")).rpc_url,"https://test.rpc.fastnear.com");
+  assert.equal(JSON.parse(await readFile(path.join(bundle,"provider-a.json"),"utf8")).rpc_url,"https://rpc.testnet.near.org");
+  assert.throws(()=>run(["--user-run","--directory",bundle,"--step","observe-faucet"]),error=>error.status===1);
+  const migration=JSON.parse(run(["--resume-rpc-fastnear","--directory",bundle]));
+  assert.equal(migration.status,"rpc_migrated");assert.equal(migration.network_contacted,false);
+  for(const name of rpcFiles)assert.equal(JSON.parse(await readFile(path.join(bundle,name),"utf8")).rpc_url,"https://test.rpc.fastnear.com");
+  assert.equal(await readFile(manifestFile,"utf8"),originalManifest);
+  assert.equal(await readFile(path.join(bundle,"operations/faucet.json"),"utf8"),claim);
+  assert.deepEqual(JSON.parse(run(["--resume-rpc-fastnear","--directory",bundle])),migration);
+  assert.throws(()=>run(operational),error=>error.status===1);
+  console.log(JSON.stringify({ compiled_help: "passed", compiled_offline_prepare: "passed", outbound_network: "denied", overwrite_refusal: "passed", mocked_faucet_restart_no_resend: "passed", compiled_offline_migration_resume: "passed", actual_chain_or_faucet_execution: false }));
 } finally { await rm(directory, { recursive: true, force: true }); }

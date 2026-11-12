@@ -4,6 +4,8 @@ This helper fills the prerequisite before the [T18 runbook](testnet-demo-runbook
 
 Use one fresh bundle for one environment/rehearsal. The helper does not deploy the contract, initialize balances inside AgentTrust, register providers, install the worker key, issue credentials or run a purchase. Those remain the explicit T18 steps. Keep the two providers' own accounts as their payouts and the parent idle as the later rotated payout.
 
+Fresh bundles use `https://test.rpc.fastnear.com`, listed in NEAR's [current RPC provider documentation](https://docs.near.org/api/rpc/providers). If an existing bundle uses the deprecated `https://rpc.testnet.near.org`, follow the [explicit offline RPC migration](testnet-rpc-migration.md) before T18/buyer work. It preserves the original manifest, keys, IDs and operation claims; do not replace the bundle or manually edit its bound configuration.
+
 ## Fixed funding and authority
 
 The parent name is `agenttrust-<24 random hex characters>.testnet`. Its children are `core`, `owner`, `issuer`, `service-a` and `service-b` under that parent. Every account has its own independent Ed25519 full-access key. The additional worker key belongs to the owner account only after T18 installs its restricted function-call permission; bootstrap never installs it. Each provider also has a separate invoice-signing seed.

@@ -32,7 +32,7 @@ The JSON below is a **configuration example**, not a deployed target or a paymen
   "schema_version": 1,
   "network": "near:testnet",
   "core_account": "core.testnet",
-  "rpc_url": "https://rpc.testnet.near.org",
+  "rpc_url": "https://test.rpc.fastnear.com",
   "owner_id": "owner.testnet",
   "session_id": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
   "attempts_directory": "/absolute/private/agenttrust-attempts",

@@ -1,11 +1,13 @@
+import * as filesystem from "node:fs/promises";
 import { chmod, lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { Account, JsonRpcProvider, KeyPairSigner, PublicKey, baseDecode, baseEncode } from "near-api-js";
 import { AccountDoesNotExistError } from "near-api-js/rpc-errors";
 import { afterEach, expect, it, vi } from "vitest";
-import { bootstrapArguments, bootstrapRoles, inspectProductionWasm, loadBootstrapBundle, prepareBootstrap, runBootstrap, runBootstrapStep, type BootstrapBundle } from "../src/bootstrap.js";
-import { renderPublicConfigs, sha256 } from "../src/config.js";
+import { bootstrapArguments, bootstrapRoles, inspectProductionWasm, loadBootstrapBundle, migrateBootstrapRpc, prepareBootstrap, runBootstrap, runBootstrapStep, type BootstrapBundle } from "../src/bootstrap.js";
+import { publicTemplate, readConfig, renderPublicConfigs, sha256 } from "../src/config.js";
+vi.mock("node:fs/promises", { spy: true });
 const directories: string[] = [];
 const NEAR = 10n ** 24n;
 afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllGlobals(); await Promise.all(directories.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))); });
@@ -259,4 +261,163 @@ it("does not claim or POST for an offline bundle that has already expired", asyn
   vi.spyOn(Date, "now").mockReturnValue(Number(BigInt(f.bundle.demo.credential_expires_at_ns) / 1_000_000n) + 1);
   await expect(runBootstrapStep(f.directory, "faucet", f.root)).rejects.toThrow("DEMO_EXPIRED_NO_NEW_PROVISIONING");
   expect(await readdir(path.join(f.directory, "operations"))).toEqual([]); expect(m.json).not.toHaveBeenCalled(); expect(m.fetcher).not.toHaveBeenCalled();
+});
+
+const legacyRpc = "https://rpc.testnet.near.org", fastnearRpc = "https://test.rpc.fastnear.com";
+const publicRpcFiles = ["demo.json", "provider-a.json", "provider-b.json", "mcp.json"];
+async function legacyPrepared() {
+  const f = await prepared();
+  for (const name of publicRpcFiles) {
+    const file = path.join(f.directory, name), value = await read(file); value.rpc_url = legacyRpc; await replace(file, value);
+  }
+  const manifest = await read(path.join(f.directory, "bootstrap.json"));
+  manifest.rpc_url = legacyRpc; manifest.demo_sha256 = sha256(JSON.stringify(await read(path.join(f.directory, "demo.json"))));
+  await replace(path.join(f.directory, "bootstrap.json"), manifest);
+  return { ...f, bundle: await loadBootstrapBundle(f.directory, f.root) };
+}
+it("defaults fresh configurations and bootstrap evidence to the fixed Fastnear testnet endpoint", async () => {
+  const f = await prepared();
+  expect((publicTemplate() as { rpc_url: string }).rpc_url).toBe(fastnearRpc);
+  expect(f.bundle.manifest.rpc_url).toBe(fastnearRpc); expect(f.bundle.demo.rpc_url).toBe(fastnearRpc);
+  const record = await read(path.join(f.directory, "evidence", (await readdir(path.join(f.directory, "evidence")))[0]!));
+  expect(record.rpc_url).toBe(fastnearRpc); expect(record.rpc_migration_sha256).toBe(null);
+  await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("LEGACY_BOOTSTRAP_REQUIRED");
+});
+it.each([0, 1, 2, 3, 4])("checkpoints before replacement, refuses partial state and resumes after %i atomic replacements", async (stopAfter) => {
+  const f = await legacyPrepared(), originals = await Promise.all(publicRpcFiles.map((name) => read(path.join(f.directory, name))));
+  const fetcher = vi.fn(() => { throw new Error("NO_NETWORK"); }); vi.stubGlobal("fetch", fetcher);
+  const network = vi.spyOn(JsonRpcProvider.prototype, "sendJsonRpc").mockImplementation(() => { throw new Error("NO_RPC"); });
+  const signing = vi.spyOn(KeyPairSigner, "fromSecretKey").mockImplementation(() => { throw new Error("NO_SIGNER"); });
+  const originalRename = (await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises")).rename; let replacements = 0;
+  const renaming = vi.spyOn(filesystem, "rename").mockImplementation(async (source, destination) => {
+    const marker = await read(path.join(f.directory, "rpc-migration-fastnear.json"));
+    expect(marker.bootstrap_sha256).toBe(sha256(await readFile(path.join(f.directory, "bootstrap.json"))));
+    expect((await lstat(path.join(f.directory, "rpc-migration-fastnear.json"))).mode & 0o777).toBe(0o600);
+    if (replacements === stopAfter) throw new Error("INTERRUPTED_REPLACEMENT");
+    await originalRename(source, destination); replacements++;
+  });
+  if (stopAfter < 4) await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("INTERRUPTED_REPLACEMENT");
+  else expect((await migrateBootstrapRpc(f.directory, false, f.root)).status).toBe("rpc_migrated");
+  renaming.mockRestore();
+  const markerBefore = await readFile(path.join(f.directory, "rpc-migration-fastnear.json"));
+  for (let i = 0; i < publicRpcFiles.length; i++) expect((await read(path.join(f.directory, publicRpcFiles[i]!))).rpc_url).toBe(i < stopAfter ? fastnearRpc : legacyRpc);
+  if (stopAfter < 4) {
+    await expect(loadBootstrapBundle(f.directory, f.root)).rejects.toThrow();
+    await expect(readConfig(path.join(f.directory, "demo.json"))).rejects.toThrow();
+  }
+  expect((await migrateBootstrapRpc(f.directory, true, f.root)).status).toBe("rpc_migrated");
+  expect(await readFile(path.join(f.directory, "rpc-migration-fastnear.json"))).toEqual(markerBefore);
+  const loaded = await loadBootstrapBundle(f.directory, f.root);
+  expect(loaded.manifest).toEqual(f.bundle.manifest); expect(loaded.demo).toEqual({ ...f.bundle.demo, rpc_url: fastnearRpc });
+  for (let i = 0; i < publicRpcFiles.length; i++) {
+    expect(await read(path.join(f.directory, publicRpcFiles[i]!))).toEqual({ ...originals[i], rpc_url: fastnearRpc });
+    expect((await lstat(path.join(f.directory, publicRpcFiles[i]!))).mode & 0o777).toBe(0o600);
+  }
+  expect(loaded.rpc_migration_sha256).toBe(sha256(markerBefore));
+  expect(await readConfig(path.join(f.directory, "demo.json"))).toEqual(loaded.demo);
+  expect(fetcher).not.toHaveBeenCalled(); expect(network).not.toHaveBeenCalled(); expect(signing).not.toHaveBeenCalled();
+});
+it("preserves old claims, secrets, manifest and captures while old operations stay observation-only on the new RPC", async () => {
+  const f = await legacyPrepared(), m = rpc(f.bundle);
+  await runBootstrapStep(f.directory, "faucet", f.root);
+  await runBootstrapStep(f.directory, "create-core", f.root);
+  await recordChild(f.bundle, "core", m);
+  const preserved = ["bootstrap.json", ...await Promise.all(["secrets", "operations", "evidence"].map(async (dir) => (await readdir(path.join(f.directory, dir))).map((file) => `${dir}/${file}`))).then((all) => all.flat())];
+  const before = await Promise.all(preserved.map((file) => readFile(path.join(f.directory, file))));
+  await migrateBootstrapRpc(f.directory, false, f.root);
+  for (let i = 0; i < preserved.length; i++) expect(await readFile(path.join(f.directory, preserved[i]!))).toEqual(before[i]);
+  await expect(runBootstrapStep(f.directory, "faucet", f.root)).rejects.toThrow("SAVED_CLAIM_USE_OBSERVE");
+  await expect(runBootstrapStep(f.directory, "create-core", f.root)).rejects.toThrow("SAVED_CLAIM_USE_OBSERVE");
+  const originalImplementation = m.json.getMockImplementation()!;
+  m.json.mockImplementation(async function (this: JsonRpcProvider, method, params) {
+    expect(this.connection.url).toBe(fastnearRpc);
+    return originalImplementation.call(this, method, params);
+  });
+  const observed = await runBootstrapStep(f.directory, "observe-create-core", f.root);
+  expect(observed.status).toBe("observed");
+  const capture = await read(observed.evidence_file);
+  expect(capture.rpc_url).toBe(fastnearRpc);
+  expect(capture.rpc_migration_sha256).toBe(sha256(await readFile(path.join(f.directory, "rpc-migration-fastnear.json"))));
+  expect(capture.bundle_sha256).toBe(sha256(JSON.stringify(f.bundle.manifest)));
+  expect(m.fetcher).toHaveBeenCalledTimes(1); expect(m.signer).toHaveBeenCalledTimes(1); expect(m.broadcast).toHaveBeenCalledTimes(1);
+});
+it.each(["attempts", "buyer-jobs", "buyer-scripted.json", "buyer-near-ai.json"])("refuses migration when %s exists, even if empty", async (name) => {
+  const f = await legacyPrepared(), file = path.join(f.directory, name);
+  if (name.endsWith("json")) await replace(file, {}); else await mkdir(file, { mode: 0o700 });
+  await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("RPC_MIGRATION_REQUIRES_NO_T18_OR_BUYER_WORK");
+  await expect(lstat(path.join(f.directory, "rpc-migration-fastnear.json"))).rejects.toMatchObject({ code: "ENOENT" });
+});
+it("refuses dangling payment-path symlinks and checks the no-work precondition again on resume", async () => {
+  const f = await legacyPrepared(); await symlink(path.join(f.root, "absent"), path.join(f.directory, "attempts"));
+  await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("RPC_MIGRATION_REQUIRES_NO_T18_OR_BUYER_WORK");
+  await rm(path.join(f.directory, "attempts")); await migrateBootstrapRpc(f.directory, false, f.root);
+  await mkdir(path.join(f.directory, "buyer-jobs"), { mode: 0o700 });
+  await expect(migrateBootstrapRpc(f.directory, true, f.root)).rejects.toThrow("RPC_MIGRATION_REQUIRES_NO_T18_OR_BUYER_WORK");
+});
+it("requires the immutable intent for all-new legacy files and explicit resume for an existing intent", async () => {
+  const f = await legacyPrepared();
+  await expect(migrateBootstrapRpc(f.directory, true, f.root)).rejects.toThrow("SAVED_RPC_MIGRATION_REQUIRED");
+  for (const name of publicRpcFiles) { const file = path.join(f.directory, name), value = await read(file); value.rpc_url = fastnearRpc; await replace(file, value); }
+  await expect(loadBootstrapBundle(f.directory, f.root)).rejects.toThrow();
+  await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow();
+  for (const name of publicRpcFiles) { const file = path.join(f.directory, name), value = await read(file); value.rpc_url = legacyRpc; await replace(file, value); }
+  await migrateBootstrapRpc(f.directory, false, f.root);
+  await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("RPC_MIGRATION_ALREADY_CLAIMED_USE_RESUME");
+});
+it.each(["demo-id", "demo-expiry", "mcp-owner", "provider-price", "third-rpc", "marker", "manifest-bytes"])("refuses %s drift during interrupted migration without replacing further files", async (kind) => {
+  const f = await legacyPrepared(); await migrateBootstrapRpc(f.directory, false, f.root);
+  const mcpFile = path.join(f.directory, "mcp.json"), mcp = await read(mcpFile); mcp.rpc_url = legacyRpc; await replace(mcpFile, mcp);
+  if (kind === "demo-id" || kind === "demo-expiry") { const file = path.join(f.directory, "demo.json"), value = await read(file); if (kind === "demo-id") value.payment_ids.paid = Buffer.alloc(32, 7).toString("base64"); else value.credential_expires_at_ns = "2000000000000000000"; await replace(file, value); }
+  if (kind === "mcp-owner") { mcp.owner_id = "other.testnet"; await replace(mcpFile, mcp); }
+  if (kind === "provider-price") { const file = path.join(f.directory, "provider-a.json"), value = await read(file); value.offer.amount_yocto = "1"; await replace(file, value); }
+  if (kind === "third-rpc") { mcp.rpc_url = "https://other.testnet.invalid"; await replace(mcpFile, mcp); }
+  if (kind === "marker") { const file = path.join(f.directory, "rpc-migration-fastnear.json"), value = await read(file); value.original_demo_sha256 = "11".repeat(32); await replace(file, value); }
+  if (kind === "manifest-bytes") { const file = path.join(f.directory, "bootstrap.json"); await writeFile(file, await readFile(file, "utf8") + "\n"); }
+  const before = await Promise.all(publicRpcFiles.map((name) => readFile(path.join(f.directory, name))));
+  await expect(loadBootstrapBundle(f.directory, f.root)).rejects.toThrow();
+  await expect(migrateBootstrapRpc(f.directory, true, f.root)).rejects.toThrow();
+  for (let i = 0; i < publicRpcFiles.length; i++) expect(await readFile(path.join(f.directory, publicRpcFiles[i]!))).toEqual(before[i]);
+});
+it("preserves configured TLS paths during migration and permits later TLS edits without changing the intent", async () => {
+  const f = await legacyPrepared(), file = path.join(f.directory, "provider-a.json"), value = await read(file);
+  value.tls = { cert_file: "/private/old-cert.pem", key_file: "/private/old-key.pem" }; await replace(file, value);
+  await migrateBootstrapRpc(f.directory, false, f.root);
+  expect((await read(file)).tls).toEqual(value.tls);
+  const marker = await readFile(path.join(f.directory, "rpc-migration-fastnear.json"));
+  value.rpc_url = fastnearRpc; value.tls = { cert_file: "/private/new-cert.pem", key_file: "/private/new-key.pem" }; await replace(file, value);
+  expect((await loadBootstrapBundle(f.directory, f.root)).demo.rpc_url).toBe(fastnearRpc);
+  await migrateBootstrapRpc(f.directory, true, f.root);
+  expect((await read(file)).tls).toEqual(value.tls);
+  expect(await readFile(path.join(f.directory, "rpc-migration-fastnear.json"))).toEqual(marker);
+});
+it("allows only one migration intent when starts race and rejects arbitrary RPC flags", async () => {
+  const f = await legacyPrepared(), results = await Promise.allSettled([migrateBootstrapRpc(f.directory, false, f.root), migrateBootstrapRpc(f.directory, false, f.root)]);
+  expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+  expect((await loadBootstrapBundle(f.directory, f.root)).demo.rpc_url).toBe(fastnearRpc);
+  for (const flag of ["--migrate-rpc-fastnear", "--resume-rpc-fastnear"]) {
+    expect(bootstrapArguments([flag, "--directory", "/prepared"]).step).toBe(flag.slice(2));
+    expect(() => bootstrapArguments([flag, "--directory", "/prepared", "--rpc", "https://other.invalid"])).toThrow();
+  }
+});
+it("publishes a fully written intent atomically before replacements and can restart if publication fails", async () => {
+  const f = await legacyPrepared(), originals = await Promise.all(publicRpcFiles.map((name) => readFile(path.join(f.directory, name))));
+  const publishing = vi.spyOn(filesystem, "link").mockImplementationOnce(async (source, destination) => {
+    expect(destination).toBe(path.join(f.directory, "rpc-migration-fastnear.json"));
+    expect((await read(source as string)).original_demo_sha256).toBe(f.bundle.manifest.demo_sha256);
+    await expect(lstat(destination)).rejects.toMatchObject({ code: "ENOENT" });
+    throw new Error("INTERRUPTED_BEFORE_PUBLICATION");
+  });
+  await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("INTERRUPTED_BEFORE_PUBLICATION");
+  publishing.mockRestore();
+  await expect(lstat(path.join(f.directory, "rpc-migration-fastnear.json"))).rejects.toMatchObject({ code: "ENOENT" });
+  for (let i = 0; i < publicRpcFiles.length; i++) expect(await readFile(path.join(f.directory, publicRpcFiles[i]!))).toEqual(originals[i]);
+  expect((await migrateBootstrapRpc(f.directory, false, f.root)).status).toBe("rpc_migrated");
+});
+
+it("completed migration permits direct keyless config reads with all secret files absent", async () => {
+  const f = await legacyPrepared(); await migrateBootstrapRpc(f.directory, false, f.root);
+  await rm(path.join(f.directory, "secrets"), { recursive: true });
+  expect((await readConfig(path.join(f.directory, "demo.json"))).rpc_url).toBe(fastnearRpc);
+  const file = path.join(f.directory, "rpc-migration-fastnear.json"), marker = await read(file); marker.bundle_sha256 = "11".repeat(32); await replace(file, marker);
+  await expect(readConfig(path.join(f.directory, "demo.json"))).rejects.toThrow("RPC_MIGRATION_BINDING_MISMATCH");
 });

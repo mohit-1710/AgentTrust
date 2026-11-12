@@ -66,6 +66,8 @@ Omit `AGENTTRUST_NEAR_DECISION_REFS` unless you have actual rejected-call transa
 
 For a fresh testnet environment, use the [complete operator route](testnet-operator.md). The [bootstrap helper](testnet-bootstrap.md) creates a private local bundle with independent role keys and matching public configuration. Its offline preparation makes no network call. Separate user-run provisioning steps request one faucet parent and create the five funded role accounts; they preserve uncertain operations without resending. The operator then loads only the required role into each fixed setup, provider or buyer child, replacing manual secret copying.
 
+Fresh bundles use the public FastNEAR testnet RPC. Legacy bootstrap bundles have a [fixed offline migration](testnet-rpc-migration.md) that preserves their original claims; it is not automatic failover or permission to repeat a transaction.
+
 For the two controlled providers, follow [local-demo.md](local-demo.md): complete public provider configs, an isolated localhost certificate, HTTPS origins `https://localhost:4041` and `https://localhost:4042`, and separate invoice-signing seeds. The [provider README](../examples/invoice-audit/README.md) defines the full config and routes. The named service/payout accounts and registered endpoint commitments must come from the actual prepared environment; localhost origins alone do not create registrations.
 
 The [T18 runbook](testnet-demo-runbook.md#public-configuration-and-local-build) creates a public template and renders the complete provider/MCP configs. These two preparation commands do not send transactions; fill every required public binding before rendering:
