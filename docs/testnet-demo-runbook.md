@@ -41,15 +41,20 @@ The subshell stops on failure and refuses to overwrite files; pasting the block 
 Render the two provider and MCP public configurations after filling the template:
 
 ```sh
-pnpm --silent demo:prepare:testnet -- --render-config "$AGENTTRUST_DEMO_DIR/demo.json" > "$AGENTTRUST_DEMO_DIR/public-configs.json"
-node --input-type=module -e 'import {readFileSync,writeFileSync} from "node:fs"; const d=process.argv[1]; const c=JSON.parse(readFileSync(d+"/public-configs.json","utf8")); for (const [file,key] of [["provider-a.json","provider_a"],["provider-b.json","provider_b"],["mcp.json","mcp"]]) writeFileSync(d+"/"+file,JSON.stringify(c[key],null,2)+"\n",{flag:"wx",mode:0o600});' "$AGENTTRUST_DEMO_DIR"
+(
+  set -eu
+  set -C
+  umask 077
+  pnpm --silent demo:prepare:testnet -- --render-config "$AGENTTRUST_DEMO_DIR/demo.json" > "$AGENTTRUST_DEMO_DIR/public-configs.json"
+  node --input-type=module -e 'import {readFileSync,writeFileSync} from "node:fs"; const d=process.argv[1]; const c=JSON.parse(readFileSync(d+"/public-configs.json","utf8")); for (const [file,key] of [["provider-a.json","provider_a"],["provider-b.json","provider_b"],["mcp.json","mcp"]]) writeFileSync(d+"/"+file,JSON.stringify(c[key],null,2)+"\n",{flag:"wx",mode:0o600});' "$AGENTTRUST_DEMO_DIR"
+)
 ```
 
 Set the two provider files' absolute TLS certificate/key paths using [local-demo.md](local-demo.md). Those paths are intentionally incomplete placeholders. Do not change the committed origin/service/version while retaining an old quote. The MCP config contains public metadata only; it is for the T19 local server, not an issuer/setup process.
 
 ## Owner, merchant and issuer setup
 
-Run each command individually. Stop at any nonzero exit or uncertain result and use the recovery instructions below. Never put the following sequence in an automatic retry loop. Every `--output` must name a **new** directory under ignored `artifacts/local/testnet/`; captures are not overwritten. Choose another descriptive name for a second observation, not a new payment ID.
+Inspect each step's result before proceeding. The multi-command blocks below use fail-fast subshells: a nonzero exit stops that block. It is not permission to paste the next block. Stop at any nonzero exit or uncertain result and use the recovery instructions below. Never put the sequence in an automatic retry loop. Every `--output` must name a **new** directory under ignored `artifacts/local/testnet/`; captures are not overwritten. Choose another descriptive name for a second observation, not a new payment ID.
 
 Load a role key interactively in the operator's shell (zsh example); use this same pattern when changing roles. Replace neither the prompt nor the environment name with a literal secret command argument:
 
@@ -80,26 +85,40 @@ pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json
 Switch to **provider A's merchant account** key:
 
 ```sh
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/04-a-deposit --step provider-a-deposit
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/05-a-register --step provider-a-register
+(
+  set -eu
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/04-a-deposit --step provider-a-deposit
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/05-a-register --step provider-a-register
+)
 ```
 
 Switch to **provider B's merchant account** key:
 
 ```sh
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/06-b-deposit --step provider-b-deposit
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/07-b-register --step provider-b-register
+(
+  set -eu
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/06-b-deposit --step provider-b-deposit
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/07-b-register --step provider-b-register
+)
 ```
 
 Switch back to the **owner** key. These actions create the pinned `invoice.audit.v1` profile, trust both exact service identities, bind the worker session, install the finite-allowance function-call key and finally unpause the owner policy. The worker key is restricted to `execute_payment` on this exact core account; it cannot attach a deposit or perform setup.
 
 ```sh
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/08-profile --step owner-profile
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/09-trust-a --step owner-trust-a
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/10-trust-b --step owner-trust-b
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/11-session --step owner-session
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/12-worker-key --step owner-worker-key
-pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/13-policy --step owner-policy
+(
+  set -eu
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/08-profile --step owner-profile
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/09-trust-a --step owner-trust-a
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/10-trust-b --step owner-trust-b
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/11-session --step owner-session
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/12-worker-key --step owner-worker-key
+  pnpm demo:prepare:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/13-policy --step owner-policy
+)
+```
+
+After inspecting the owner setup result, remove its key from the parent shell before changing roles:
+
+```sh
 unset AGENTTRUST_SETUP_PRIVATE_KEY
 ```
 
@@ -135,14 +154,21 @@ export AGENTTRUST_WORKER_PRIVATE_KEY
 Run the actual missing-evidence refusal, then B's paid report, then an exact retry:
 
 ```sh
-pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/16-missing --step missing-credential
-pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/17-purchase --step purchase
-pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/18-retry --step retry
+(
+  set -eu
+  pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/16-missing --step missing-credential
+  pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/17-purchase --step purchase
+  pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --output artifacts/local/testnet/18-retry --step retry
+)
 ```
 
 - `missing-credential` checks the pinned capability profile, uses provider A with no credential, records the preview denial and **also executes the exact signed invoice directly** with the restricted key. It requires an actual FINAL `MISSING` rejection, no payment record and zero payout delta. A preview alone cannot pass this case.
 - `purchase` uses provider B, exact fixed input/payment ID and credential revision. The real SDK persists the quote before broadcasting, waits for final admission and a settled payment, calls the paid provider and checks the actual report against input and the committed golden result. HTTP 200 or a transaction hash alone cannot pass. The capture requires the configured payout delta and settled final contract state.
 - `retry` retrieves the same report through the saved attempt, then submits the exact original invoice once to demonstrate contract idempotency. It requires `duplicate:true`, the unchanged invoice/payment and no second payout. It consumes transaction gas. The direct retry itself has an immutable one-send operation record; another invocation must use `observe-retry`.
+
+**Stop here before the negative state changes.** Inspect successful T18 purchase/retry captures, then run the fresh [T20 buyer job](../examples/buyer-agent/README.md) while B's credential and identity are still active. Its job and two payment IDs must differ from this runbook's four IDs; otherwise a saved report could be mistaken for a new model-driven purchase. Run the actual model mode separately from any scripted job. Keep the same files/IDs when recovering either job. A successful saved replay with zero model responses is not a new actual-agent run. Export `NODE_EXTRA_CA_CERTS` in the buyer's shell as well.
+
+Proceed only after reviewing successful purchase, exact retry and actual buyer output/trace. A stopped, pending or uncertain buyer must be investigated using its original files; do not revoke/rotate as a way to resolve it. These state-changing negative checks make new B purchases impossible in this prepared environment. They belong after the useful task in each rehearsal.
 
 In a separate setup invocation, load the **issuer** key and revoke B's credential:
 
@@ -171,6 +197,12 @@ pnpm demo:run:testnet -- --user-run --config "$AGENTTRUST_DEMO_DIR/demo.json" --
 ```
 
 The old quote must receive a direct FINAL `IDENTITY_CHANGED` rejection with no payment/payout. If the quote expired first, the runner stops rather than relabeling an expiry as identity evidence. Do not restore registry state or replace the original quote to hide a failed case. The provider can remain on its original offer for this negative case; no new quote is requested after rotation. Old settled B purchase retrieval remains bound to the immutable original catalog/offer, so the `resume` observation can still retrieve it even after credential revocation, quote expiry or registry rotation. This is not permission for a new purchase.
+
+## Second rehearsal
+
+Keep the first run's configuration, journals and captures intact. New output folders alone do not reset an initialized core. For a second clean rehearsal, provision another empty testnet core account, a new private demo/attempt directory and fresh public session/credential/operation IDs. If reusing the same owner, use a different worker key pair: the first installed function-call key remains restricted to the first core. The registry/account records live inside each core, so existing separately controlled owner/issuer/merchant/payout accounts can be reused after every first-run operation is resolved and their balances/gas are checked.
+
+Use distinct flat capture names such as `artifacts/local/testnet/r2-01-deploy` for every second-run step. Render the new provider/MCP and separate buyer files from that second configuration, stop the first local stack and restart with the second directory. Run setup, T18 paid/retry, fresh actual buyer, then revoke/rotate checks in that order. Do not reuse the first credential refs, installed worker key, buyer job or attempt IDs. Do not start another environment to work around any unresolved first-run payment. This is explicit fresh provisioning, not a reset or automatic reseed command.
 
 ## Recovery, captured evidence and acceptance
 

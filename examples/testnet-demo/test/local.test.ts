@@ -41,6 +41,15 @@ it("checks two exact roles, TLS key pairs and builds without network or chain cl
   expect(plan.services[2]!.env.AGENTTRUST_NEAR_OWNER_ID).toBe("owner.testnet");
   expect(JSON.stringify(plan.services[2]!.env)).not.toContain(b64(3));
 });
+it("passes bounded owner rejection references only to the web process", async () => {
+  const f = await fixture(), refs = JSON.stringify([{ tx_hash: baseEncode(Buffer.alloc(32, 7)), sender_account_id: f.config.owner_id }]);
+  const plan = await prepareLocal(f.dir, f.dir, { ...f.env, AGENTTRUST_NEAR_DECISION_REFS: refs });
+  expect(plan.services[2]!.env.AGENTTRUST_NEAR_DECISION_REFS).toBe(refs);
+  for (const index of [0, 1, 3]) expect(plan.services[index]!.env.AGENTTRUST_NEAR_DECISION_REFS).toBeUndefined();
+  for (const value of ["secret", JSON.stringify([{ tx_hash: "bad", sender_account_id: f.config.owner_id }]), refs.replace(f.config.owner_id, "different.testnet"), JSON.stringify([...JSON.parse(refs), ...JSON.parse(refs)]), JSON.stringify(Array.from({ length: 9 }, (_, i) => ({ tx_hash: baseEncode(Buffer.alloc(32, i + 1)), sender_account_id: f.config.owner_id })))]) {
+    await expect(prepareLocal(f.dir, f.dir, { ...f.env, AGENTTRUST_NEAR_DECISION_REFS: value })).rejects.toThrow("INVALID_DECISION_REFERENCES");
+  }
+});
 it.each(["provider", "mcp", "signer", "tls", "build", "dotenv"])("refuses %s drift before startup", async (kind) => {
   const f = await fixture();
   if (kind === "provider") { f.rendered.provider_a.offer.service.payout_account = "other.testnet"; await writeFile(path.join(f.dir, "provider-a.json"), JSON.stringify(f.rendered.provider_a)); }

@@ -11,6 +11,7 @@ import { createSecureContext } from "node:tls";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { readProviderTls } from "../../invoice-audit/src/tls.js";
+import { validateTransactionLocator } from "../../../packages/near-sdk/src/attempts.js";
 import { renderPublicConfigs, validateConfig } from "./config.js";
 
 type Environment = Record<string, string | undefined>;
@@ -69,7 +70,20 @@ export async function prepareLocal(directory: string, root: string, source: Envi
       throw new Error("SURFACE_ENV_FILE_PRESENT");
     }
     const env = serviceEnvironment(name, source);
-    if (name === "web") Object.assign(env, { AGENTTRUST_NEAR_RPC_URL: c.rpc_url, AGENTTRUST_NEAR_CORE_ACCOUNT: c.core_account, AGENTTRUST_NEAR_OWNER_ID: c.owner_id });
+    if (name === "web") {
+      Object.assign(env, { AGENTTRUST_NEAR_RPC_URL: c.rpc_url, AGENTTRUST_NEAR_CORE_ACCOUNT: c.core_account, AGENTTRUST_NEAR_OWNER_ID: c.owner_id });
+      const raw = source.AGENTTRUST_NEAR_DECISION_REFS;
+      if (raw) {
+        try {
+          if (raw.length > 4096) throw new Error();
+          const refs: unknown = JSON.parse(raw);
+          if (!Array.isArray(refs) || refs.length > 8) throw new Error();
+          const hashes = new Set<string>();
+          for (const ref of refs) { validateTransactionLocator(ref, c.owner_id); if (hashes.has(ref.tx_hash)) throw new Error(); hashes.add(ref.tx_hash); }
+          env.AGENTTRUST_NEAR_DECISION_REFS = JSON.stringify(refs);
+        } catch { throw new Error("INVALID_DECISION_REFERENCES"); }
+      }
+    }
     services.push({ name, cwd, args: [entry, "start", "--hostname", "127.0.0.1", "--port", String(port)], env, port, url: `http://127.0.0.1:${port}${name === "docs" ? "/api/ask" : "/"}`, ...(name === "docs" ? { expected: { available: false } } : {}) });
   }
   if (new Set(services.map((s) => s.port)).size !== services.length) throw new Error("DISTINCT_LOCAL_PORTS_REQUIRED");

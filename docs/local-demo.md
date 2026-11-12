@@ -39,6 +39,16 @@ pnpm demo:local --start --directory "$AGENTTRUST_DEMO_DIR"
 
 Each provider receives only its own invoice seed. The surfaces receive no signing or model credentials; the web receives the demo's three public NEAR identifiers and the docs assistant stays disabled. The command refuses `.env`, `.env.local`, `.env.production` or `.env.production.local` in either surface directory, because Next would load those files outside the launcher environment. Move any such local files aside yourself before using this isolated path; `.env.example` is fine. The MCP/buyer remains a separate explicitly invoked process under the buyer runbook.
 
+After the direct refusal captures have passed inspection, supply their actual public transaction locators to the existing website feed. Stop this stack, run the following in its operator shell using the capture paths from the same core/owner, then restart it. This only reads files and sets a public variable:
+
+```sh
+unset AGENTTRUST_NEAR_DECISION_REFS
+AGENTTRUST_NEAR_DECISION_REFS="$(node --input-type=module -e 'import {readFileSync} from "node:fs"; console.log(JSON.stringify(process.argv.slice(1).map(p=>JSON.parse(readFileSync(p,"utf8")))));' artifacts/local/testnet/16-missing/transaction-before-send.json artifacts/local/testnet/20-revoked/transaction-before-send.json artifacts/local/testnet/23-identity-refusal/transaction-before-send.json)" &&
+export AGENTTRUST_NEAR_DECISION_REFS
+```
+
+The launcher validates at most eight distinct, exact owner/hash references and forwards them only to web. The website independently verifies the corresponding FINAL calls; a supplied hash alone does not create a verified rejection row. Do not mix references from different cores or describe a preview as an executed refusal. Restarting the local stack does not rerun a purchase or reset any journal.
+
 Successful startup prints `local_listeners_ready` and `chain_verification: not_checked`. It does not establish contract deployment, provider registration, native payment, model execution or recording readiness. There is no browser launch. For the repeatable offline listener check, after building both surfaces run `pnpm test:local:stack`; this uses temporary synthetic configuration, ephemeral invoice keys and a localhost certificate, checks signed quotes and web/docs HTTP, then stops every child. It never pays or starts Sandbox.
 
 ## HTTPS for the two local providers
