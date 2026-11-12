@@ -22,6 +22,8 @@
     "demo:prepare:testnet": "node scripts/run-demo.mjs prepare",
     "demo:run:testnet": "node scripts/run-demo.mjs run",
     "demo:evidence:check": "node dist/examples/testnet-demo/src/check.js",
+    "demo:local": "node dist/examples/testnet-demo/src/local.js",
+    "test:local:stack": "pnpm build:services && node examples/testnet-demo/test/local-smoke.mjs",
     "evidence:check": "node scripts/runtime-evidence.ts",
     "check:runtime:compile": "cargo check --locked --manifest-path tests/runtime/Cargo.toml",
     "build:services": "tsc -p tsconfig.services.json && node scripts/copy-service-fixtures.mjs",

@@ -82,6 +82,8 @@ pnpm start:invoice-audit --config /absolute/private/provider-b.json
 
 Each provider receives only its own `AGENTTRUST_INVOICE_SEED_BASE64`, a dedicated 32-byte HTTP signing seed. `/health` reports `configured` and `chain_verification: not_checked`, not verified chain readiness. Local TLS clients use the explicit public certificate through `NODE_EXTRA_CA_CERTS`; never disable TLS verification or install a system-wide certificate for this demo.
 
+Once all four public config files and TLS paths are ready, the [single-terminal launcher](local-demo.md#one-terminal-for-the-local-stack) can check and run both providers plus web/docs: `pnpm demo:local --check --directory /absolute/demo-directory`, then replace `--check` with `--start`. It uses separate provider A/B invoice-seed variables, checks configuration parity and free ports, and stops only its own children on Ctrl-C. It starts no browser, MCP client, model or chain operation. `pnpm test:local:stack` exercises the actual compiled listeners with temporary synthetic configuration after both surfaces have been built.
+
 For an MCP host, create an absolute ordinary JSON file using real public deployment bindings. This minimal **read-only configuration template** has no provider catalog or credential claims:
 
 ```json

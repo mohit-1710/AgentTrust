@@ -26,6 +26,21 @@ Local URLs are `http://localhost:3000` and `http://localhost:3001`. The website'
 
 The decisions feed is disconnected until its three server-only network/core/owner variables are set, as documented in `web/.env.example`. Those are public identifiers, not signing keys. Never give the website an owner, issuer, merchant or worker private key. Rebuild/restart after configuration changes. No public deployment addresses are supplied by this repository.
 
+## One terminal for the local stack
+
+After the [testnet runbook](testnet-demo-runbook.md) has produced your public `demo.json`, `provider-a.json`, `provider-b.json` and `mcp.json`, fill in each provider's TLS file paths as described below. Supply the two local invoice seeds through `AGENTTRUST_PROVIDER_A_INVOICE_SEED_BASE64` and `AGENTTRUST_PROVIDER_B_INVOICE_SEED_BASE64`. These are provider invoice keys, not account or worker keys. Do not paste keys into JSON, commands saved in shell history, recordings or Git.
+
+```sh
+pnpm demo:local --check --directory "$AGENTTRUST_DEMO_DIR"
+pnpm demo:local --start --directory "$AGENTTRUST_DEMO_DIR"
+```
+
+`--check` verifies the exact shared public configuration, each invoice signer, localhost TLS identity/key pair, build artifacts and free ports. It performs no RPC or model call. `--start` runs both providers plus the existing web/docs surfaces, waits for HTTP health, and stops its children on Ctrl-C or a child failure. It refuses occupied ports instead of stopping another process. Provider configuration is snapshotted for the lifetime of the stack.
+
+Each provider receives only its own invoice seed. The surfaces receive no signing or model credentials; the web receives the demo's three public NEAR identifiers and the docs assistant stays disabled. The command refuses `.env`, `.env.local`, `.env.production` or `.env.production.local` in either surface directory, because Next would load those files outside the launcher environment. Move any such local files aside yourself before using this isolated path; `.env.example` is fine. The MCP/buyer remains a separate explicitly invoked process under the buyer runbook.
+
+Successful startup prints `local_listeners_ready` and `chain_verification: not_checked`. It does not establish contract deployment, provider registration, native payment, model execution or recording readiness. There is no browser launch. For the repeatable offline listener check, after building both surfaces run `pnpm test:local:stack`; this uses temporary synthetic configuration, ephemeral invoice keys and a localhost certificate, checks signed quotes and web/docs HTTP, then stops every child. It never pays or starts Sandbox.
+
 ## HTTPS for the two local providers
 
 The SDK requires canonical HTTPS service origins. For a reproducible local demo use `https://localhost:4041` and `https://localhost:4042`, with different registered service accounts. The service/version catalog, registered endpoint hashes and provider configurations must all commit to these exact origins, including the ports.
