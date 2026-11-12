@@ -178,7 +178,9 @@ Choose an exact ready, tool-capable model ID from the [current public NEAR AI ca
 )
 ```
 
-Enter the NEAR AI Cloud API key **only in this local terminal**, never in chat or the configuration. The subshell keeps it out of the parent shell afterward; the MCP child receives only the restricted worker key and explicit CA, not this API key:
+The [hackathon instructions, Q-000](https://nearhackathon.com/HACKATHON.md), offer a separate $10 NEAR AI API key through an eligible NEAR Builders profile during the claim window. That balance does not appear in the Cloud dashboard. The [Builders key implementation](https://github.com/nearbuilders/nearbuilders.org/blob/3e1d09df362cd0136e1b02275a1c80e0177283f8/plugins/credits/src/services/nearai-keys.ts#L193-L210) creates the key through the Cloud API, but this project has not yet made an authenticated model call with a Builders key. Save the one-time revealed key privately if using that route. A key made in the Cloud dashboard instead needs credits in that workspace.
+
+Enter the chosen NEAR AI API key **only in this local terminal**, never in chat or the configuration. The subshell keeps it out of the parent shell afterward; the MCP child receives only the restricted worker key and explicit CA, not this API key:
 
 ```sh
 (
