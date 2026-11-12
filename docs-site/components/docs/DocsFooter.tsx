@@ -17,21 +17,21 @@ const LINKS: ReadonlyArray<FooterLink> = [
   },
   {
     label: 'SDK',
-    href: 'https://www.npmjs.com/package/@agenttrust-sdk/trustgate',
-    display: '@agenttrust-sdk/trustgate',
-    external: true,
+    href: '/sdk',
+    display: 'Native SDK status',
+    external: false,
   },
   {
     label: 'MCP',
-    href: 'https://www.npmjs.com/package/@agenttrust-sdk/mcp',
-    display: '@agenttrust-sdk/mcp',
-    external: true,
+    href: '/mcp',
+    display: 'Local tool contract',
+    external: false,
   },
   {
-    label: 'Demo',
-    href: 'https://demo.agenttrust.tech',
-    display: 'demo.agenttrust.tech',
-    external: true,
+    label: 'Evidence',
+    href: '/verification/live-evidence',
+    display: 'Verification status',
+    external: false,
   },
 ];
 

@@ -3,9 +3,9 @@ title: "Decision codes"
 description: "Typed refusals explain why a new admission cannot proceed."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+> These decision types are implemented in the local native domain layer. Check [implementation status](/reference/changelog) for runtime and client integration gates.
 
-The frozen wire decision shapes are:
+The serialized decision shapes are:
 
 ```ts
 { kind: "allow" }
@@ -35,4 +35,4 @@ Owner configuration and registry methods also have fixed errors such as `UNFUNDE
 
 ## Source and verification
 
-[Frozen decision contract](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Authority errors](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/authority.rs) · [Registry errors](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/registry.rs)
+[Local decision types](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/policy.rs) · [Decision contract](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Authority errors](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/authority.rs) · [Registry errors](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/registry.rs)

@@ -9,7 +9,7 @@ export const OPENAI_MODEL = 'gpt-4.1-mini';
 
 export class MissingAskAiKeyError extends Error {
   constructor() {
-    super('No Ask-AI provider key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.');
+    super('Ask AI is unavailable. Enable it explicitly and configure a server-only provider key.');
     this.name = 'MissingAskAiKeyError';
   }
 }
@@ -45,7 +45,7 @@ function openaiProvider(apiKey: string): AskAiProvider {
       return { role: 'system', content: prompt };
     },
     callOptions: {
-      providerOptions: { openai: { promptCacheKey: 'docs-assistant-v1' } },
+      providerOptions: { openai: { promptCacheKey: 'agenttrust-near-docs-v1' } },
     },
   };
 }
@@ -54,7 +54,14 @@ function openaiProvider(apiKey: string): AskAiProvider {
  * Resolves the Ask-AI provider. Anthropic is the default when ANTHROPIC_API_KEY
  * is set; OpenAI is used only as a fallback when no Anthropic key is present.
  */
+export function isAskAiAvailable(): boolean {
+  return process.env.ASK_AI_ENABLED === 'true' && Boolean(
+    process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY,
+  );
+}
+
 export function createAskAiProvider(): AskAiProvider {
+  if (!isAskAiAvailable()) throw new MissingAskAiKeyError();
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (anthropicKey) return anthropicProvider(anthropicKey);
 

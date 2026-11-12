@@ -1,4 +1,5 @@
 import { createMDX } from 'fumadocs-mdx/next';
+import { fileURLToPath } from 'node:url';
 
 const withMDX = createMDX();
 
@@ -6,6 +7,7 @@ const withMDX = createMDX();
 const config = {
   reactStrictMode: true,
   devIndicators: false,
+  turbopack: { root: fileURLToPath(new URL('../', import.meta.url)) },
 };
 
 export default withMDX(config);

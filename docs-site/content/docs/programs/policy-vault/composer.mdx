@@ -3,7 +3,7 @@ title: "Ordered payment decisions"
 description: "A deterministic sequence of checks before a new native payment can be dispatched."
 ---
 
-> This page describes the frozen native design. Check [implementation status](/reference/changelog) before using an integration; a planned interface is not a deployed service.
+> The evaluator and native dispatch are implemented locally. Check [implementation status](/reference/changelog) for pending runtime and client integration gates.
 
 The worker entry point must authenticate the actual caller and signing key, then check the owner-scoped payment ID. An exact existing invoice hash returns the original payment without dispatching again; a changed invoice under that ID conflicts.
 
@@ -19,10 +19,10 @@ New admission then follows these stages:
 
 Trust never overrides a block or missing required capability. Registration is not owner permission. There is no one-off approval or score threshold that skips a stage.
 
-The pure evaluator supports deterministic tests and a read-only preview. Only the native write method can authenticate the real signing key and reserve funds. A preview explicitly reports `authorization: "not_proven_by_view"` and can become stale before execution.
+The pure evaluator supports deterministic tests and the planned client preview. Only the native write method can authenticate the real signing key and reserve funds. A preview explicitly reports `authorization: "not_proven_by_view"` and can become stale before execution.
 
 An authoritative business rejection may emit a decision event without allocating a payment record. A transaction that panics must not be presented as a persisted rejection event. Rejected calls can still cost gas.
 
 ## Source and verification
 
-[Gate order and ABI](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Acceptance matrix](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md)
+[Local evaluator](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/policy.rs) · [Native dispatch](https://github.com/mohit-1710/AgentTrust/blob/main/contracts/agenttrust-core/src/payments.rs) · [Gate order and ABI](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/architecture.md) · [Acceptance matrix](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/verification.md)

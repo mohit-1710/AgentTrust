@@ -12,13 +12,21 @@ const { rewrite: rewriteSuffix } = rewritePath(
 );
 
 export default function proxy(request: NextRequest) {
-  const result = rewriteSuffix(request.nextUrl.pathname);
+  const pathname = request.nextUrl.pathname;
+  // Rewritten Markdown retains Accept. Never rewrite its destination again,
+  // or intercept API, image, legacy-redirect and framework asset routes.
+  const reserved = [docsContentRoute, '/api', '/og', '/docs', '/_next'];
+  if (reserved.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) ||
+      ['/llms.txt', '/llms-full.txt', '/favicon.svg'].includes(pathname)) {
+    return NextResponse.next();
+  }
+  const result = rewriteSuffix(pathname);
   if (result) {
     return NextResponse.rewrite(new URL(result, request.nextUrl));
   }
 
   if (isMarkdownPreferred(request)) {
-    const result = rewriteDocs(request.nextUrl.pathname);
+    const result = rewriteDocs(pathname);
 
     if (result) {
       return NextResponse.rewrite(new URL(result, request.nextUrl));

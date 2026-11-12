@@ -3,9 +3,15 @@ title: "Supported capability"
 description: "The single frozen capability and its separate suite and evidence commitments."
 ---
 
-| Capability | Namespace field | Version field | Meaning |
+{/* BEGIN AUTO-GEN: namespaces */}
+
+| Capability | Namespace field | Version field | Accepted issuers |
 |---|---|---:|---|
-| `invoice.audit.v1` | `invoice.audit` | 1 | A bounded structural invoice-CSV audit fixture suite. |
+| `invoice.audit.v1` | `invoice.audit` | 1 | 1–4 unique accounts per required profile |
+
+Generated from the [native profile validator](https://github.com/mohit-1710/AgentTrust/blob/main/crates/agenttrust-domain/src/owner.rs). Source SHA-256: `e986b53041a57b661cf24d50952af0d8fe268e7919626241b4f7d35e4ee75ca5`.
+
+{/* END AUTO-GEN: namespaces */}
 
 This table is a scope declaration, not a list of deployed credentials. There is no generic namespace registration or seeded multi-capability catalog in the first version.
 
@@ -13,7 +19,7 @@ A profile pins `conformance_suite_version` and `conformance_suite_hash` plus its
 
 The planned report binds the exact input hash and contains logical row counts, duplicate vendor/invoice groups, rejected rows and exact per-currency totals. Valid duplicate rows remain included in those totals, which are not amounts to pay. Fixture behavior and supported CSV grammar must be documented before a conformance assertion is made.
 
-No deployed suite hash, issuer record or credential ID is supplied here until it is backed by reviewed evidence. The build-time generator for this page is T25 work; this static native scope must not be replaced by the inherited catalog.
+No deployed suite hash, issuer record or credential ID is supplied here until it is backed by reviewed evidence. The explicit native generator reads the profile validator. It does not read a deployment catalog or invent credentials.
 
 ## Source and verification
 

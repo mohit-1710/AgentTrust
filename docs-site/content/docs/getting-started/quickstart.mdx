@@ -20,13 +20,21 @@ pnpm build:contract
 
 `check:fast` runs pure Rust tests, TypeScript tests and native typechecking. `build:contract` compiles WASM and inspects its NEAR host imports without executing it. A successful build is not a native payment or runtime proof.
 
+## Build the preserved surfaces
+
+```sh
+pnpm build:surfaces
+```
+
+This explicitly generates native docs blocks and the Fumadocs collection, checks the active corpus, then builds the website and docs. Install and pre/post lifecycle scripts stay disabled. A surface build proves compilation, not deployment, visual acceptance or current website claims.
+
 ## Before a purchase can run
 
 The owner must fund spendable principal and separate storage credit, configure a policy/profile, explicitly trust the intended service version, register a session and install its restricted protocol key. Merchants and issuers need their own funded storage accounts. These roles must not share the worker process's key material.
 
-Runtime preparation, actual testnet setup, live purchases and hosted surfaces remain separate gates. At this snapshot, root commands for those unfinished tasks fail explicitly with a not-ready message. Do not substitute a passing unit test for a missing runtime result.
+Runtime preparation, actual testnet setup, live purchases and hosted surfaces remain separate gates. The T13 harness and evidence checker are prepared; no runtime gate has passed. The testnet demo commands still fail explicitly as not ready. Do not substitute a passing unit test for a missing runtime result.
 
-The standing execution rules keep database-writing Sandbox work user-run. Follow the reviewed runbook when it is available; no runtime, funding or deployment command is part of the local commands above.
+The standing execution rules keep database-writing Sandbox work user-run. Read the [runtime runbook](https://github.com/mohit-1710/AgentTrust/blob/main/docs/runtime-runbook.md) and its open coverage gaps; no runtime, funding or deployment command is part of the local commands above.
 
 Continue with [owner/session authority](/programs/policy-vault), [testnet configuration](/reference/devnet-program-ids) and [verification lanes](/verification).
 

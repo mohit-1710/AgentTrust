@@ -5,22 +5,12 @@ import {
   getLatestUserPrompt,
   sanitizeMessages,
 } from '@/lib/server/input';
-import { createAskAiProvider, MissingAskAiKeyError } from '@/lib/server/ask-ai-provider';
+import { createAskAiProvider, isAskAiAvailable, MissingAskAiKeyError } from '@/lib/server/ask-ai-provider';
 import { checkRateLimit, hashIp, ipFromRequest } from '@/lib/server/ratelimit';
 
 export const runtime = 'nodejs';
 
 const MAX_PROMPT_CHARS = 500;
-
-function jsonResponse(body: unknown, init: ResponseInit): Response {
-  return new Response(JSON.stringify(body), {
-    ...init,
-    headers: {
-      'content-type': 'application/json',
-      ...init.headers,
-    },
-  });
-}
 
 function errorResponse(message: string, init: ResponseInit): Response {
   return new Response(message, {
@@ -32,7 +22,12 @@ function errorResponse(message: string, init: ResponseInit): Response {
   });
 }
 
+export function GET(): Response {
+  return Response.json({ available: isAskAiAvailable() }, { headers: { 'cache-control': 'no-store' } });
+}
+
 export async function POST(req: Request): Promise<Response> {
+  if (!isAskAiAvailable()) return errorResponse('Ask AI is unavailable for this build. Use search or the documentation pages.', { status: 503 });
   const ipHash = hashIp(ipFromRequest(req));
   const limit = checkRateLimit(ipHash);
   if (!limit.allowed) {

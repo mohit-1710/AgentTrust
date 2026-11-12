@@ -1,7 +1,19 @@
 import { source } from '@/lib/source';
-import { createFromSource } from 'fumadocs-core/search/server';
+import { searchPages, type SearchPage } from '@/lib/search';
 
-export const { GET } = createFromSource(source, {
-  // https://docs.orama.com/docs/orama-js/supported-languages
-  language: 'english',
-});
+let corpus: Promise<SearchPage[]> | undefined;
+
+export async function GET(request: Request) {
+  const query = new URL(request.url).searchParams.get('query') ?? '';
+  if (!query.trim() || query.length > 200) return Response.json([]);
+  corpus ??= Promise.all(source.getPages().map(async (page) => ({
+    url: page.url,
+    title: page.data.title,
+    description: page.data.description ?? '',
+    content: await page.data.getText('processed'),
+  }))).catch((error) => {
+    corpus = undefined;
+    throw error;
+  });
+  return Response.json(searchPages(await corpus, query));
+}

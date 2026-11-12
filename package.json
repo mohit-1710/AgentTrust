@@ -16,7 +16,7 @@
     "check:fast": "pnpm test:rust && pnpm test:unit && pnpm typecheck",
     "build": "pnpm build:contract",
     "build:contract": "cargo build --locked --target wasm32-unknown-unknown --release -p agenttrust-core && node scripts/check-wasm.mjs target/wasm32-unknown-unknown/release/agenttrust_core.wasm",
-    "build:surfaces": "node scripts/not-ready.mjs build:surfaces T25",
+    "build:surfaces": "pnpm --filter docs-site generate && pnpm --filter docs-site check:corpus && pnpm --filter web build && pnpm --filter docs-site build",
     "test:ui": "node scripts/not-ready.mjs test:ui T21",
     "verify:runtime": "node scripts/run-runtime.mjs",
     "demo:prepare:testnet": "node scripts/not-ready.mjs demo:prepare:testnet T18",

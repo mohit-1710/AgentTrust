@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     default: 'AgentTrust Docs',
     template: '%s - AgentTrust Docs',
   },
-  description: "AgentTrust documentation for Solana x402 policy gates and ERC-8004 trust data.",
+  description: "AgentTrust native NEAR documentation: restricted agent spending, exact service trust, credentials and payment evidence.",
   metadataBase: new URL('http://localhost:3001'),
   icons: {
     icon: '/favicon.svg',

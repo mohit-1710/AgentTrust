@@ -3,26 +3,40 @@ title: "Implementation status"
 description: "Accepted local milestones, pending runtime gates and the prior-work boundary."
 ---
 
-This status snapshot is anchored to **11 November 2026, T07**. The [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md) is the current task record; source existence, compilation and runtime success are separate facts.
+The accepted local implementation in this documentation snapshot reaches **T12** (11 November 2026). **T13 is prepared, with no native runtime gate passed.** The [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md) is the task record; source existence, compilation and runtime success are separate facts.
 
-| Milestone | Accepted local work |
+{/* BEGIN AUTO-GEN: changelog */}
+
+| Milestone | Recorded local acceptance |
 |---|---|
-| T01 | Selective UI/docs import, exact source manifest and preserved MIT notice. |
-| T02 | Pinned tools, safe default commands and native WASM build probe. |
-| T03–T04 | Rust/TypeScript canonical vectors and local Ed25519 verification cases. |
-| T05 | Owner/profile/session authority and minimal views. |
-| T06 | Funding split, actor-paid storage and account observations. |
-| T07 | Versioned service identities and issuer-scoped credential records. |
+| T01 | imported345 exact files and43 explicit exclusions, preserved MIT notice |
+| T02 | pinned Node24.22.2/pnpm10.33.0/Rust1.97.1; safe Rust/TS workspace and lockfiles |
+| T03 | pure Rust invoice/identity types and canonical Borsh/hash functions; independent annotated Python vectors |
+| T04 | TypeScript invoice/identity codecs, hashes, strict input validation and explicit-registry-key Ed25519 verification; public RFC8032 signature fixtures |
+| T05 | contract-account initialization, direct one-yocto owner management, immutable key/profile sessions, bounded state and minimal views |
+| T06 | direct deposits, sole funded actor creation, checked principal/storage split, actor-paid persisted storage growth and observational get_account |
+| T07 | versioned merchant-owned service identities, issuer-scoped credential issue/revoke/renew and bounded views/index |
+| T08 | ordered pure policy evaluator and native exact-service trust/block management |
+| T09 | immutable payment evidence, owner-wide reservations, original-day settlement and exactly-once failure restoration |
+| T10 | authoritative worker admission, registry-key host signature call, immutable retries, priced reservation/index and actual-balance guard before one explicit native Promise transfer |
+| T11 | private self/exactly-one-result callback, bounded native result handling, fixed-size finalization and receipt-local backing observations |
+| T12 | direct owner-only available withdrawal to self, immutable replay/status views, priced backing guard and private exactly-once callback |
 
-These milestones include pure tests, typechecks and WASM inspection as recorded in the ledger. They do not establish native key restriction, actual storage/refund ordering, a paid service run or a deployed product.
+Generated from explicit accepted-task entries in the [sprint ledger](https://github.com/mohit-1710/AgentTrust/blob/main/docs/sprint/ledger.md). Source SHA-256: `b3286294d28eabaa8f07c5af5b5dd4d9eaacbafa077b6c6b6ca81555ba27dadc`.
 
-The ordered decision engine, reservations/dispatch/callbacks/withdrawals, runtime harness, full SDK/HTTP/MCP flow, useful paid demonstration and surface verification are later task gates in this snapshot. Their documentation describes the frozen target interface and must be reconciled with accepted implementation before release. Prepared work in an isolated branch is not a completed main-branch milestone.
+The table records local acceptance only. Runtime, deployment and useful paid-output claims require their separate evidence gates.
+
+{/* END AUTO-GEN: changelog */}
+
+The local implementation includes ordered policy gates, exact service trust/block management, reservations, dispatch, private callbacks and available-fund withdrawals. Pure tests, typechecks and WASM inspection do not establish protocol key restrictions, actual storage/refund ordering or a paid service run.
+
+The runtime harness and evidence checker are prepared, but unexecuted host cases and matrix gaps remain. The broader SDK is prepared separately; audit-service and validator work are reviewed on isolated branches, not accepted as an integrated HTTP/MCP flow in this snapshot. No native package, public endpoint, deployment or successful purchase is claimed.
 
 ## Prior work
 
 The `upstream-ui-baseline` tag records the selective import from [agenttrust-labs/agenttrust at 21a3b111](https://github.com/agenttrust-labs/agenttrust/tree/21a3b111b7677d0b06ab1b063d647e4f52ea3b17). Native work follows in separate task commits. Prior package release notes and verification badges are not native results.
 
-This is not an npm release changelog. The T25 generator must source native facts and cannot restore upstream release history into the active corpus.
+This is not an npm release changelog. The explicit generator reads accepted native task entries from the ledger; it does not import prior package release history.
 
 ## Source and verification
 

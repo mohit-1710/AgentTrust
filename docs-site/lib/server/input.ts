@@ -5,13 +5,13 @@ import { z } from 'zod';
 
 const textPartSchema = z.object({
   type: z.literal('text'),
-  text: z.string(),
+  text: z.string().max(8000),
 }).passthrough();
 
 const messageSchema = z.object({
   id: z.string(),
-  role: z.enum(['system', 'user', 'assistant']),
-  parts: z.array(z.union([textPartSchema, z.object({ type: z.string() }).passthrough()])),
+  role: z.enum(['user', 'assistant']),
+  parts: z.array(textPartSchema).min(1).max(10),
 }).passthrough();
 
 export const askRequestSchema = z.object({

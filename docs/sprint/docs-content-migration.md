@@ -1,6 +1,6 @@
 # T24 documentation content migration
 
-Content preparation based on `f2f7bc0` (accepted T07), 11 November 2026. This inventory accounts for all **44** inherited MDX pages: **33 rewritten**, **11 archived**, plus **one new native trust/block page**, leaving **34 active pages**. It does not mark T24 accepted in the main sprint ledger.
+Initial content preparation used `f2f7bc0` (accepted T07), 11 November 2026. The T25 integration refresh uses `594b981` (accepted T12 plus prepared, unexecuted T13 harness); this is not runtime acceptance. This inventory accounts for all **44** inherited MDX pages: **33 rewritten**, **11 archived**, plus **one new native trust/block page**, leaving **34 active pages**. It does not mark T24 accepted in the main sprint ledger.
 
 The upstream source is `agenttrust-labs/agenttrust@21a3b111b7677d0b06ab1b063d647e4f52ea3b17`. [Baseline provenance](baseline.md) and the [exact import manifest](ui-baseline-manifest.json) remain authoritative for prior work and original SHA-256 values. The 11 archived MDX files are byte-identical to both that manifest and the preparation base. License notices remain unchanged.
 
@@ -80,7 +80,7 @@ Navigation changes are limited to the seven existing `meta.json` files under `pr
 - **Ledger:** [actual milestone record](ledger.md). No test-count or proof badges are copied into the active corpus.
 - **Baseline:** [reuse boundary](baseline.md) and [source manifest](ui-baseline-manifest.json).
 
-## Static checks performed
+## T24 preparation checks performed
 
 Only read-only validation of ordinary files and Git objects was executed; no install/build hooks, generators, servers, chain runtime, database operations or deployment ran.
 
@@ -95,6 +95,8 @@ The repeatable static-check helpers and raw preparation results are local scratc
 
 ## Integration handoff
 
-This is content preparation, not rendered acceptance. Reconcile the T07 status snapshot and planned-interface labels against the accepted ledger when T24 is integrated. In particular, a later implementation can update the quickstart, SDK/runtime and useful-audit grammar pages only with its actual exported interfaces, commands and observed results.
+This is content preparation, not rendered acceptance. The T25 refresh reconciles the status/quickstart/runtime pages to accepted T12 and prepared T13. Later accepted tasks still require reconciliation against the ledger. In particular, a later implementation can update the quickstart, SDK/runtime and useful-audit grammar pages only with its actual exported interfaces, commands and observed results.
 
-T25 still owns generators, MDX component replacement, shell metadata/outbound links, assistant/search/LLM surfaces and `pnpm build:surfaces`. The inherited namespace and changelog generators must be replaced before any lifecycle can overwrite the static native pages. No full-corpus or rendered-clean claim is made until T25 checks those non-content sources. T28 remains responsible for the final no-old-claim and evidence audit. No deployed IDs, credential hashes, public endpoints, measured benchmark values or live success results were fabricated.
+T25 preparation replaces the namespace/changelog generators with native source-derived blocks, removes unused old claim components/constants, migrates shell metadata/links and assistant context, and implements explicit `pnpm build:surfaces`. Local generation, source-hash drift checks, corpus/archive checks, search behavior tests, lint, typecheck and both production surface builds passed in its isolated worktree. Read-only HTTP checks covered all 34 active HTML and Markdown routes, all 11 archived routes returning 404, both LLM exports, four native search queries, negotiation and the assistant availability response. A direct execution of the actual context loader contained exactly 34 current pages. No provider request was made.
+
+Search uses plain array matching instead of the inherited database-backed search constructor, retaining the existing dialog and response shape under the host database restriction. HTTP checks reproduced and fixed the inherited Markdown-negotiation rewrite loop. The inactive assistant preserves its panel with an explicit unavailable state. Desktop/mobile interaction and visual acceptance, separately enabled live assistant answer checks, and fresh integration review remain pending. The website build does not establish the website's separate T22 claim migration. T28 remains responsible for the final no-old-claim and evidence audit. No deployed IDs, credential hashes, public endpoints, measured benchmark values or live success results were fabricated.

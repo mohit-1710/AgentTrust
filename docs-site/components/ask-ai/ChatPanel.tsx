@@ -24,6 +24,7 @@ export default function ChatPanel({
   onInitialQuestionHandled,
 }: ChatPanelProps): JSX.Element | null {
   const [input, setInput] = useState('');
+  const [available, setAvailable] = useState<boolean | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,13 +42,23 @@ export default function ChatPanel({
   } = useChat({ transport });
   const isBusy = status === 'submitted' || status === 'streaming';
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const controller = new AbortController();
+    fetch('/api/ask', { signal: controller.signal, cache: 'no-store' })
+      .then(async (response) => response.ok && (await response.json()).available === true)
+      .then(setAvailable)
+      .catch(() => { if (!controller.signal.aborted) setAvailable(false); });
+    return () => controller.abort();
+  }, [isOpen]);
+
   const sendQuestion = useCallback(
     async (question: string): Promise<void> => {
       const text = question.trim();
-      if (!text || text.length > 500) return;
+      if (!available || !text || text.length > 500) return;
       await sendMessage({ text });
     },
-    [sendMessage],
+    [available, sendMessage],
   );
 
   const handleClear = useCallback((): void => {
@@ -63,11 +74,11 @@ export default function ChatPanel({
 
   const handleRegenerate = useCallback(
     (messageId: string): void => {
-      if (isBusy) return;
+      if (!available || isBusy) return;
       clearError();
       void regenerate({ messageId });
     },
-    [clearError, isBusy, regenerate],
+    [available, clearError, isBusy, regenerate],
   );
 
   useEffect(() => {
@@ -90,12 +101,12 @@ export default function ChatPanel({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (!isOpen || !initialQuestion || handledInitialQuestionRef.current === initialQuestion.id) return;
+    if (!isOpen || available === null || !initialQuestion || handledInitialQuestionRef.current === initialQuestion.id) return;
 
     handledInitialQuestionRef.current = initialQuestion.id;
     onInitialQuestionHandled(initialQuestion.id);
-    void sendQuestion(initialQuestion.text);
-  }, [initialQuestion, isOpen, onInitialQuestionHandled, sendQuestion]);
+    if (available) void sendQuestion(initialQuestion.text);
+  }, [available, initialQuestion, isOpen, onInitialQuestionHandled, sendQuestion]);
 
   if (!isOpen) return null;
 
@@ -107,7 +118,7 @@ export default function ChatPanel({
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const text = input.trim();
-    if (!text || text.length > 500 || isBusy) return;
+    if (!available || !text || text.length > 500 || isBusy) return;
     setInput('');
     void sendQuestion(text);
   }
@@ -156,7 +167,11 @@ export default function ChatPanel({
       <div className={styles.panelBody} data-chat-scroller="true">
         {messages.length === 0 ? (
           <div className={styles.empty}>
-            <p>Responses are generated using AI and may contain mistakes.</p>
+            <p role="status">{available === null
+              ? 'Checking assistant availability…'
+              : available
+                ? 'Answers use the current native documentation and may contain mistakes.'
+                : 'Ask AI is unavailable for this build. Use search or the documentation pages.'}</p>
           </div>
         ) : (
           <MessageList
@@ -196,7 +211,7 @@ export default function ChatPanel({
               <button
                 aria-label="Send question"
                 className={styles.sendButton}
-                disabled={!input.trim()}
+                disabled={!available || !input.trim()}
                 type="submit"
               >
                 <ArrowUp aria-hidden="true" size={14} />

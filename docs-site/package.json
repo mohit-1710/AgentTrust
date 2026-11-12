@@ -5,12 +5,12 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "prebuild": "node scripts/build-namespaces-table.mjs && node scripts/build-changelog.mjs",
-    "predev": "node scripts/build-namespaces-table.mjs && node scripts/build-changelog.mjs",
-    "build:auto-gen": "node scripts/build-namespaces-table.mjs && node scripts/build-changelog.mjs",
+    "generate": "node scripts/build-namespaces-table.mjs && node scripts/build-changelog.mjs && fumadocs-mdx",
+    "check:generated": "node scripts/build-namespaces-table.mjs --check && node scripts/build-changelog.mjs --check",
+    "check:corpus": "node scripts/check-corpus.mjs",
+    "test:search": "node --test lib/search.test.ts",
     "start": "next start",
-    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
-    "postinstall": "fumadocs-mdx",
+    "types:check": "next typegen && tsc --noEmit",
     "lint": "eslint"
   },
   "dependencies": {

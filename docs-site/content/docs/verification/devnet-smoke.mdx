@@ -5,7 +5,9 @@ description: "Prepare reproducible evidence without turning default checks into 
 
 Native runtime and live testnet runs are separate from `pnpm check:fast` and the WASM build. A local runtime can establish host semantics; an actual testnet purchase must also establish the configured network/core, service identity and useful output.
 
-The planned root entry points are `verify:runtime`, `demo:prepare:testnet`, `demo:run:testnet` and `evidence:check`. At this snapshot they fail explicitly until their owning tasks supply reviewed implementations. Do not infer executable setup instructions from these names.
+`verify:runtime` now runs the prepared user-only harness, and `evidence:check` validates supplied evidence. Neither has established a passing runtime gate. `demo:prepare:testnet` and `demo:run:testnet` remain explicit not-ready commands.
+
+`pnpm check:runtime:compile` checks harness compilation without starting Sandbox. Compilation and evidence-schema checks do not prove a host scenario. See the [runtime runbook](https://github.com/mohit-1710/AgentTrust/blob/main/docs/runtime-runbook.md) for the exact user-run command and still-missing matrix coverage.
 
 Before running an accepted harness, read its exact effects and runbook. Sandbox persists database state and remains user-run under the standing restriction. Account/key creation, funding, deployment, payments and public hosting need their own authorized execution step. Never put these operations in default install hooks or unrelated CI checks.
 
