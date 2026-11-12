@@ -15,6 +15,8 @@ const withMDX = createMDX({
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  // The local SDK uses NodeNext .js specifiers for its TypeScript sources.
+  experimental: { extensionAlias: { ".js": [".ts", ".tsx", ".js"] } },
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   turbopack: {
     root: path.dirname(configDirectory),
