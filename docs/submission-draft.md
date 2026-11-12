@@ -30,7 +30,7 @@ Attach the actual demo video and add the final public repository link. Revise th
 
 ## Release and submission requirements
 
-The [official event instructions](https://nearhackathon.com/HACKATHON.md), rechecked on 12 November, still set the deadline to **14 November 23:59 UTC / 15 November 05:29 IST**. Existing-product ports and testnet entries are eligible when new work is identified. A local-only demo needs public source, reproducible instructions and a video. The human decides the final payload and publishes the X post; one project is submitted once. Re-read the live instructions at final review.
+The [official event instructions](https://nearhackathon.com/HACKATHON.md), rechecked on 12 November UTC, still set the deadline to **14 November 23:59 UTC / 15 November 05:29 IST**. Existing-product ports and testnet entries are eligible when new work is identified. A local-only demo needs public source, reproducible instructions and a video. The repository must remain public through judging and include a LICENSE file. The human decides the final payload and publishes the X post with @NEARProtocol and #NEARHackathon. Submit the project once; if a saved submission has a mistake, the human uses [Request changes](https://nearhackathon.com/request-changes) instead of submitting again. Re-read the live instructions at final review.
 
 The final payload cannot be completed from repository metadata. Obtain the human-confirmed lead name, contact email, team-size option, selected tracks, mainnet prize account, public demo-post URL and contact consent. Project name and repository URL also need confirmation in the exact payload. Never invent a wallet, infer consent or commit personal submission data. Keep any eventual payload outside Git.
 
