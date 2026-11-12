@@ -2,6 +2,8 @@
 
 **12 November 2026, captures 16:27–16:33 UTC.** This run establishes production-contract testnet refusals, two native service payments, an exact native duplicate submission, a scripted MCP buyer flow, a saved-result replay and the website's HTTP decision feed. It is **native/MCP qualification**, not an actual-model rehearsal or acceptance of two complete rehearsals. The model API key was deferred by the user.
 
+The [judge-facing public RPC extract](evidence/r2-native/README.md) includes selected receipt, return, payment-view and payout-balance fields for five direct native transactions, with hashes of the retained originals. It is a concise inspection aid, not the complete raw capture or an independent light-client proof.
+
 ## Source and environment
 
 | Item | Accepted value |

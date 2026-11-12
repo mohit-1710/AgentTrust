@@ -1,0 +1,509 @@
+{
+  "cases": [
+    {
+      "capture": "r2-16-missing",
+      "captured_at": "2026-11-12T16:29:12.645Z",
+      "core_account": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+      "core_code_hash": "HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS",
+      "expected_wasm_sha256": "f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f",
+      "network": "near:testnet",
+      "payment_after": {
+        "block_hash": "H2Ea7BxrzwWh5AAAGSxkCsfn4s1Nqz3ckiBmbWTtCmwv",
+        "block_height": 277387794,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "payment_before": {
+        "block_hash": "BjiGub898kykfGGYCvDnsSJYvzMEi9H2H7NFwTyU1gzX",
+        "block_height": 277387782,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "service_payout_after": {
+        "account_id": "service-a.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "399468868963176399999999",
+        "block_hash": "H2Ea7BxrzwWh5AAAGSxkCsfn4s1Nqz3ckiBmbWTtCmwv",
+        "block_height": 277387794
+      },
+      "service_payout_before": {
+        "account_id": "service-a.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "399468868963176399999999",
+        "block_hash": "8Ju3GxEaR48cCeanPx7QShCQgD4bGqmfRDKRUVxpA1YS",
+        "block_height": 277387783
+      },
+      "source_commit": "315503c59eb5b515768d4c7c176983180ff15576",
+      "source_sha256": {
+        "core-account.json": "fe9c2777288bf1dfc981a66b5e71109d54995d26c0e1af24e282eebb5e123824",
+        "final-transaction.json": "d1ddff92297bd9df1491fdf56a9a0f095ac3201d196eada020a3b385f9bf90bc",
+        "manifest.json": "60285d0321c0ae1ec8ec46552a15cb99bc44c56c1dcff7e7215d109b152970ed",
+        "payment-after.json": "5630ea2593cb56886073165b831622be7b042e8d67bfb49a365673945e9f5ec1",
+        "payment-before.json": "3253b1748f992c46f4699ce8a2816e9fb1af5e7acac7ef4c9c838cf9855e05f0",
+        "payout-after.json": "87a8e29173dc1429b2eaa9466b96356f365cf1ed4e8f809d43f5b10a995293be",
+        "payout-before.json": "017d8d01547fb7805645066916266ee123b760bac33e324af7b5ed4a299ca5c0"
+      },
+      "source_working_tree_dirty": false,
+      "transaction": {
+        "final_execution_status": "FINAL",
+        "hash": "FqN8uJV14CYu6CQxQcY947zPktanjk2Z4Q8QBuEMvymN",
+        "receipts": [
+          {
+            "action": {
+              "deposit_yocto": "0",
+              "kind": "FunctionCall",
+              "method_name": "execute_payment"
+            },
+            "generated_receipt_ids": [
+              "EakYMSs3wHc3fTEh2uwQ4bQFMPi4T12y6cARBHEdv9Zv"
+            ],
+            "outcome_executor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "8M4CUwK3d4aMVtSjm4b6s3kuhXPr8zDyx24BLG15FgJP",
+            "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "150628990541675800000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "EakYMSs3wHc3fTEh2uwQ4bQFMPi4T12y6cARBHEdv9Zv",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          }
+        ],
+        "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "return": {
+          "decision_code": "MISSING",
+          "kind": "rejected"
+        },
+        "signer_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+      }
+    },
+    {
+      "capture": "r2-17-purchase",
+      "captured_at": "2026-11-12T16:29:21.942Z",
+      "core_account": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+      "core_code_hash": "HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS",
+      "expected_wasm_sha256": "f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f",
+      "network": "near:testnet",
+      "payment_after": {
+        "block_hash": "6PSoLFXQgrfn5BJP6ETuKiy1yFBH4pdyo85gQeJZ4aPJ",
+        "block_height": 277387813,
+        "payment": {
+          "amount_yocto": "2000000000000000000000",
+          "dispatched_at_ns": "1794500966855177243",
+          "finalized_at_ns": "1794500967982343585",
+          "invoice_hash": "QEPiaHgQ0Gw5nwUqH3tM0r4MdnO6C1J1Tn2nFNLk0a4=",
+          "payment_id": "lf82ThZczdkukCNYfPlZpHkuo7yep/VGyokMBPjgZSQ=",
+          "payout_account": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+          "service_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+          "state": "settled"
+        },
+        "result_sha256": "380a3775fa367c931f23c043c8e8788d36e3b8c4bb5e7ee210708a3a1caa4679"
+      },
+      "payment_before": {
+        "block_hash": "7eq7ZNGLAY3WY4YPugAvafks6TJ74RPzM7N1VAAwSmdk",
+        "block_height": 277387798,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "service_payout_after": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "401466812026640399999999",
+        "block_hash": "6KeVaTEnVo1jWRNqUJGuSZidyEeHaovLE4855Lrophxx",
+        "block_height": 277387812
+      },
+      "service_payout_before": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "399466812026640399999999",
+        "block_hash": "7eq7ZNGLAY3WY4YPugAvafks6TJ74RPzM7N1VAAwSmdk",
+        "block_height": 277387798
+      },
+      "source_commit": "315503c59eb5b515768d4c7c176983180ff15576",
+      "source_sha256": {
+        "core-account.json": "8fdb86eca71bc1d2d12db79ba908c56761c6368b39757d70716768c894862a2a",
+        "final-transaction.json": "df326dce52d44d7ff9b03fe555eef3732cba5ebb7143ad8ece682f3252e8c5e9",
+        "manifest.json": "8139fb322d95e4c61bfd8c4cf104ea587dc66f6c6cdb0ea6581ae5d1cfd12d75",
+        "payment-after.json": "9067bb78e4c134be20ea2ab59cc717980b4b8628c40f712d6e6017f3e0b7aabe",
+        "payment-before.json": "60331081aeffc858a5f0dc19acf4f4b3a08689e8c97f4c2c4d30ec95c8197e63",
+        "payout-after.json": "b965e2ec3bfeab6a2f51c41f6640db49b3ea34ffed5eabf59ab98d4d7c24cd40",
+        "payout-before.json": "c288b8b6e919d8c326804466d206dcaa8e0e699571bc52e917ad6e4e3e98d357"
+      },
+      "source_working_tree_dirty": false,
+      "transaction": {
+        "final_execution_status": "FINAL",
+        "hash": "8n9Dvkt9Wz46QpDajsQi4D5nDuaTY6vfndJjnfmpr1LV",
+        "receipts": [
+          {
+            "action": {
+              "deposit_yocto": "0",
+              "kind": "FunctionCall",
+              "method_name": "execute_payment"
+            },
+            "generated_receipt_ids": [
+              "326EimBja5pmqBp7HsuEtCXo1TLAhjGTnLSigDTx1SHB",
+              "2t1gaJE34mZ5WfMUygDsQ73qLtHmennLjpd56Kyj7CRn",
+              "ETsvscWSFfjcocXgHk9tqxJ4wWs61xpzk2dX9zApg2BL"
+            ],
+            "outcome_executor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "7E796cDCKh37FjYUCJmBRmVLiSKoQpLutuL7oQBQimim",
+            "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "2000000000000000000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [
+              "CvnUTYWGYVExaSS1KHELAXCdMLKD3z4y8DDbHoxLTRNi"
+            ],
+            "outcome_executor_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "326EimBja5pmqBp7HsuEtCXo1TLAhjGTnLSigDTx1SHB",
+            "receiver_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "200864306250000000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "CvnUTYWGYVExaSS1KHELAXCdMLKD3z4y8DDbHoxLTRNi",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "0",
+              "kind": "FunctionCall",
+              "method_name": "on_payment_result"
+            },
+            "generated_receipt_ids": [
+              "GryxMFhcZL5irorJndAWkWdnR18bwS6o2KUCRvMMQK3Z"
+            ],
+            "outcome_executor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "2t1gaJE34mZ5WfMUygDsQ73qLtHmennLjpd56Kyj7CRn",
+            "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "30606739521560800000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "GryxMFhcZL5irorJndAWkWdnR18bwS6o2KUCRvMMQK3Z",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "119316661562815000000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "ETsvscWSFfjcocXgHk9tqxJ4wWs61xpzk2dX9zApg2BL",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          }
+        ],
+        "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "return": {
+          "duplicate": false,
+          "invoice_hash": "QEPiaHgQ0Gw5nwUqH3tM0r4MdnO6C1J1Tn2nFNLk0a4=",
+          "kind": "payment",
+          "payment_id": "lf82ThZczdkukCNYfPlZpHkuo7yep/VGyokMBPjgZSQ=",
+          "state": "pending"
+        },
+        "signer_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+      }
+    },
+    {
+      "capture": "r2-18-retry",
+      "captured_at": "2026-11-12T16:29:33.047Z",
+      "core_account": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+      "core_code_hash": "HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS",
+      "expected_wasm_sha256": "f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f",
+      "network": "near:testnet",
+      "payment_after": {
+        "block_hash": "EXzpv715gYSnnyY72SkFWUyuLv6B9wBD7dpue5yndJ6D",
+        "block_height": 277387825,
+        "payment": {
+          "amount_yocto": "2000000000000000000000",
+          "dispatched_at_ns": "1794500966855177243",
+          "finalized_at_ns": "1794500967982343585",
+          "invoice_hash": "QEPiaHgQ0Gw5nwUqH3tM0r4MdnO6C1J1Tn2nFNLk0a4=",
+          "payment_id": "lf82ThZczdkukCNYfPlZpHkuo7yep/VGyokMBPjgZSQ=",
+          "payout_account": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+          "service_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+          "state": "settled"
+        },
+        "result_sha256": "380a3775fa367c931f23c043c8e8788d36e3b8c4bb5e7ee210708a3a1caa4679"
+      },
+      "payment_before": {
+        "block_hash": "9r2Bx9V4XBhV7PuHeopEp8bchszXXa8t5cuLj2q9a7cH",
+        "block_height": 277387815,
+        "payment": {
+          "amount_yocto": "2000000000000000000000",
+          "dispatched_at_ns": "1794500966855177243",
+          "finalized_at_ns": "1794500967982343585",
+          "invoice_hash": "QEPiaHgQ0Gw5nwUqH3tM0r4MdnO6C1J1Tn2nFNLk0a4=",
+          "payment_id": "lf82ThZczdkukCNYfPlZpHkuo7yep/VGyokMBPjgZSQ=",
+          "payout_account": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+          "service_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+          "state": "settled"
+        },
+        "result_sha256": "380a3775fa367c931f23c043c8e8788d36e3b8c4bb5e7ee210708a3a1caa4679"
+      },
+      "service_payout_after": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "401466812026640399999999",
+        "block_hash": "7jekUMMpnkdsnaNzc6T3q3sEu4oDf2wSXBoufoYmpR9T",
+        "block_height": 277387824
+      },
+      "service_payout_before": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "401466812026640399999999",
+        "block_hash": "9r2Bx9V4XBhV7PuHeopEp8bchszXXa8t5cuLj2q9a7cH",
+        "block_height": 277387815
+      },
+      "source_commit": "315503c59eb5b515768d4c7c176983180ff15576",
+      "source_sha256": {
+        "core-account.json": "2e0e843b563ee5cdc6c305415f054229573ccca8682f649ab733cf158ae2cebb",
+        "final-transaction.json": "d22309ac4ca1839eb8c4d3e18342471b2f6c8870e88fb7cd71f00ba8d0c411d0",
+        "manifest.json": "39195bf9bfb25fc8b86be09e57ac8c3c29ede44aa76df4b8097a36fa9afa6bcf",
+        "payment-after.json": "071559d870b778221f3b6e78ccca64fe4f9d4124047524867f7611f4411bf84d",
+        "payment-before.json": "b5d0dbab6b6e9f4d0ee368fb1174ea117bf3ca40ad786ffd909f607443c7ee3d",
+        "payout-after.json": "6a2483fdd38615638ff4d749edf2fa292a61af437cfd2611fa41ab0d0d033e3c",
+        "payout-before.json": "a613634813cf6be6d4229a5000e730bf2c4703da97749ad20ff5d00549501f73"
+      },
+      "source_working_tree_dirty": false,
+      "transaction": {
+        "final_execution_status": "FINAL",
+        "hash": "C1nbaeEMkLbRX1Mi3LWC8q6oRyvFjsTeAzvHCCX68oGt",
+        "receipts": [
+          {
+            "action": {
+              "deposit_yocto": "0",
+              "kind": "FunctionCall",
+              "method_name": "execute_payment"
+            },
+            "generated_receipt_ids": [
+              "JsvWM3dHTHTC5BKRVmdC2Mdq7Eg5EQ4KJNYuLtTGTD6"
+            ],
+            "outcome_executor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "22SZ4hwK8GHRF4GmDNTWeUeymqSiFHsNJBqWd8G193Hw",
+            "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "150653443137471800000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "JsvWM3dHTHTC5BKRVmdC2Mdq7Eg5EQ4KJNYuLtTGTD6",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          }
+        ],
+        "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "return": {
+          "duplicate": true,
+          "invoice_hash": "QEPiaHgQ0Gw5nwUqH3tM0r4MdnO6C1J1Tn2nFNLk0a4=",
+          "kind": "payment",
+          "payment_id": "lf82ThZczdkukCNYfPlZpHkuo7yep/VGyokMBPjgZSQ=",
+          "state": "settled"
+        },
+        "signer_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+      }
+    },
+    {
+      "capture": "r2-20-revoked",
+      "captured_at": "2026-11-12T16:31:21.562Z",
+      "core_account": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+      "core_code_hash": "HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS",
+      "expected_wasm_sha256": "f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f",
+      "network": "near:testnet",
+      "payment_after": {
+        "block_hash": "7xFHfQuYdBiqGALBNFhk58agifnpWYgDT8qZakyqBdon",
+        "block_height": 277388010,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "payment_before": {
+        "block_hash": "pWc3sBsxTdhvcuMwBkTyXqd7qts58WWpq8siz8EoEmp",
+        "block_height": 277387998,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "service_payout_after": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "403466812026640399999999",
+        "block_hash": "7xFHfQuYdBiqGALBNFhk58agifnpWYgDT8qZakyqBdon",
+        "block_height": 277388010
+      },
+      "service_payout_before": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "403466812026640399999999",
+        "block_hash": "pWc3sBsxTdhvcuMwBkTyXqd7qts58WWpq8siz8EoEmp",
+        "block_height": 277387998
+      },
+      "source_commit": "315503c59eb5b515768d4c7c176983180ff15576",
+      "source_sha256": {
+        "core-account.json": "b22a55428d4099319ba17dafeff98510ab8891f9fc525aaee630d53bb4614595",
+        "final-transaction.json": "237d1e43f203338df8f6f216a25ff07219e50a8cf12261776db172ff34546069",
+        "manifest.json": "9074265a4ecd631c774e55752d5ba1827c5bbcd85d13da96b3d04bd8cc29af82",
+        "payment-after.json": "f7f59a80028d7798db0693f1049cd39d1a8755e45aea3afc7026b8b1b94d897f",
+        "payment-before.json": "058ac16307ea903ade49efa3f01db14f1b438df17a678a855cc435fa2220847c",
+        "payout-after.json": "3940918ed20a22980d6f4dab94a1ec4584ae84ebe9ce53c24ce98bd663b520e1",
+        "payout-before.json": "5fafd52715f0ae436feae7ef99fb9327da6f2529c885fce9bbc63f51d75e4fdf"
+      },
+      "source_working_tree_dirty": false,
+      "transaction": {
+        "final_execution_status": "FINAL",
+        "hash": "GE8A2m21EsxqczmJeJuDWf8egNLrPmyDjjUGazAmz5zE",
+        "receipts": [
+          {
+            "action": {
+              "deposit_yocto": "0",
+              "kind": "FunctionCall",
+              "method_name": "execute_payment"
+            },
+            "generated_receipt_ids": [
+              "HM1bRRTGXW6b9dX2ZmsWWXcFDafqLgXNtKahN7efk1JT"
+            ],
+            "outcome_executor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "9qNLQjRzinmj3C5rDpPFXGcACiPNiDcRnGXq6DcS1Jdj",
+            "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "150617777852664100000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "HM1bRRTGXW6b9dX2ZmsWWXcFDafqLgXNtKahN7efk1JT",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          }
+        ],
+        "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "return": {
+          "decision_code": "REVOKED",
+          "kind": "rejected"
+        },
+        "signer_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+      }
+    },
+    {
+      "capture": "r2-23-identity-refusal",
+      "captured_at": "2026-11-12T16:32:06.623Z",
+      "core_account": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+      "core_code_hash": "HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS",
+      "expected_wasm_sha256": "f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f",
+      "network": "near:testnet",
+      "payment_after": {
+        "block_hash": "2vZQQDLrznBYNbJMYmQPyQSkPh1gPTz1ZmgBBccJKTno",
+        "block_height": 277388083,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "payment_before": {
+        "block_hash": "7gSzswXXwH3SqBYGx8aAnYfsCyw7dReSFsQVj3rgyriD",
+        "block_height": 277388074,
+        "payment": null,
+        "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      "service_payout_after": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "403191207713451999999998",
+        "block_hash": "2vZQQDLrznBYNbJMYmQPyQSkPh1gPTz1ZmgBBccJKTno",
+        "block_height": 277388083
+      },
+      "service_payout_before": {
+        "account_id": "service-b.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "amount_yocto": "403191207713451999999998",
+        "block_hash": "7gSzswXXwH3SqBYGx8aAnYfsCyw7dReSFsQVj3rgyriD",
+        "block_height": 277388074
+      },
+      "source_commit": "315503c59eb5b515768d4c7c176983180ff15576",
+      "source_sha256": {
+        "core-account.json": "27922ade2098a310b2ca77864fca2f78e869ab50e7b4296c56273a58b2b1c332",
+        "final-transaction.json": "5b1396ed4a04cfb3fc6ecbf66e79e4fcd5665159ed57fdedd3d17fb6a534d4d6",
+        "manifest.json": "4b5c47c8d8265e5994eb148e4466fbbe5d1639d60a0f55e3d5cf2e5baaa4ff5a",
+        "payment-after.json": "a86cab2966c357ea56be72d0bb494e22cb1bbdc4ac86de789fbadae07ca83b41",
+        "payment-before.json": "cd38089028f7895619259cfc15a5d8b6f89812f208e266117541602f91b84744",
+        "payout-after.json": "aaf81cc83a012434ba11b1ed5379bd32ffe87be20a5866e5c8a6a92c4629888e",
+        "payout-before.json": "ae6edd45fd43bb04729d717b2e80891a93ec222f002c2d5b46ccfe9c5ff49864"
+      },
+      "source_working_tree_dirty": false,
+      "transaction": {
+        "final_execution_status": "FINAL",
+        "hash": "5b3chx8L71rbPp9vVzcDVwcofd24KqQ4kjiN8ziDB3Vf",
+        "receipts": [
+          {
+            "action": {
+              "deposit_yocto": "0",
+              "kind": "FunctionCall",
+              "method_name": "execute_payment"
+            },
+            "generated_receipt_ids": [
+              "2tUAqcgUsQ6gvA7T1qRJVQe2DbAAc3KGFDbu9MyLJBMT"
+            ],
+            "outcome_executor_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "receipt_id": "FqSTJhvraig2t74mcs5WknCxoUqcLniMQpPMXzbXrkm8",
+            "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet"
+          },
+          {
+            "action": {
+              "deposit_yocto": "150641359138102200000000",
+              "kind": "Transfer"
+            },
+            "generated_receipt_ids": [],
+            "outcome_executor_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet",
+            "outcome_status_kind": "SuccessValue",
+            "predecessor_id": "system",
+            "receipt_id": "2tUAqcgUsQ6gvA7T1qRJVQe2DbAAc3KGFDbu9MyLJBMT",
+            "receiver_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+          }
+        ],
+        "receiver_id": "core.agenttrust-73cf3674cd1978d09120a484.testnet",
+        "return": {
+          "decision_code": "IDENTITY_CHANGED",
+          "kind": "rejected"
+        },
+        "signer_id": "owner.agenttrust-73cf3674cd1978d09120a484.testnet"
+      }
+    }
+  ],
+  "kind": "selected_public_rpc_fields_from_r2_native_captures",
+  "limitations": [
+    "Selected fields from dated public RPC replies, not full raw captures or light-client proofs.",
+    "Source artifact hashes bind to retained local originals; the originals are not published in this packet.",
+    "The scripted buyer and model buyer are outside this five-case native transaction extract."
+  ],
+  "schema_version": 1
+}
