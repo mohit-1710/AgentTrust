@@ -6,13 +6,14 @@ The operator loads the fixed step's key into its child only: core/owner/issuer/m
 
 ## 1. Prepare a fresh bundle
 
-Use one operator terminal for the setup, worker and buyer commands. These public variables and shortcuts remain in that shell. Every capture name below is exclusive; replace **every** `r1` in both terminal snippets with the same fresh run label when prior captures exist. Changing a capture prefix never makes a previously submitted operation safe to resend.
+Use one operator terminal for the setup, worker and buyer commands. These public variables and shortcuts remain in that shell. Choose an unused run label and use it in both terminals; `r3` and `r4` below are examples for a workspace where `r1` and `r2` already exist. Every capture name is exclusive. Changing a capture prefix never makes a previously submitted operation safe to resend.
 
 ```sh
 . scripts/env.sh
-export AGENTTRUST_DEMO_DIR="$PWD/.agenttrust/testnet-demo-r1"
-export AGENTTRUST_TLS_DIR="$PWD/.agenttrust/local-tls-r1"
-export AGENTTRUST_CAPTURE_PREFIX="artifacts/local/testnet/r1"
+export AGENTTRUST_RUN_LABEL=r3
+export AGENTTRUST_DEMO_DIR="$PWD/.agenttrust/testnet-demo-$AGENTTRUST_RUN_LABEL"
+export AGENTTRUST_TLS_DIR="$PWD/.agenttrust/local-tls-$AGENTTRUST_RUN_LABEL"
+export AGENTTRUST_CAPTURE_PREFIX="artifacts/local/testnet/$AGENTTRUST_RUN_LABEL"
 at_setup() { pnpm demo:operator --user-run --directory "$AGENTTRUST_DEMO_DIR" --setup "$1" --output "$AGENTTRUST_CAPTURE_PREFIX-$2"; }
 at_worker() { pnpm demo:operator --user-run --directory "$AGENTTRUST_DEMO_DIR" --worker "$1" --output "$AGENTTRUST_CAPTURE_PREFIX-$2"; }
 at_check() { pnpm demo:evidence:check "$AGENTTRUST_CAPTURE_PREFIX-$1/manifest.json"; }
@@ -89,14 +90,15 @@ NODE
 
 `check` is offline: it checks public bindings, signer/TLS matches, builds and ports. It refuses Next-loadable `.env`, `.env.local`, `.env.production` and `.env.production.local` files in web/docs, because they bypass the isolated environment. If present, move them aside yourself as described in [local-demo.md](local-demo.md). Do not bypass the check or disable TLS verification.
 
-After `check` passes, open a **second terminal**, change to this same repository root and start the stack there. For this first run:
+After `check` passes, open a **second terminal**, change to this same repository root and start the stack there. Set the same unused run label as the operator terminal:
 
 ```sh
 (
   set -eu
   . scripts/env.sh
-  export AGENTTRUST_DEMO_DIR="$PWD/.agenttrust/testnet-demo-r1"
-  export NODE_EXTRA_CA_CERTS="$PWD/.agenttrust/local-tls-r1/localhost.crt"
+  export AGENTTRUST_RUN_LABEL=r3
+  export AGENTTRUST_DEMO_DIR="$PWD/.agenttrust/testnet-demo-$AGENTTRUST_RUN_LABEL"
+  export NODE_EXTRA_CA_CERTS="$PWD/.agenttrust/local-tls-$AGENTTRUST_RUN_LABEL/localhost.crt"
   pnpm demo:operator --directory "$AGENTTRUST_DEMO_DIR" --local start
 )
 ```
@@ -291,14 +293,15 @@ These return the original checked report as `recorded_replay`; they are not new 
 
 ## Second fresh rehearsal
 
-First resolve every first-run operation and retain all its files. Stop the first local stack in its terminal. In the operator terminal choose new directories and capture names:
+First resolve every first-run operation and retain all its files. Stop the first local stack in its terminal. In the operator terminal choose another unused run label and new directories and capture names:
 
 ```sh
-export AGENTTRUST_DEMO_DIR="$PWD/.agenttrust/testnet-demo-r2"
-export AGENTTRUST_TLS_DIR="$PWD/.agenttrust/local-tls-r2"
-export AGENTTRUST_CAPTURE_PREFIX="artifacts/local/testnet/r2"
+export AGENTTRUST_RUN_LABEL=r4
+export AGENTTRUST_DEMO_DIR="$PWD/.agenttrust/testnet-demo-$AGENTTRUST_RUN_LABEL"
+export AGENTTRUST_TLS_DIR="$PWD/.agenttrust/local-tls-$AGENTTRUST_RUN_LABEL"
+export AGENTTRUST_CAPTURE_PREFIX="artifacts/local/testnet/$AGENTTRUST_RUN_LABEL"
 ```
 
-Keep the shell shortcuts; they read these updated variables. Repeat the build/offline preparation block onward, including explicit faucet/children, TLS paths, setup, fresh buyer configurations, paid/retry/model runs and finally revocation/rotation. Use `r2` paths in the second terminal before starting its stack. This creates fresh role accounts, worker/invoice keys, core state, session/credential/payment/job IDs and capture files; it is a separately funded environment, not a reset of rehearsal one.
+Keep the shell shortcuts; they read these updated variables. Repeat the build/offline preparation block onward, including explicit faucet/children, TLS paths, setup, fresh buyer configurations, paid/retry/model runs and finally revocation/rotation. Set the same new label in the second terminal's startup block before starting its stack. This creates fresh role accounts, worker/invoice keys, core state, session/credential/payment/job IDs and capture files; it is a separately funded environment, not a reset of rehearsal one.
 
 Two fresh reviewed runs are still distinct from the broader native runtime/cap/pending/failure matrix and unperformed visual checks. Record actual results and remaining gaps; this operator route alone does not mark those gates passed.
