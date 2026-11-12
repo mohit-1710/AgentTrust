@@ -1,6 +1,6 @@
 # Prepare the accounts for one testnet demo
 
-This helper fills the prerequisite before the [T18 runbook](testnet-demo-runbook.md): one fresh testnet parent and five separate role accounts. **The operational commands are user-run only.** Offline preparation creates local key files and public configuration; it does not contact a faucet, RPC, model or browser. Compiling or testing this helper does not establish a native payment, runtime gate, model run or successful rehearsal.
+This helper fills the prerequisite before the [T18 runbook](testnet-demo-runbook.md): one fresh testnet parent and five separate role accounts. The [complete operator route](testnet-operator.md) connects these steps to role-isolated setup and buyer execution without manually copying private keys. **The operational commands are user-run only.** Offline preparation creates local key files and public configuration; it does not contact a faucet, RPC, model or browser. Compiling or testing this helper does not establish a native payment, runtime gate, model run or successful rehearsal.
 
 Use one fresh bundle for one environment/rehearsal. The helper does not deploy the contract, initialize balances inside AgentTrust, register providers, install the worker key, issue credentials or run a purchase. Those remain the explicit T18 steps. Keep the two providers' own accounts as their payouts and the parent idle as the later rotated payout.
 

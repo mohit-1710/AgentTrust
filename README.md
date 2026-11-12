@@ -2,7 +2,7 @@
 
 An agent can buy a service only from the supplier identity its owner permits, with the required capability evidence, within a bounded allowance.
 
-**Status: local implementation checked; native execution pending.** The native policy/vault core, local SDK, paid HTTP flow, six MCP tools, bounded buyer and testnet preparation pass local checks: 99 pure Rust tests and 595 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks; compiled buyer/MCP exchanges pass against mock RPC, and checked completed jobs replay without keys or network access. Actual native settlement, real model execution and full rehearsals remain unverified. No contract has been deployed, and no native runtime gate is claimed passed.
+**Status: local implementation checked; native execution pending.** The native policy/vault core, local SDK, paid HTTP flow, six MCP tools, bounded buyer and testnet preparation pass local checks: 99 pure Rust tests and 647 TypeScript tests, plus five isolated RPC-error tests and 24 actual Rust contract-method tests with map-backed host storage. The website/docs preserve the upstream design. The compiled local stack passes two-provider HTTPS signed-quote and web/docs HTTP checks; compiled buyer/MCP exchanges pass against mock RPC, and checked completed jobs replay without keys or network access. Actual native settlement, real model execution and full rehearsals remain unverified. No contract has been deployed, and no native runtime gate is claimed passed.
 
 ## Start here
 
@@ -15,6 +15,7 @@ An agent can buy a service only from the supplier identity its owner permits, wi
 - [Runtime runbook](docs/runtime-runbook.md): explicit user-run capture, evidence inspection and remaining cases.
 - [Local demo environment](docs/local-demo.md): reproducible website, docs and two HTTPS providers without cloud hosting.
 - [Testnet bootstrap](docs/testnet-bootstrap.md): offline private role/config preparation and explicit user-run account provisioning.
+- [Operator route](docs/testnet-operator.md): fixed role loading, paid task, model buyer, recovery and two fresh rehearsals.
 - [Verification matrix](docs/sprint/verification.md): each claim and the evidence required.
 - [Commit and scope policy](docs/sprint/workflow.md): real incremental history and change control.
 - [Planning review](docs/sprint/review.md): material findings, incorporated fixes and remaining runtime gates.

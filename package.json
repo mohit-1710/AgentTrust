@@ -34,7 +34,9 @@
     "start:buyer": "node dist/examples/buyer-agent/src/run.js",
     "test:buyer:stdio": "pnpm build:services && node examples/buyer-agent/test/stdio-smoke.mjs && node examples/buyer-agent/test/replay-smoke.mjs",
     "demo:bootstrap:testnet": "node dist/examples/testnet-demo/src/bootstrap.js",
-    "test:bootstrap:cli": "pnpm build:services && node examples/testnet-demo/test/bootstrap-smoke.mjs"
+    "test:bootstrap:cli": "pnpm build:services && node examples/testnet-demo/test/bootstrap-smoke.mjs",
+    "demo:operator": "node dist/examples/testnet-demo/src/operator.js",
+    "test:operator:cli": "pnpm build:services && node examples/testnet-demo/test/operator-smoke.mjs"
   },
   "dependencies": {
     "near-api-js": "7.4.0",
