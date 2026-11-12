@@ -9,7 +9,7 @@ import { runSteps } from "./run.js";
 
 export type OperatorArgs = { directory: string } & (
   { kind: "local"; mode: "check" | "start" } |
-  { kind: "buyer"; mode: "scripted" | "near-ai" } | { kind: "replay"; mode: "scripted" | "near-ai" } |
+  { kind: "buyer"; mode: "scripted" | "near-ai" | "local-model" } | { kind: "replay"; mode: "scripted" | "near-ai" | "local-model" } |
   { kind: "setup"; step: string; output: string } | { kind: "worker"; step: string; output: string }
 );
 type Secrets = { keys: Record<string, { private_key: string }>; invoices: { a: { seed_base64: string }; b: { seed_base64: string } } };
@@ -18,7 +18,7 @@ export function operatorArguments(input: readonly string[]): OperatorArgs {
   const directory = argv[1], choice = argv[3];
   if (argv[0] !== "--directory" || !directory || !path.isAbsolute(directory)) throw new Error("OPERATOR_ARGUMENTS_REQUIRED");
   if (!userRun && argv.length === 4 && argv[2] === "--local" && (choice === "check" || choice === "start")) return { directory, kind: "local", mode: choice };
-  if (argv.length === 4 && (choice === "scripted" || choice === "near-ai") && (userRun && argv[2] === "--buyer" || !userRun && argv[2] === "--replay-buyer")) return { directory, kind: userRun ? "buyer" : "replay", mode: choice };
+  if (argv.length === 4 && (choice === "scripted" || choice === "near-ai" || choice === "local-model") && (userRun && argv[2] === "--buyer" || !userRun && argv[2] === "--replay-buyer")) return { directory, kind: userRun ? "buyer" : "replay", mode: choice };
   if (userRun && argv.length === 6 && (argv[2] === "--setup" || argv[2] === "--worker") && choice && argv[4] === "--output" && /^artifacts\/local\/testnet\/[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(argv[5]!)) {
     const known = argv[2] === "--setup" ? [...setupSteps, ...setupSteps.filter((s) => s !== "validate-b").map((s) => `observe-${s}`)] : [...runSteps];
     if (known.includes(choice)) return { directory, kind: argv[2] === "--setup" ? "setup" : "worker", step: choice, output: argv[5]! };
@@ -107,6 +107,6 @@ export async function runOperator(argv: readonly string[]): Promise<void> {
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
-  if (argv.length === 0 || argv.length === 1 && argv[0] === "--help") console.log("operator.js --directory /absolute/demo --local check|start\noperator.js --directory /absolute/demo --replay-buyer scripted|near-ai\noperator.js --user-run --directory /absolute/demo --setup STEP --output artifacts/local/testnet/NEW_NAME\noperator.js --user-run --directory /absolute/demo --worker STEP --output artifacts/local/testnet/NEW_NAME\noperator.js --user-run --directory /absolute/demo --buyer scripted|near-ai\nPOSIX operator (macOS/Linux). Loads only the required role into a fixed child process group and stops that group on interruption. Observations and saved buyer replay need no private bundle. Setup/worker/buyer execution can deploy, change state or spend testnet/model funds; no automatic next step or retry. No browser is launched.");
+  if (argv.length === 0 || argv.length === 1 && argv[0] === "--help") console.log("operator.js --directory /absolute/demo --local check|start\noperator.js --directory /absolute/demo --replay-buyer scripted|near-ai|local-model\noperator.js --user-run --directory /absolute/demo --setup STEP --output artifacts/local/testnet/NEW_NAME\noperator.js --user-run --directory /absolute/demo --worker STEP --output artifacts/local/testnet/NEW_NAME\noperator.js --user-run --directory /absolute/demo --buyer scripted|near-ai|local-model\nPOSIX operator (macOS/Linux). Loads only the required role into a fixed child process group and stops that group on interruption. Observations and saved buyer replay need no private bundle. Setup/worker/buyer execution can deploy, change state or spend testnet/model funds; no automatic next step or retry. Local-model uses only fixed loopback Ollama and no model API key. No browser is launched.");
   else runOperator(argv).catch(() => { console.error("OPERATOR_REFUSED_OR_FAILED: inspect configuration and original operation records; no secret or raw error is logged."); process.exitCode = 1; });
 }

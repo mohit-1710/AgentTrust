@@ -1,6 +1,6 @@
 # Operator route: one complete testnet rehearsal
 
-Use this route on macOS/Linux from the accepted repository root. It joins the existing bootstrap, local stack, T18 cases and buyer commands; it does not automatically advance or retry. **The commands marked `--user-run` can create accounts, deploy/change contracts or spend testnet NEAR. The model buyer also consumes NEAR AI Cloud credits.** No browser is opened. Native/runtime acceptance, actual model execution and two completed rehearsals require their own captured results; a build or local listener is insufficient.
+Use this route on macOS/Linux from the accepted repository root. It joins the existing bootstrap, local stack, T18 cases and buyer commands; it does not automatically advance or retry. **The commands marked `--user-run` can create accounts, deploy/change contracts or spend testnet NEAR. The `near-ai` buyer also consumes NEAR AI Cloud credits.** No browser is opened. Native/runtime acceptance, actual model execution and two completed rehearsals require their own captured results; a build or local listener is insufficient.
 
 The operator loads the fixed step's key into its child only: core/owner/issuer/merchant for setup, restricted worker for purchases, and each provider's invoice seed for that provider. The web/docs receive no signing keys. Do not print secret files, export owner keys manually, put keys in commands or send them in chat. Enter the model API key locally with echo disabled or load the private local file as shown below.
 
@@ -170,7 +170,24 @@ Inspect the actual FINAL `MISSING` rejection with zero payout, settled `0.002 NE
 
 Inspect its checked paid output and private trace. `scripted_harness_not_autonomous` is useful execution evidence, not an actual model run. Keep this job intact if it stops; do not reprepare it.
 
-Choose an exact ready, tool-capable model ID from the [current public NEAR AI catalog](https://cloud-api.near.ai/v1/model/list). In zsh, enter that public ID and prepare a separate model job:
+Choose one model route per fresh rehearsal. For the local route, run an installed tool-capable Ollama model such as [`qwen3:4b-instruct`](https://ollama.com/library/qwen3:4b-instruct). Start Ollama in a separate terminal from this repo root if it is not already running, with its model cache in ignored local state:
+
+```sh
+umask 077
+mkdir -p "$PWD/.agenttrust/ollama-models"
+OLLAMA_HOST=127.0.0.1:11434 OLLAMA_MODELS="$PWD/.agenttrust/ollama-models" OLLAMA_NO_CLOUD=1 OLLAMA_CONTEXT_LENGTH=8192 ollama serve
+```
+
+Install the chosen model once with `ollama pull qwen3:4b-instruct` if needed. In the operator terminal, prepare a distinct job and execute it after the worker and provider setup above:
+
+```sh
+pnpm demo:prepare:buyer --directory "$AGENTTRUST_DEMO_DIR" --mode local-model --model qwen3:4b-instruct
+pnpm demo:operator --user-run --directory "$AGENTTRUST_DEMO_DIR" --buyer local-model
+```
+
+This route uses Ollama's [OpenAI-compatible tool calls](https://docs.ollama.com/api/openai-compatibility) at fixed loopback, checks the installed model's `tools` capability through the read-only [show model API](https://github.com/ollama/ollama/blob/main/docs/api.md#show-model-information), and requires no NEAR AI API key or Cloud credits. Its `local_model_tool_loop` evidence is actual local model behavior plus native NEAR tool execution when a payment is checked; it is not NEAR AI Cloud or TEE evidence. Keep its `buyer-local-model.json` and original IDs for recovery. A pending or uncertain result does not permit another job.
+
+For the Cloud route instead, choose an exact ready, tool-capable model ID from the [current public NEAR AI catalog](https://cloud-api.near.ai/v1/model/list). In zsh, enter that public ID and prepare a separate model job:
 
 ```sh
 (
@@ -213,7 +230,7 @@ If the key was already saved at `.agenttrust/near-ai-api-key`, use this alternat
 )
 ```
 
-This can incur model charges. The prepared job allows eight model/tool steps and 1,024 output tokens per request; these limits are not a dollar cap. Inspect `kind: paid`, the checked output and actual model/tool trace with received model responses. In this two-candidate model job, provider A's `pay_service` result must be a validated `MISSING` refusal before the model may pay B; any other first outcome stops the job. `recorded_replay` or zero model responses does not prove a fresh model-driven run. The jobs and redacted trace files remain under the private demo directory; [buyer documentation](../examples/buyer-agent/README.md) explains their bindings and limits. Never run either buyer concurrently with T18, the other buyer or another worker. Stop here if the model job or any attempted scripted job is pending, uncertain or otherwise unresolved.
+The Cloud route can incur model charges. Either model job allows eight model/tool steps and 1,024 output tokens per request; these limits are not a dollar cap for Cloud. Inspect `kind: paid`, the checked output and actual model/tool trace with received model responses. In either two-candidate model job, provider A's `pay_service` result must be a validated `MISSING` refusal before the model may pay B; any other first outcome stops the job. `recorded_replay` or zero model responses does not prove a fresh model-driven run. The jobs and redacted trace files remain under the private demo directory; [buyer documentation](../examples/buyer-agent/README.md) explains their bindings and limits. Never run buyers concurrently with T18, another buyer or another worker. Stop here if the model job or any attempted scripted job is pending, uncertain or otherwise unresolved.
 
 ## 5. Run the state-changing negative cases last
 
@@ -287,6 +304,10 @@ pnpm demo:operator --directory "$AGENTTRUST_DEMO_DIR" --replay-buyer scripted
 
 ```sh
 pnpm demo:operator --directory "$AGENTTRUST_DEMO_DIR" --replay-buyer near-ai
+```
+
+```sh
+pnpm demo:operator --directory "$AGENTTRUST_DEMO_DIR" --replay-buyer local-model
 ```
 
 These return the original checked report as `recorded_replay`; they are not new chain observations or model sessions. If the job is unfinished or its records conflict, replay stops without adding credentials or sending. Preserve that job's exact selected payment ID and use the keyless MCP `get_payment` read described in the [buyer recovery guidance](../examples/buyer-agent/README.md#durable-selection-and-stopping-rules). Read results do not authorize a replacement job or payment. Re-entering the executable buyer mode is a separate explicit action and may incur further model charges; never change its saved configuration/IDs to escape uncertainty.

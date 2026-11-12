@@ -341,7 +341,7 @@ it("preserves old claims, secrets, manifest and captures while old operations st
   expect(capture.bundle_sha256).toBe(sha256(JSON.stringify(f.bundle.manifest)));
   expect(m.fetcher).toHaveBeenCalledTimes(1); expect(m.signer).toHaveBeenCalledTimes(1); expect(m.broadcast).toHaveBeenCalledTimes(1);
 });
-it.each(["attempts", "buyer-jobs", "buyer-scripted.json", "buyer-near-ai.json"])("refuses migration when %s exists, even if empty", async (name) => {
+it.each(["attempts", "buyer-jobs", "buyer-scripted.json", "buyer-near-ai.json", "buyer-local-model.json"])("refuses migration when %s exists, even if empty", async (name) => {
   const f = await legacyPrepared(), file = path.join(f.directory, name);
   if (name.endsWith("json")) await replace(file, {}); else await mkdir(file, { mode: 0o700 });
   await expect(migrateBootstrapRpc(f.directory, false, f.root)).rejects.toThrow("RPC_MIGRATION_REQUIRES_NO_T18_OR_BUYER_WORK");

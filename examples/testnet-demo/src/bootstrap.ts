@@ -113,7 +113,7 @@ async function readBootstrapBundle(directory: string, root: string, transition =
   return { bundle, manifestBytes, publicFiles };
 }
 async function beforePaymentWork(bundle: BootstrapBundle): Promise<void> {
-  for (const file of [bundle.demo.attempts_directory, ...["buyer-jobs", "buyer-scripted.json", "buyer-near-ai.json"].map((name) => path.join(bundle.directory, name))]) {
+  for (const file of [bundle.demo.attempts_directory, ...["buyer-jobs", "buyer-scripted.json", "buyer-near-ai.json", "buyer-local-model.json"].map((name) => path.join(bundle.directory, name))]) {
     try { await lstat(file); } catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") continue; throw error; }
     throw new Error("RPC_MIGRATION_REQUIRES_NO_T18_OR_BUYER_WORK");
   }

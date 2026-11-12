@@ -40,7 +40,7 @@ let number = 0, checks = 0;
 async function setup(mode = 'near-ai', terminal = true) {
   const prefix = String(number++), mcpPath = join(root, `${prefix}-mcp.json`), configPath = join(root, `${prefix}-buyer.json`);
   const candidate = { service_id: 'merchant.testnet', payment_id: hash(2) };
-  const config = { schema_version: 1, job_id: hash(3), mcp_config_file: mcpPath, job_directory: join(root, `${prefix}-jobs`), csv_utf8: csv, candidates: [candidate], mode, ...(mode === 'near-ai' ? { model: 'explicit/model' } : {}), max_steps: 3, max_completion_tokens: 256 };
+  const config = { schema_version: 1, job_id: hash(3), mcp_config_file: mcpPath, job_directory: join(root, `${prefix}-jobs`), csv_utf8: csv, candidates: [candidate], mode, ...(mode === 'near-ai' ? { model: 'explicit/model' } : mode === 'local-model' ? { model: 'qwen3:4b-instruct' } : {}), max_steps: 3, max_completion_tokens: 256 };
   const mcp = { schema_version: 1, network: 'near:testnet', core_account: 'core.testnet', rpc_url: 'https://rpc.invalid', owner_id: 'owner.testnet', session_id: hash(1), attempts_directory: join(root, `${prefix}-attempts`), catalog: [{ service_id: candidate.service_id, service_version: 1, origin: 'https://audit.example' }] };
   const invoice = { schema_version: 1, network: mcp.network, core_account: mcp.core_account, owner_id: mcp.owner_id, session_id: mcp.session_id, payment_id: candidate.payment_id, policy_revision: 1, profile_id: 'audit', profile_revision: 1, service_id: candidate.service_id, service_version: 1, payout_account: 'payee.testnet', endpoint_hash: endpointHash(mcp.catalog[0].origin), request_hash: requestHash(csv), asset: 'NEAR', amount_yocto: '10', issued_at_ns: '1800000000000000000', expires_at_ns: '1800000120000000000' };
   const paid = { kind: 'paid', payment: { invoice, invoice_hash: invoiceHash(invoice), credential: null, dispatched_at_ns: invoice.issued_at_ns, dispatch_day: '0', dispatch_minute: '0', state: 'settled', finalized_at_ns: '1800000000000000001', display_state: 'settled' }, block: { finality: 'final', block_hash: 'mock-final-block', block_height: 100 }, transaction: { tx_hash: '1'.repeat(32), sender_account_id: mcp.owner_id }, receipt_ids: ['1'.repeat(32)], report: auditCsv(csv), output_check: { ok: true } };
@@ -75,6 +75,7 @@ try {
   const nearAi = await setup();
   await expectReplay(nearAi);
   await expectReplay(nearAi, unusedKeys);
+  await expectReplay(await setup('local-model'), unusedKeys);
   await expectReplay(await setup('scripted'));
 
   const wrongReport = await setup();
@@ -109,5 +110,9 @@ try {
     const traces = (await readdir(unfinished.config.job_directory)).filter(name => name.includes(`.run-${result.run_id}-`));
     assert.deepEqual(await Promise.all(traces.map(async name => JSON.parse(await readFile(join(unfinished.config.job_directory, name), 'utf8')).event)), ['started', 'stopped']);
   }
+  const unfinishedLocal = await setup('local-model', false);
+  const localResult = await invoke(unfinishedLocal, {}, 2);
+  assert.equal(localResult.kind, 'stopped'); assert.equal(localResult.model_responses, 0); assert.equal(localResult.evidence, 'no_model_response_this_run');
+  await assert.rejects(readFile(unfinishedLocal.record('outcome-0')), { code: 'ENOENT' });
   console.log(`Compiled buyer replay: ${checks} guarded CLI checks passed; mock saved outcomes only, zero network/model/signing/MCP execution.`);
 } finally { await rm(root, { recursive: true, force: true }); }

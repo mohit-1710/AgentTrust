@@ -45,6 +45,25 @@ it("lets a model pay B after a validated first-supplier MISSING refusal", async 
   expect(await runBuyer(s)).toMatchObject({ kind: "paid", report: auditCsv(csv) });
   expect(s.client.callTool).toHaveBeenCalledTimes(2);
 });
+it("applies the same A-first, MISSING-only host gate to a local model", async () => {
+  const early = await setup([paid(b)], [pay(b)]); early.config.mode = "local-model"; early.config.model = "qwen3:4b-instruct";
+  expect(await runBuyer(early)).toMatchObject({ kind: "stopped", reason: "attempt_boundary_violation" }); expect(early.client.callTool).not.toHaveBeenCalled();
+  const refused = await setup([denied(), paid(b)], [pay(), pay(b)]); refused.config.mode = "local-model"; refused.config.model = "qwen3:4b-instruct";
+  expect(await runBuyer(refused)).toMatchObject({ kind: "stopped", reason: "first_candidate_not_missing" }); expect(refused.client.callTool).toHaveBeenCalledTimes(1);
+  const accepted = await setup([missing(), paid(b)], [pay(), pay(b)]); accepted.config.mode = "local-model"; accepted.config.model = "qwen3:4b-instruct";
+  expect(await runBuyer(accepted)).toMatchObject({ kind: "paid", report: auditCsv(csv) }); expect(accepted.client.callTool).toHaveBeenCalledTimes(2);
+});
+it("rechecks a local model's saved MISSING outcome before resuming B", async () => {
+  const s = await setup([missing(), paid(b)], [pay()]); s.config.mode = "local-model"; s.config.model = "qwen3:4b-instruct";
+  expect((await runBuyer(s)).kind).toBe("stopped");
+  s.client.callTool.mockClear();
+  s.driver = { next: async (history) => {
+    expect(JSON.parse(history[1]!.content!)).toMatchObject({ completed_payment_ids: [a.payment_id], recorded_first_missing: true });
+    return { call: pay(b) };
+  } };
+  expect(await runBuyer(s)).toMatchObject({ kind: "paid", report: auditCsv(csv) });
+  expect(s.client.callTool).toHaveBeenCalledTimes(1);
+});
 it("revalidates the saved first-supplier outcome before a model can resume with B", async () => {
   const s = await setup([denied()], [pay()]); s.config.mode = "near-ai"; s.config.model = "explicit/model";
   expect(await runBuyer(s)).toMatchObject({ kind: "stopped", reason: "first_candidate_not_missing" });

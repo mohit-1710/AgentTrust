@@ -2,7 +2,7 @@
 
 The former `https://rpc.testnet.near.org` endpoint returned a deprecation/rate-limit error during rehearsal preparation. NEAR's [official RPC provider list](https://docs.near.org/api/rpc/providers) lists `https://test.rpc.fastnear.com`. Fresh templates and bootstrap bundles now use that fixed endpoint. This is an explicit offline migration for an existing legacy bootstrap, not automatic RPC failover or a new payment attempt.
 
-Stop all processes using the bundle first. This narrow migration is permitted only before T18 or buyer work: `attempts`, `buyer-jobs`, `buyer-scripted.json` and `buyer-near-ai.json` must all be absent, including empty files/directories or symlinks. Existing bootstrap faucet/child claims and evidence are preserved. Do not delete payment/job records to satisfy this prerequisite.
+Stop all processes using the bundle first. This narrow migration is permitted only before T18 or buyer work: `attempts`, `buyer-jobs`, `buyer-scripted.json`, `buyer-near-ai.json` and `buyer-local-model.json` must all be absent, including empty files/directories or symlinks. Existing bootstrap faucet/child claims and evidence are preserved. Do not delete payment/job records to satisfy this prerequisite.
 
 From the accepted repository root, with `AGENTTRUST_DEMO_DIR` still naming the original private directory:
 

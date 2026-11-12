@@ -176,7 +176,9 @@ Prepare that fresh job offline with the implemented helper. Choose the public `A
 pnpm demo:prepare:buyer --directory "$AGENTTRUST_DEMO_DIR" --mode near-ai --model "$AGENTTRUST_BUYER_MODEL"
 ```
 
-This exclusively creates `buyer-near-ai.json` with fresh IDs, actual configured A/B service IDs, the existing MCP path and the committed synthetic CSV. It performs no network/key/model/payment operation. A separate `--mode scripted` command creates `buyer-scripted.json`; it cannot be converted into model evidence by editing its mode. The [buyer runbook](../examples/buyer-agent/README.md) gives the separate explicit execution command and key/CA setup. Preparation alone does not clear the next gate.
+For a no-key local model instead, install a tool-capable Ollama model and use the separate `--mode local-model --model qwen3:4b-instruct` preparation. The [operator route](testnet-operator.md) gives the exact fixed-loopback setup and execution command.
+
+Either model preparation exclusively creates its mode-specific buyer file with fresh IDs, actual configured A/B service IDs, the existing MCP path and the committed synthetic CSV. It performs no network/key/model/payment operation. A separate `--mode scripted` command creates `buyer-scripted.json`; it cannot be converted into model evidence by editing its mode. The [buyer runbook](../examples/buyer-agent/README.md) gives the separate explicit execution command and key/CA setup. Preparation alone does not clear the next gate. Local model evidence remains distinct from NEAR AI Cloud evidence.
 
 Proceed only after reviewing successful purchase, exact retry and actual buyer output/trace. A stopped, pending or uncertain buyer must be investigated using its original files; do not revoke/rotate as a way to resolve it. These state-changing negative checks make new B purchases impossible in this prepared environment. They belong after the useful task in each rehearsal.
 

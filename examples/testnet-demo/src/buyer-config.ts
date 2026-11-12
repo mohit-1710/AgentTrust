@@ -10,13 +10,13 @@ import { bindConfig, parseBuyerConfig } from "../../buyer-agent/src/config.js";
 import { loadConformanceSuite } from "../../invoice-audit/src/conformance.js";
 import { readConfig, renderPublicConfigs } from "./config.js";
 
-export function buyerConfigArguments(argv: readonly string[]): { directory: string; mode: "scripted" | "near-ai"; model?: string } {
+export function buyerConfigArguments(argv: readonly string[]): { directory: string; mode: "scripted" | "near-ai" | "local-model"; model?: string } {
   const directory = argv[1], mode = argv[3];
   if (argv[0] !== "--directory" || !directory || !path.isAbsolute(directory) || argv[2] !== "--mode" ||
-      mode !== "scripted" && mode !== "near-ai" ||
+      mode !== "scripted" && mode !== "near-ai" && mode !== "local-model" ||
       mode === "scripted" && argv.length !== 4 ||
-      mode === "near-ai" && (argv.length !== 6 || argv[4] !== "--model" || !argv[5])) throw new Error("BUYER_CONFIG_ARGUMENTS_REQUIRED");
-  return { directory, mode, ...(mode === "near-ai" ? { model: argv[5]! } : {}) };
+      mode !== "scripted" && (argv.length !== 6 || argv[4] !== "--model" || !argv[5])) throw new Error("BUYER_CONFIG_ARGUMENTS_REQUIRED");
+  return { directory, mode, ...(mode !== "scripted" ? { model: argv[5]! } : {}) };
 }
 export async function prepareBuyerConfig(argv: readonly string[]): Promise<string> {
   const args = buyerConfigArguments(argv), directory = path.resolve(args.directory);
@@ -47,7 +47,7 @@ export async function prepareBuyerConfig(argv: readonly string[]): Promise<strin
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const argv = process.argv.slice(2);
-  if (argv.length === 1 && argv[0] === "--help") console.log("buyer-config.js --directory /absolute/prepared-demo --mode scripted|near-ai [--model MODEL_ID]\n--model is required only for near-ai. Reads demo.json and mcp.json; exclusively creates buyer-scripted.json or buyer-near-ai.json with fresh IDs and the committed mixed-validity CSV. Offline preparation only: no keys, network, model readiness check, signing or execution.");
+  if (argv.length === 1 && argv[0] === "--help") console.log("buyer-config.js --directory /absolute/prepared-demo --mode scripted|near-ai|local-model [--model MODEL_ID]\n--model is required for near-ai and local-model. Reads demo.json and mcp.json; exclusively creates a mode-specific buyer JSON file with fresh IDs and the committed mixed-validity CSV. Offline preparation only: no keys, network, model readiness check, signing or execution.");
   else prepareBuyerConfig(argv).then((file) => { console.log(JSON.stringify({ status: "buyer_config_prepared", file, execution: "not_started" })); }).catch((error: unknown) => {
     const code = (error as NodeJS.ErrnoException)?.code === "EEXIST" ? "BUYER_CONFIG_ALREADY_EXISTS_KEEP_ORIGINAL_IDS" : error instanceof Error && /^[A-Z0-9_]+$/.test(error.message) ? error.message : "CHECK_ARGUMENTS_AND_PREPARED_PUBLIC_CONFIG";
     console.error(`BUYER_CONFIG_REFUSED: ${code}`); process.exitCode = 1;

@@ -7,12 +7,12 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { loadMcpConfig } from "../../../packages/mcp/src/config.js";
 import { bindConfig, loadBuyerConfig } from "./config.js";
-import { checkModel, nearAiDriver, scriptedDriver } from "./model.js";
+import { checkLocalModel, checkModel, localModelDriver, nearAiDriver, scriptedDriver } from "./model.js";
 import { runBuyer, type Driver } from "./loop.js";
 export function workerEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
   return { PATH: env.PATH ?? "", ...(env.AGENTTRUST_WORKER_PRIVATE_KEY ? { AGENTTRUST_WORKER_PRIVATE_KEY: env.AGENTTRUST_WORKER_PRIVATE_KEY } : {}), ...(env.NODE_EXTRA_CA_CERTS ? { NODE_EXTRA_CA_CERTS: env.NODE_EXTRA_CA_CERTS } : {}) };
 }
-const help = "Usage: node dist/examples/buyer-agent/src/run.js --config /absolute/private/buyer.json --execute\n--execute explicitly permits configured native payment calls; near-ai mode also makes billable model requests (NEAR_AI_API_KEY). Scripted mode is a deterministic harness, not autonomous-agent evidence. Use synthetic demo CSV only. Worker key goes only to the local MCP child. Keep the same job directory/config/IDs for recovery. --help performs no network calls.";
+const help = "Usage: node dist/examples/buyer-agent/src/run.js --config /absolute/private/buyer.json --execute\n--execute explicitly permits configured native payment calls; near-ai mode also makes billable model requests (NEAR_AI_API_KEY). Local-model mode uses an installed tool-capable Ollama model at fixed 127.0.0.1:11434 with no API key. Scripted mode is a deterministic harness, not autonomous-agent evidence. Use synthetic demo CSV only. Worker key goes only to the local MCP child. Keep the same job directory/config/IDs for recovery. --help performs no network calls.";
 export async function runCli(argv: readonly string[]): Promise<void> {
   if (argv.length === 1 && argv[0] === "--help") { console.error(help); return; }
   if (argv.length !== 3 || argv[0] !== "--config" || !argv[1] || argv[2] !== "--execute") throw new Error("EXPLICIT_EXECUTION_REQUIRED");
@@ -25,7 +25,8 @@ export async function runCli(argv: readonly string[]): Promise<void> {
   const ready = (): Promise<Client> => startup ??= (async () => {
     if (!childEnv.AGENTTRUST_WORKER_PRIVATE_KEY) throw new Error("WORKER_KEY_REQUIRED");
     if (config.mode === "near-ai") { if (!apiKey) throw new Error("MODEL_KEY_REQUIRED"); await checkModel(config.model!); }
-    driver = config.mode === "near-ai" ? nearAiDriver(config, apiKey!) : scriptedDriver(config);
+    if (config.mode === "local-model") await checkLocalModel(config.model!);
+    driver = config.mode === "near-ai" ? nearAiDriver(config, apiKey!) : config.mode === "local-model" ? localModelDriver(config) : scriptedDriver(config);
     snapshotDirectory = await mkdtemp(join(tmpdir(), "agenttrust-buyer-config-"));
     const snapshotPath = join(snapshotDirectory, "mcp.json");
     await writeFile(snapshotPath, JSON.stringify(mcp), { mode: 0o600 });
@@ -39,7 +40,7 @@ export async function runCli(argv: readonly string[]): Promise<void> {
   try { gitCommit = execFileSync("git", ["-C", fileURLToPath(new URL("../../../../", import.meta.url)), "rev-parse", "HEAD"], { env: { PATH: process.env.PATH ?? "" }, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); } catch { /* Explicitly unknown provenance. */ }
   try {
     const result = await runBuyer({ config, mcp, gitCommit, driver: { next: async (history, tools) => { await ready(); return driver!.next(history, tools); } }, client: { listTools: async () => (await ready()).listTools({}, { timeout: 10_000 }), callTool: async (args) => (await ready()).callTool(args, undefined, { timeout: 350_000 }) } });
-    console.log(JSON.stringify({ mode: config.mode, evidence: result.replayed ? "recorded_replay" : config.mode === "scripted" ? "scripted_harness_not_autonomous" : result.model_responses > 0 ? "near_ai_model_tool_loop" : "no_model_response_this_run", ...result }));
+    console.log(JSON.stringify({ mode: config.mode, evidence: result.replayed ? "recorded_replay" : config.mode === "scripted" ? "scripted_harness_not_autonomous" : result.model_responses > 0 ? config.mode === "near-ai" ? "near_ai_model_tool_loop" : "local_model_tool_loop" : "no_model_response_this_run", ...result }));
     if (result.kind !== "paid") process.exitCode = 2;
   } finally { try { await client?.close(); } finally { if (snapshotDirectory) await rm(snapshotDirectory, { recursive: true, force: true }); } }
 }

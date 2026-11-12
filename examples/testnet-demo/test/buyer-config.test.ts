@@ -26,7 +26,8 @@ const args = (dir: string, mode = "scripted") => ["--directory", dir, "--mode", 
 it("accepts only the explicit mode-specific argument shapes", () => {
   expect(buyerConfigArguments(args("/prepared"))).toEqual({ directory: "/prepared", mode: "scripted" });
   expect(buyerConfigArguments([...args("/prepared", "near-ai"), "--model", "provider/model.v1"])).toEqual({ directory: "/prepared", mode: "near-ai", model: "provider/model.v1" });
-  for (const invalid of [[], args("relative"), args("/prepared", "unknown"), args("/prepared", "near-ai"), [...args("/prepared"), "--model", "model"], [...args("/prepared", "near-ai"), "--model", ""], [...args("/prepared", "near-ai"), "--model", "model", "extra"], ["--mode", "scripted", "--directory", "/prepared"], [...args("/prepared"), "--execute"]]) expect(() => buyerConfigArguments(invalid)).toThrow("BUYER_CONFIG_ARGUMENTS_REQUIRED");
+  expect(buyerConfigArguments([...args("/prepared", "local-model"), "--model", "qwen3:4b-instruct"])).toEqual({ directory: "/prepared", mode: "local-model", model: "qwen3:4b-instruct" });
+  for (const invalid of [[], args("relative"), args("/prepared", "unknown"), args("/prepared", "near-ai"), args("/prepared", "local-model"), [...args("/prepared"), "--model", "model"], [...args("/prepared", "near-ai"), "--model", ""], [...args("/prepared", "near-ai"), "--model", "model", "extra"], ["--mode", "scripted", "--directory", "/prepared"], [...args("/prepared"), "--execute"]]) expect(() => buyerConfigArguments(invalid)).toThrow("BUYER_CONFIG_ARGUMENTS_REQUIRED");
 });
 
 it("writes the exact committed CSV, prepared service candidates and MCP path with private permissions", async () => {
@@ -44,13 +45,15 @@ it("writes the exact committed CSV, prepared service candidates and MCP path wit
   await expect(lstat(config.job_directory)).rejects.toMatchObject({ code: "ENOENT" });
 });
 
-it("gives scripted and model runs separate files and fresh IDs distinct from every T18 payment", async () => {
+it("gives all three buyer modes separate files and fresh IDs distinct from every T18 payment", async () => {
   const f = await fixture();
   const scripted = await loadBuyerConfig(await prepareBuyerConfig(args(f.dir)));
   const nearAi = await loadBuyerConfig(await prepareBuyerConfig([...args(f.dir, "near-ai"), "--model", "test/model"]));
+  const local = await loadBuyerConfig(await prepareBuyerConfig([...args(f.dir, "local-model"), "--model", "qwen3:4b-instruct"]));
   expect(nearAi).toMatchObject({ mode: "near-ai", model: "test/model" });
-  const ids = [scripted, nearAi].flatMap((config) => [config.job_id, ...config.candidates.map((c) => c.payment_id)]);
-  expect(new Set(ids).size).toBe(6);
+  expect(local).toMatchObject({ mode: "local-model", model: "qwen3:4b-instruct" });
+  const ids = [scripted, nearAi, local].flatMap((config) => [config.job_id, ...config.candidates.map((c) => c.payment_id)]);
+  expect(new Set(ids).size).toBe(9);
   for (const id of ids) {
     expect(Buffer.from(id, "base64").length).toBe(32); expect(Buffer.from(id, "base64").toString("base64")).toBe(id);
     expect(Object.values(f.config.payment_ids)).not.toContain(id);
@@ -95,11 +98,11 @@ it("validates the demo and resulting model config without writing invalid output
   await expect(lstat(path.join(f.dir, "buyer-scripted.json"))).rejects.toMatchObject({ code: "ENOENT" });
 });
 
-it("prepares both modes without network, signing or reading role secrets", async () => {
+it("prepares every mode without network, signing or reading role secrets", async () => {
   const f = await fixture(), fetcher = vi.fn(() => { throw new Error("NO_NETWORK"); }); vi.stubGlobal("fetch", fetcher);
   const signing = vi.spyOn(KeyPairSigner, "fromSecretKey").mockImplementation(() => { throw new Error("NO_SIGNER"); });
   const payment = vi.spyOn(AgentTrustClient.prototype, "executePayment").mockImplementation(() => { throw new Error("NO_PAYMENT"); });
   for (const name of ["AGENTTRUST_SETUP_PRIVATE_KEY", "AGENTTRUST_WORKER_PRIVATE_KEY", "AGENTTRUST_INVOICE_SEED_BASE64", "NEAR_AI_API_KEY"]) vi.stubEnv(name, "SECRET_SENTINEL_NOT_READ");
-  for (const argv of [args(f.dir), [...args(f.dir, "near-ai"), "--model", "offline/model"]]) expect(await readFile(await prepareBuyerConfig(argv), "utf8")).not.toContain("SECRET_SENTINEL_NOT_READ");
+  for (const argv of [args(f.dir), [...args(f.dir, "near-ai"), "--model", "offline/model"], [...args(f.dir, "local-model"), "--model", "qwen3:4b-instruct"]]) expect(await readFile(await prepareBuyerConfig(argv), "utf8")).not.toContain("SECRET_SENTINEL_NOT_READ");
   expect(fetcher).not.toHaveBeenCalled(); expect(signing).not.toHaveBeenCalled(); expect(payment).not.toHaveBeenCalled();
 });

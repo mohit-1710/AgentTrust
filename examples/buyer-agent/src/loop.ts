@@ -23,11 +23,11 @@ export async function runBuyer(options: LoopOptions): Promise<BuyerResult> {
   const stop = async (reason: string): Promise<BuyerResult> => { if (journal) await trace({ event: "stopped", reason }); return { kind: "stopped", reason, run_id, model_responses: modelResponses }; };
   try {
     const config = parseBuyerConfig(options.config), mcp = parseMcpConfig(options.mcp); bindConfig(config, mcp);
-    const twoCandidateModel = config.mode === "near-ai" && config.candidates.length === 2;
+    const twoCandidateModel = config.mode !== "scripted" && config.candidates.length === 2;
     const { client, driver } = options; journal = new JobJournal(config.job_directory, config.job_id);
     const context = { schema_version: 1, job_id: config.job_id, config_hash: digest({ ...config, csv_utf8: { request_hash: requestHash(config.csv_utf8), bytes: Buffer.byteLength(config.csv_utf8) }, mcp }), candidates: config.candidates, request_hash: requestHash(config.csv_utf8) };
     if (!isDeepStrictEqual(await journal.publish("context", context), context)) return stop("job_context_conflict");
-    await trace({ event: "started", mode: config.mode, evidence: config.mode === "scripted" ? "scripted_harness_not_autonomous" : "near_ai_requested_no_execution_claim", model: config.model ?? null, git_commit: /^[a-f0-9]{40}$/.test(options.gitCommit) ? options.gitCommit : "unavailable", config_hash: context.config_hash, request_hash: context.request_hash });
+    await trace({ event: "started", mode: config.mode, evidence: config.mode === "scripted" ? "scripted_harness_not_autonomous" : config.mode === "near-ai" ? "near_ai_requested_no_execution_claim" : "local_model_requested_no_execution_claim", model: config.model ?? null, git_commit: /^[a-f0-9]{40}$/.test(options.gitCommit) ? options.gitCommit : "unavailable", config_hash: context.config_hash, request_hash: context.request_hash });
     let slot = 0, selected: Candidate | undefined; const completed: string[] = [];
     while (slot < config.candidates.length) {
       const selection = await journal.read(`selection-${slot}`); if (selection === null) break;

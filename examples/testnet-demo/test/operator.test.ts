@@ -15,13 +15,16 @@ it.each([["deploy-core", "core"], ["owner-profile", "owner"], ["owner-worker-key
 it("passes only the restricted worker to a paid command", () => {
   expect(operatorPlan(worker("purchase"), "/repo", source, secrets).env).toEqual({ PATH: "/bin", NODE_EXTRA_CA_CERTS: "/explicit.crt", AGENTTRUST_WORKER_PRIVATE_KEY: "fixture-worker-key" });
 });
-it.each([setup("validate-b"), setup("observe-owner-deposit"), worker("resume"), worker("observe-retry"), operatorArguments(["--directory", "/private/demo", "--replay-buyer", "near-ai"])])("keeps observations and saved buyer replay keyless", (args) => {
+it.each([setup("validate-b"), setup("observe-owner-deposit"), worker("resume"), worker("observe-retry"), operatorArguments(["--directory", "/private/demo", "--replay-buyer", "near-ai"]), operatorArguments(["--directory", "/private/demo", "--replay-buyer", "local-model"])])("keeps observations and saved buyer replay keyless", (args) => {
   expect(needsPrivateBundle(args)).toBe(false);
   expect(operatorPlan(args, "/repo", source).env).toEqual({ PATH: "/bin", NODE_EXTRA_CA_CERTS: "/explicit.crt" });
 });
 it("keeps model and provider credentials in their respective child", () => {
   const buyer = operatorPlan(operatorArguments(["--user-run", "--directory", "/private/demo", "--buyer", "near-ai"]), "/repo", source, secrets);
   expect(buyer.env).toEqual({ PATH: "/bin", NODE_EXTRA_CA_CERTS: "/explicit.crt", AGENTTRUST_WORKER_PRIVATE_KEY: "fixture-worker-key", NEAR_AI_API_KEY: "fixture-model-key" });
+  const localBuyer = operatorPlan(operatorArguments(["--user-run", "--directory", "/private/demo", "--buyer", "local-model"]), "/repo", source, secrets);
+  expect(localBuyer.env).toEqual({ PATH: "/bin", NODE_EXTRA_CA_CERTS: "/explicit.crt", AGENTTRUST_WORKER_PRIVATE_KEY: "fixture-worker-key" });
+  expect(localBuyer.args).toEqual(["--config", "/private/demo/buyer-local-model.json", "--execute"]);
   const local = operatorPlan(operatorArguments(["--directory", "/private/demo", "--local", "start"]), "/repo", source, secrets);
   expect(local.env).toEqual({ PATH: "/bin", NODE_EXTRA_CA_CERTS: "/explicit.crt", AGENTTRUST_PROVIDER_A_INVOICE_SEED_BASE64: "fixture-a-seed", AGENTTRUST_PROVIDER_B_INVOICE_SEED_BASE64: "fixture-b-seed" });
 });

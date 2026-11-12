@@ -1,9 +1,10 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { nearAiDriver, checkModel } from "../src/model.js";
+import { nearAiDriver, checkModel, checkLocalModel, localModelDriver } from "../src/model.js";
 import { parseBuyerConfig } from "../src/config.js";
 import { workerEnvironment, runCli } from "../src/run.js";
 import { csv, hash } from "../../invoice-audit/test/paid-fixtures.js";
 const config = () => parseBuyerConfig({ schema_version: 1, job_id: hash(1), mcp_config_file: "/tmp/mcp.json", job_directory: "/tmp/jobs", csv_utf8: csv, candidates: [{ service_id: "a.testnet", payment_id: hash(2) }], mode: "near-ai", model: "explicit/model", max_steps: 3, max_completion_tokens: 256 });
+const localConfig = () => parseBuyerConfig({ ...config(), mode: "local-model", model: "qwen3:4b-instruct" });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 it("uses one fixed Cloud endpoint, explicit model/token bound and auth only in the request header", async () => {
   const fetcher = vi.fn(async () => Response.json({ id: "response_1", choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "get_policy", arguments: "{}" } }] } }] })); vi.stubGlobal("fetch", fetcher);
@@ -26,6 +27,30 @@ it("requires a positive readiness flag before choosing a tool model", async () =
   vi.stubGlobal("fetch", async () => Response.json({ models: [{ modelId: "explicit/model", metadata: { supportedFeatures: ["tools"] } }] }));
   await expect(checkModel("explicit/model")).rejects.toThrow("MODEL_NOT_READY_FOR_TOOLS");
 });
+it("requires an installed local model that advertises tool calls", async () => {
+  const fetcher = vi.fn(async () => Response.json({ capabilities: ["completion", "tools"] })); vi.stubGlobal("fetch", fetcher);
+  await expect(checkLocalModel("qwen3:4b-instruct")).resolves.toBeUndefined();
+  const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+  expect(url).toBe("http://127.0.0.1:11434/api/show"); expect(init.method).toBe("POST"); expect(init.redirect).toBe("error");
+  expect(JSON.parse(init.body as string)).toEqual({ model: "qwen3:4b-instruct" }); expect(init.headers).toEqual({ "content-type": "application/json" });
+  vi.stubGlobal("fetch", async () => Response.json({ capabilities: ["completion"] }));
+  await expect(checkLocalModel("qwen3:4b-instruct")).rejects.toThrow("LOCAL_MODEL_NOT_READY_FOR_TOOLS");
+  vi.stubGlobal("fetch", async () => new Response("not installed", { status: 404 }));
+  await expect(checkLocalModel("qwen3:4b-instruct")).rejects.toThrow("LOCAL_MODEL_UNAVAILABLE");
+});
+it("uses only fixed loopback for local model tool calls and sends no API key", async () => {
+  const fetcher = vi.fn(async () => Response.json({ id: "local_1", choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "get_policy", arguments: "{}" } }] } }] })); vi.stubGlobal("fetch", fetcher);
+  const next = await localModelDriver(localConfig()).next([{ role: "user", content: csv }], [{ name: "get_policy", inputSchema: { type: "object" } }]);
+  expect(next.call).toEqual({ name: "get_policy", arguments: {}, id: "call_1" }); expect(JSON.stringify(next)).not.toContain(csv);
+  const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+  expect(url).toBe("http://127.0.0.1:11434/v1/chat/completions"); expect(init.redirect).toBe("error"); expect(init.headers).toEqual({ "content-type": "application/json" });
+  const body = JSON.parse(init.body as string); expect(body.model).toBe("qwen3:4b-instruct"); expect(body.max_tokens).toBe(256); expect(body).not.toHaveProperty("parallel_tool_calls");
+  expect(() => localModelDriver(config())).toThrow("MODEL_CONFIGURATION_REQUIRED");
+});
+it("applies the same strict tool-call parser to local responses", async () => {
+  vi.stubGlobal("fetch", async () => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "pay_service", arguments: "null" } }] } }] }));
+  await expect(localModelDriver(localConfig()).next([], [])).rejects.toThrow("MALFORMED_MODEL_TOOL_CALL");
+});
 it("disables Qwen 3.6 default reasoning within the fixed tool-call token budget", async () => {
   const fetcher = vi.fn(async () => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "get_policy", arguments: "{}" } }] } }] }));
   vi.stubGlobal("fetch", fetcher);
@@ -43,4 +68,4 @@ it("requires the explicit execute flag and does not access network for help", as
   const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher); const log = vi.spyOn(console, "error").mockImplementation(() => {});
   await runCli(["--help"]); expect(log).toHaveBeenCalledWith(expect.stringContaining("billable")); await expect(runCli(["--config", "/no/file.json"])).rejects.toThrow("EXPLICIT_EXECUTION_REQUIRED"); expect(fetcher).not.toHaveBeenCalled();
 });
-it.each([{ candidates: [{ service_id: "a.testnet", payment_id: hash(2) }, { service_id: "b.testnet", payment_id: hash(2) }] }, { model: undefined }, { job_directory: "relative" }, { api_key: "secret" }, { max_steps: 13 }])("rejects unsafe caller configuration %#", (change) => { expect(() => parseBuyerConfig({ ...config(), ...change })).toThrow(); });
+it.each([{ candidates: [{ service_id: "a.testnet", payment_id: hash(2) }, { service_id: "b.testnet", payment_id: hash(2) }] }, { model: undefined }, { model: "qwen3:4b-instruct" }, { job_directory: "relative" }, { api_key: "secret" }, { endpoint: "https://external.example" }, { max_steps: 13 }])("rejects unsafe caller configuration %#", (change) => { expect(() => parseBuyerConfig({ ...config(), ...change })).toThrow(); });
