@@ -1,0 +1,55 @@
+# Separate midnight and owner-edit fixture
+
+This binary prepares one bounded V15 experiment. It is separate from `agenttrust-runtime`, uses the unchanged production WASM, and does not replace the general runtime matrix. Compilation and pure tests do not establish a pass.
+
+Pinned near-sandbox 0.4.0 starts a fresh local 2.14.0 node with two-second minimum/maximum block delays and a one-million-block epoch. Near-workspaces 0.24.0 attaches using its RPC address and validator home directory. The fixture captures installed settings, node/protocol, source commit, lock hash, WASM hash and node binary hash.
+
+Genesis time is not treated as a virtual-clock setter. Nearcore uses wall time plus the Sandbox fast-forward offset. After all setup transactions are FINAL, the fixture advances toward the next UTC midnight and checks actual optimistic block timestamps. No fast-forward runs after payment submission. No state patch, fault WASM, callback call, recipient helper or receipt scheduling API is used.
+
+The scenario submits one 0.03 NEAR payment with its real restricted key shortly before midnight. On observing its pending record, it submits one owner batch:
+
+1. Lower the daily cap to 0.02 NEAR.
+2. Increment the selected profile revision.
+3. Call the existing `get_account` method and return its ledger.
+
+The batch's committed return must still show the sole retained payment's entire 0.03 NEAR pending principal, one outstanding transfer and the original principal debit. This establishes that both edits happened before settlement. If edit and callback share a block, identical timestamps alone establish no order: the pending ledger returned by the successful edit receipt supplies that proof. Otherwise captured block timestamps must place the edit between dispatch and callback. RPC array position never supplies ordering.
+
+Acceptance also requires:
+
+- Actual successful dispatch and private callback timestamps cross UTC midnight; stored payment timestamps and dispatch day match those blocks.
+- A real native Transfer receipt binds the payout amount/recipient to the callback's input-data dependency.
+- Final pending is zero, principal remains debited and today's settled usage is zero. A read-only `view_state` capture decodes the unique owner `ActorState` with the production domain schema and verifies exactly 0.03 NEAR in the original dispatch-day bucket.
+- Both edits remain committed. Recipient balance increases by exactly 0.03 NEAR, without other recipient transactions during measurement.
+- One exact replay after the edits preserves the complete payment, persisted ledger and recipient balance. Runtime vault cash is excluded from ledger equality because contract gas rewards can change it.
+
+The optimistic pending observation is only a scheduling signal. Its block hash must subsequently match the canonical block at that height and be covered by the final head. Acceptance relies on FINAL transaction/receipt data.
+
+## Bounds and failures
+
+There is one timing attempt, one payment and at most one exact replay. The overall wall limit is 900 seconds. Setup funds three fresh local accounts with 20 NEAR each; the worker key has a finite 1 NEAR gas allowance and both worker calls explicitly attach 150 Tgas. These are isolated fixture budgets, not product defaults. The fixture never uses near-workspaces' changing `max_gas` default.
+
+The checked-in Node launcher owns the fixed fixture binary and Sandbox in one POSIX process group. Persistent SIGINT/SIGTERM handlers, the outer 900-second timer and early child exit all trigger group SIGTERM, followed by SIGKILL after at most two seconds. Only PATH, TMPDIR and the explicit Sandbox path/command annotation reach the fixture; wallet/model keys, HOME and NODE_OPTIONS are dropped. Abrupt interruption can leave an incomplete capture, which must never be accepted as a pass.
+
+A skipped launch window, absent pending observation, edit after settlement, same-day callback, timeout, malformed evidence or failed assertion records failure. It never silently advances another day or creates another payment. Keep that capture; another explicitly selected trial needs a new output directory and node. Slow blocks provide observation time, not guaranteed receipt order.
+
+## Exact commands
+
+Safe compile/pure checks, without a node:
+
+```sh
+. scripts/env.sh
+cargo check --locked --manifest-path tests/runtime/Cargo.toml --bin agenttrust-midnight
+cargo test --locked --manifest-path tests/runtime/Cargo.toml --test midnight_evidence
+cargo build --locked --manifest-path tests/runtime/Cargo.toml --bin agenttrust-midnight
+node scripts/test-midnight-launcher.mjs
+```
+
+Only when actual local runtime/database execution is authorized for this work:
+
+```sh
+node scripts/run-midnight.mjs --user-run --sandbox-bin /absolute/pinned/near-sandbox --wasm /absolute/production/agenttrust_core.wasm --output /absolute/repository/artifacts/local/runtime/NEW-midnight-capture
+```
+
+An existing absolute node path is required; there is no download fallback. The launcher runs only `tests/runtime/target/debug/agenttrust-midnight`, so compile that target first. Retain failed captures. `manifest.json` uses the distinct `agenttrust_midnight_fixture` format; the general runtime-evidence checker does not accept it. Independently review its assertions, hashes and referenced receipt/block/state artifacts before accepting V15. Do not rewrite an earlier matrix manifest or count this standalone fixture as completing refund-gap coverage. The launcher regression copies the script into a fake temporary repository and exercises only ordinary-file stub descendants, including one that ignores SIGTERM; it never runs the real fixture or Sandbox.
+
+Supported hooks: [near-sandbox configuration](https://github.com/near/near-sandbox-rs/blob/56e17cd309bcf98645d306bca80dbeca3bab33c9/src/config.rs), [near-workspaces builder](https://github.com/near/near-workspaces-rs/blob/d2e8efc8785d12562db5a58a8ba142e1e559a921/src/network/builder.rs). Clock semantics: [Sandbox offset](https://github.com/near/nearcore/blob/2.14.0/chain/client/src/client.rs#L1766), [block timestamp construction](https://github.com/near/nearcore/blob/2.14.0/core/primitives/src/block.rs#L215).
