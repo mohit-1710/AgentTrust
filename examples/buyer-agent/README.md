@@ -6,6 +6,7 @@ Three explicit modes share the same host checks:
 
 - `near-ai`: actual NEAR AI Cloud chat completions with a caller-selected model and API key. A successful run can provide actual model/tool trace evidence. No such paid run has been executed during implementation.
 - `local-model`: actual installed Ollama model through its OpenAI-compatible chat completions API at the fixed `http://127.0.0.1:11434` loopback host. It needs no model API key or Cloud credits. It is labeled separately and does not establish NEAR AI Cloud, TEE or model attestation evidence.
+- The local model sees five task-usable tools. The MCP still exposes all six; `preview_payment` is withheld from this model because this task supplies no provider-signed quote. For `pay_service`, the model requests the supplier currently allowed by the host: A first, then B after a checked `MISSING` refusal. The host inserts that job's fixed payment ID and exact CSV before calling MCP, then validates the result. The trace marks the host-bound fields.
 - `scripted`: deterministic list/policy/purchase sequence for a reproducible scenario. Its output is labeled `scripted_harness_not_autonomous`. It can still move native funds when the real worker is configured; it is not a no-cost simulation.
 
 When a job needs execution, all modes use the official MCP `Client` and `StdioClientTransport`, launching the compiled local AgentTrust MCP server. No owner/issuer management tool, generic signing, arbitrary model endpoint or alternative chain is added.

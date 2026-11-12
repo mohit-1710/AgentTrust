@@ -1,7 +1,7 @@
-import type { BuyerConfig } from "./config.js";
+import type { BuyerConfig, Candidate } from "./config.js";
 import type { ChatMessage, Driver, ModelTrace, ProposedCall, ToolDefinition } from "./loop.js";
 import { digest } from "./journal.js";
-import { readJson } from "../../../packages/near-sdk/src/paid-protocol.js";
+import { exactFields, readJson } from "../../../packages/near-sdk/src/paid-protocol.js";
 const endpoint = "https://cloud-api.near.ai/v1/chat/completions";
 export const modelCatalog = "https://cloud-api.near.ai/v1/model/list";
 export const localModelEndpoint = "http://127.0.0.1:11434/v1/chat/completions";
@@ -43,9 +43,17 @@ export function nearAiDriver(config: BuyerConfig, apiKey: string): Driver {
 }
 export function localModelDriver(config: BuyerConfig): Driver {
   if (config.mode !== "local-model" || !config.model) throw new Error("MODEL_CONFIGURATION_REQUIRED");
-  return { async next(history: readonly ChatMessage[], tools: readonly ToolDefinition[]) {
-    const body = { model: config.model, messages: history, tools: tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.inputSchema } })), tool_choice: "auto", max_tokens: config.max_completion_tokens, stream: false };
-    return requestModel(localModelEndpoint, body, { "content-type": "application/json" }, 120_000);
+  return { async next(history: readonly ChatMessage[], tools: readonly ToolDefinition[], activeCandidate?: Candidate) {
+    if (!activeCandidate || !config.candidates.some((c) => c.service_id === activeCandidate.service_id && c.payment_id === activeCandidate.payment_id)) throw new Error("MODEL_CONFIGURATION_REQUIRED");
+    // The host owns the exact CSV and stable IDs; the model only chooses a configured supplier.
+    // No signed quote is available to the model, so its tool set omits direct preview.
+    const body = { model: config.model, messages: history, tools: tools.filter((t) => t.name !== "preview_payment").map((t) => ({ type: "function", function: { name: t.name, description: t.name === "pay_service" ? `${t.description ?? ""} Choose the currently allowed serviceId. The host supplies this job's exact CSV and stable payment ID.` : t.description, parameters: t.name === "pay_service" ? { type: "object", properties: { serviceId: { type: "string", enum: [activeCandidate.service_id] } }, required: ["serviceId"], additionalProperties: false } : t.inputSchema } })), tool_choice: "auto", temperature: 0, max_tokens: config.max_completion_tokens, stream: false };
+    const result = await requestModel(localModelEndpoint, body, { "content-type": "application/json" }, 120_000);
+    const call = result.call;
+    if (call?.name !== "pay_service") return result;
+    if (!exactFields(call.arguments, ["serviceId"])) throw new Error("MALFORMED_MODEL_TOOL_CALL");
+    if (call.arguments.serviceId !== activeCandidate.service_id) throw new Error("MALFORMED_MODEL_TOOL_CALL");
+    return { trace: result.trace, call: { ...call, arguments: { serviceId: activeCandidate.service_id, paymentId: activeCandidate.payment_id, csvUtf8: config.csv_utf8 } } };
   } };
 }
 /** Deterministic, labeled scenario harness. This is not an autonomous model. */

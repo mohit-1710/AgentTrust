@@ -40,16 +40,40 @@ it("requires an installed local model that advertises tool calls", async () => {
 });
 it("uses only fixed loopback for local model tool calls and sends no API key", async () => {
   const fetcher = vi.fn(async () => Response.json({ id: "local_1", choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "get_policy", arguments: "{}" } }] } }] })); vi.stubGlobal("fetch", fetcher);
-  const next = await localModelDriver(localConfig()).next([{ role: "user", content: csv }], [{ name: "get_policy", inputSchema: { type: "object" } }]);
+  const next = await localModelDriver(localConfig()).next([{ role: "user", content: csv }], [{ name: "get_policy", inputSchema: { type: "object" } }, { name: "preview_payment", inputSchema: { type: "object" } }], localConfig().candidates[0]!);
   expect(next.call).toEqual({ name: "get_policy", arguments: {}, id: "call_1" }); expect(JSON.stringify(next)).not.toContain(csv);
   const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
   expect(url).toBe("http://127.0.0.1:11434/v1/chat/completions"); expect(init.redirect).toBe("error"); expect(init.headers).toEqual({ "content-type": "application/json" });
-  const body = JSON.parse(init.body as string); expect(body.model).toBe("qwen3:4b-instruct"); expect(body.max_tokens).toBe(256); expect(body).not.toHaveProperty("parallel_tool_calls");
+  const body = JSON.parse(init.body as string); expect(body.model).toBe("qwen3:4b-instruct"); expect(body.max_tokens).toBe(256); expect(body.temperature).toBe(0); expect(body).not.toHaveProperty("parallel_tool_calls");
+  expect(body.tools.map((tool: { function: { name: string } }) => tool.function.name)).toEqual(["get_policy"]);
   expect(() => localModelDriver(config())).toThrow("MODEL_CONFIGURATION_REQUIRED");
+});
+it("binds a local model's supplier choice to the job's exact CSV and stable payment ID", async () => {
+  const response = (args: object) => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "pay_service", arguments: JSON.stringify(args) } }] } }] });
+  const fetcher = vi.fn(async () => response({ serviceId: "a.testnet" })); vi.stubGlobal("fetch", fetcher);
+  const next = await localModelDriver(localConfig()).next([], [{ name: "pay_service", inputSchema: { type: "object" } }], localConfig().candidates[0]!);
+  expect(next.call).toEqual({ name: "pay_service", id: "call_1", arguments: { serviceId: "a.testnet", paymentId: hash(2), csvUtf8: csv } });
+  const [, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+  const tool = JSON.parse(init.body as string).tools[0].function;
+  expect(tool.parameters).toEqual({ type: "object", properties: { serviceId: { type: "string", enum: ["a.testnet"] } }, required: ["serviceId"], additionalProperties: false });
+  vi.stubGlobal("fetch", async () => response({ serviceId: "b.testnet" }));
+  await expect(localModelDriver(localConfig()).next([], [], localConfig().candidates[0]!)).rejects.toThrow("MALFORMED_MODEL_TOOL_CALL");
+  vi.stubGlobal("fetch", async () => response({ serviceId: "a.testnet", csvUtf8: "changed" }));
+  await expect(localModelDriver(localConfig()).next([], [], localConfig().candidates[0]!)).rejects.toThrow("MALFORMED_MODEL_TOOL_CALL");
+});
+it("advertises only the host-allowed supplier after a checked first refusal", async () => {
+  const two = parseBuyerConfig({ ...localConfig(), candidates: [{ service_id: "a.testnet", payment_id: hash(2) }, { service_id: "b.testnet", payment_id: hash(3) }] });
+  const fetcher = vi.fn(async () => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "pay_service", arguments: '{"serviceId":"b.testnet"}' } }] } }] })); vi.stubGlobal("fetch", fetcher);
+  const next = await localModelDriver(two).next([], [{ name: "pay_service", inputSchema: { type: "object" } }], two.candidates[1]!);
+  expect(next.call?.arguments).toEqual({ serviceId: "b.testnet", paymentId: hash(3), csvUtf8: csv });
+  const [, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+  expect(JSON.parse(init.body as string).tools[0].function.parameters.properties.serviceId.enum).toEqual(["b.testnet"]);
+  vi.stubGlobal("fetch", async () => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "pay_service", arguments: '{"serviceId":"a.testnet"}' } }] } }] }));
+  await expect(localModelDriver(two).next([], [], two.candidates[1]!)).rejects.toThrow("MALFORMED_MODEL_TOOL_CALL");
 });
 it("applies the same strict tool-call parser to local responses", async () => {
   vi.stubGlobal("fetch", async () => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "pay_service", arguments: "null" } }] } }] }));
-  await expect(localModelDriver(localConfig()).next([], [])).rejects.toThrow("MALFORMED_MODEL_TOOL_CALL");
+  await expect(localModelDriver(localConfig()).next([], [], localConfig().candidates[0]!)).rejects.toThrow("MALFORMED_MODEL_TOOL_CALL");
 });
 it("disables Qwen 3.6 default reasoning within the fixed tool-call token budget", async () => {
   const fetcher = vi.fn(async () => Response.json({ choices: [{ message: { tool_calls: [{ id: "call_1", type: "function", function: { name: "get_policy", arguments: "{}" } }] } }] }));

@@ -39,7 +39,7 @@ export async function runCli(argv: readonly string[]): Promise<void> {
   let gitCommit = "unavailable";
   try { gitCommit = execFileSync("git", ["-C", fileURLToPath(new URL("../../../../", import.meta.url)), "rev-parse", "HEAD"], { env: { PATH: process.env.PATH ?? "" }, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); } catch { /* Explicitly unknown provenance. */ }
   try {
-    const result = await runBuyer({ config, mcp, gitCommit, driver: { next: async (history, tools) => { await ready(); return driver!.next(history, tools); } }, client: { listTools: async () => (await ready()).listTools({}, { timeout: 10_000 }), callTool: async (args) => (await ready()).callTool(args, undefined, { timeout: 350_000 }) } });
+    const result = await runBuyer({ config, mcp, gitCommit, driver: { next: async (history, tools, activeCandidate) => { await ready(); return driver!.next(history, tools, activeCandidate); } }, client: { listTools: async () => (await ready()).listTools({}, { timeout: 10_000 }), callTool: async (args) => (await ready()).callTool(args, undefined, { timeout: 350_000 }) } });
     console.log(JSON.stringify({ mode: config.mode, evidence: result.replayed ? "recorded_replay" : config.mode === "scripted" ? "scripted_harness_not_autonomous" : result.model_responses > 0 ? config.mode === "near-ai" ? "near_ai_model_tool_loop" : "local_model_tool_loop" : "no_model_response_this_run", ...result }));
     if (result.kind !== "paid") process.exitCode = 2;
   } finally { try { await client?.close(); } finally { if (snapshotDirectory) await rm(snapshotDirectory, { recursive: true, force: true }); } }
