@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: '%s - AgentTrust Docs',
   },
   description: "AgentTrust native NEAR documentation: restricted agent spending, exact service trust, credentials and payment evidence.",
-  metadataBase: new URL('http://localhost:3001'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_DOCS_URL ?? 'http://localhost:3001'),
   icons: {
     icon: '/favicon.svg',
   },
