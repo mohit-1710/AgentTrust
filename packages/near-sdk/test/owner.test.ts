@@ -55,4 +55,23 @@ describe("separate owner helpers", () => {
     await expect(owner.setPolicy({ expected_revision: 1, daily_cap_yocto: "1", max_dispatches_per_minute: 1, paused: true })).rejects.toThrow("OWNER_FULL_ACCESS_KEY_REQUIRED");
     expect(sent).toHaveLength(0);
   });
+  it("a durable management checkpoint must succeed before policy, registry or key installation can send", async () => {
+    const { owner, sent } = setup();
+    const checkpoints: unknown[] = [];
+    const options = { beforeBroadcast: async (transaction: unknown) => { checkpoints.push(transaction); throw new Error("DURABLE_CHECKPOINT_UNAVAILABLE"); } };
+    const hash = Buffer.alloc(32, 1).toString("base64");
+    const publicKey = KeyPair.fromRandom("ed25519").getPublicKey().toString();
+    const calls = [
+      () => owner.setPolicy({ expected_revision: 1, daily_cap_yocto: "1", max_dispatches_per_minute: 1, paused: false }, options),
+      () => owner.setProfile({ profile_id: "audit", expected_revision: null, requirement: null }, options),
+      () => owner.registerSession({ session_id: hash, public_key: publicKey, profile_id: "audit", profile_revision: 1, purchase_cap_yocto: "1", expires_at_ns: "2000000000000000000" }, options),
+      () => owner.setServiceTrust({ service_id: "merchant.testnet", service_version: 1, allowed_profile_ids: ["audit"], expires_at_ns: null, active: true }, options),
+      () => owner.setService({ expected_version: null, payout_account: "merchant.testnet", invoice_key: hash, endpoint_hash: hash, active: true }, options),
+      () => owner.issueCredential({ credential_id: hash, expected_revision: null, assertion: { service_id: "merchant.testnet", service_version: 1, capability_namespace: "invoice.audit", capability_version: 1, conformance_suite_version: 1, conformance_suite_hash: hash, evidence_manifest_hash: hash, issued_at_ns: "1", expires_at_ns: "2" } }, options),
+      () => owner.revokeCredential(hash, options),
+      () => owner.installWorkerKey(publicKey, "1", options),
+    ];
+    for (const call of calls) await expect(call()).rejects.toThrow("DURABLE_CHECKPOINT_UNAVAILABLE");
+    expect(checkpoints).toHaveLength(calls.length); expect(sent).toHaveLength(0);
+  });
 });

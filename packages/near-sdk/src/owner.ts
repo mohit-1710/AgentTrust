@@ -41,35 +41,35 @@ export class AgentTrustOwner {
     if (BigInt(amountYocto) === 0n || BigInt(storageCreditYocto) > BigInt(amountYocto)) throw new Error("INVALID_DEPOSIT");
     return this.call("deposit", { storage_credit_yocto: storageCreditYocto }, BigInt(amountYocto), options);
   }
-  setPolicy(args: { expected_revision: number; daily_cap_yocto: string; max_dispatches_per_minute: number; paused: boolean }): Promise<OwnerSubmission<V.OwnerPolicyView>> {
-    validateU128(args.daily_cap_yocto); return this.call("set_policy", args);
+  setPolicy(args: { expected_revision: number; daily_cap_yocto: string; max_dispatches_per_minute: number; paused: boolean }, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.OwnerPolicyView>> {
+    validateU128(args.daily_cap_yocto); return this.call("set_policy", args, 1n, options);
   }
-  setProfile(args: { profile_id: string; expected_revision: number | null; requirement: V.CapabilityRequirement | null }): Promise<OwnerSubmission<V.ProfileView>> {
-    validateProfileId(args.profile_id); return this.call("set_profile", args);
+  setProfile(args: { profile_id: string; expected_revision: number | null; requirement: V.CapabilityRequirement | null }, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.ProfileView>> {
+    validateProfileId(args.profile_id); return this.call("set_profile", args, 1n, options);
   }
-  registerSession(args: Omit<V.SessionView, "owner_id" | "revoked">): Promise<OwnerSubmission<V.SessionView>> {
+  registerSession(args: Omit<V.SessionView, "owner_id" | "revoked">, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.SessionView>> {
     validateHash32(args.session_id); validateProfileId(args.profile_id); PublicKey.from(args.public_key);
-    validateU128(args.purchase_cap_yocto); return this.call("register_session", args);
+    validateU128(args.purchase_cap_yocto); return this.call("register_session", args, 1n, options);
   }
   revokeSession(sessionId: string): Promise<OwnerSubmission<V.SessionView>> { validateHash32(sessionId); return this.call("revoke_session", { session_id: sessionId }); }
-  setServiceTrust(args: { service_id: string; service_version: number; allowed_profile_ids: string[]; expires_at_ns: string | null; active: boolean }): Promise<OwnerSubmission<V.TrustEntry & { owner_id: string }>> {
-    validateAccountId(args.service_id); return this.call("set_service_trust", args);
+  setServiceTrust(args: { service_id: string; service_version: number; allowed_profile_ids: string[]; expires_at_ns: string | null; active: boolean }, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.TrustEntry & { owner_id: string }>> {
+    validateAccountId(args.service_id); return this.call("set_service_trust", args, 1n, options);
   }
   blockService(serviceId: string, blocked: boolean): Promise<OwnerSubmission<null>> { validateAccountId(serviceId); return this.call("block_service", { service_id: serviceId, blocked }); }
   blockPayout(payoutAccount: string, blocked: boolean): Promise<OwnerSubmission<null>> { validateAccountId(payoutAccount); return this.call("block_payout", { payout_account: payoutAccount, blocked }); }
-  setService(args: { expected_version: number | null; payout_account: string; invoice_key: string; endpoint_hash: string; active: boolean }): Promise<OwnerSubmission<V.ServiceView>> {
-    validateAccountId(args.payout_account); validateHash32(args.invoice_key); validateHash32(args.endpoint_hash); return this.call("set_service", args);
+  setService(args: { expected_version: number | null; payout_account: string; invoice_key: string; endpoint_hash: string; active: boolean }, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.ServiceView>> {
+    validateAccountId(args.payout_account); validateHash32(args.invoice_key); validateHash32(args.endpoint_hash); return this.call("set_service", args, 1n, options);
   }
-  issueCredential(args: { credential_id: string; expected_revision: number | null; assertion: V.CredentialAssertion }): Promise<OwnerSubmission<V.CredentialView>> {
-    validateHash32(args.credential_id); return this.call("issue_credential", args);
+  issueCredential(args: { credential_id: string; expected_revision: number | null; assertion: V.CredentialAssertion }, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.CredentialView>> {
+    validateHash32(args.credential_id); return this.call("issue_credential", args, 1n, options);
   }
-  revokeCredential(credentialId: string): Promise<OwnerSubmission<V.CredentialView>> { validateHash32(credentialId); return this.call("revoke_credential", { credential_id: credentialId }); }
+  revokeCredential(credentialId: string, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.CredentialView>> { validateHash32(credentialId); return this.call("revoke_credential", { credential_id: credentialId }, 1n, options); }
   withdrawAvailable(withdrawalId: string, amountYocto: string, options: BroadcastOptions = {}): Promise<OwnerSubmission<V.WithdrawalView>> {
     validateHash32(withdrawalId); validateU128(amountYocto); return this.call("withdraw_available", { withdrawal_id: withdrawalId, amount_yocto: amountYocto }, 1n, options);
   }
-  async installWorkerKey(publicKey: string, allowanceYocto: string): Promise<OwnerSubmission<null>> {
+  async installWorkerKey(publicKey: string, allowanceYocto: string, options: BroadcastOptions = {}): Promise<OwnerSubmission<null>> {
     validateU128(allowanceYocto); if (BigInt(allowanceYocto) === 0n) throw new Error("INVALID_ALLOWANCE");
-    return this.submit(this.ownerId, [actions.addFunctionCallAccessKey(PublicKey.from(publicKey), this.client.coreAccount, ["execute_payment"], BigInt(allowanceYocto))], {});
+    return this.submit(this.ownerId, [actions.addFunctionCallAccessKey(PublicKey.from(publicKey), this.client.coreAccount, ["execute_payment"], BigInt(allowanceYocto))], options);
   }
   removeWorkerKey(publicKey: string): Promise<OwnerSubmission<null>> { return this.submit(this.ownerId, [actions.deleteKey(PublicKey.from(publicKey))], {}); }
 }

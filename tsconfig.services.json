@@ -9,7 +9,8 @@
   "include": [
     "packages/near-sdk/src/**/*.ts",
     "examples/invoice-audit/src/**/*.ts",
-    "packages/mcp/src/**/*.ts"
+    "packages/mcp/src/**/*.ts",
+    "examples/testnet-demo/src/**/*.ts"
   ],
   "exclude": [
     "**/node_modules/**",
