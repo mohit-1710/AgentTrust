@@ -1,0 +1,33 @@
+# Local private state and research checkouts are never deployment inputs.
+.agenttrust/
+.sprint/
+.reference/
+.gstack/
+.claude/
+.playwright-mcp/
+artifacts/local/
+
+# Build products and package installs are rebuilt from tracked source.
+node_modules/
+**/node_modules/
+target/
+**/target/
+dist/
+**/dist/
+.next/
+**/.next/
+.source/
+**/.source/
+.vercel/
+
+# Credentials, local environment and captures.
+.env*
+**/.env*
+**/credentials/
+**/secrets/
+**/*private-key*
+*.pem
+*.key
+*.log
+**/next-env.d.ts
+**/*.tsbuildinfo
