@@ -2,7 +2,7 @@
 
 Verification requirements frozen 11 November 2026. Actual task results are recorded in the sprint ledger. Source inspection, a test file existing, compilation and a passing runtime test are different evidence. T01/T02 verify provenance and toolchain smoke checks. T03/T04 establish V05 local Rust/TypeScript byte agreement and signature/input cases described in the ledger. No runtime gate has passed.
 
-**Execution update, 12 November:** the user authorized the current testnet operations and granted the standing rule's one-time exception for local native verification. [Actual Sandbox evidence](../native-runtime-evidence.md) now records 19 passing groups, with refund-gap and midnight/edit ordering still open. [Testnet evidence](../testnet-r2-evidence.md) records native payments and a scripted MCP purchase. These observations do not complete G2–G4; the lane rules below describe the original planning boundary, not a prohibition on this explicitly authorized work.
+**Execution update, 12 November:** the user authorized the current testnet operations and granted the standing rule's one-time exception for local native verification. [Actual Sandbox evidence](../native-runtime-evidence.md) now supports 20 groups across the broad run and separate accepted midnight/edit capture. Refund-gap remains open; midnight launcher cleanup is tracked separately. [Testnet evidence](../testnet-r2-evidence.md) records native payments and a scripted MCP purchase. These observations do not complete G2–G4; the lane rules below describe the original planning boundary, not a prohibition on this explicitly authorized work.
 
 ## Lanes and execution
 

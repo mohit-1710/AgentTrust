@@ -1,6 +1,8 @@
 # Native Sandbox evidence — 12 November 2026
 
-**19 of 21 case groups passed; the native gate remains incomplete.** Capture `fixed-gas-20261112T163836Z` finished at **16:44:11 UTC** with exit **2**, 116 passing case assertions, no fatal error and no unresolved submission locator. `refund_gap` is explicitly `unavailable`; `midnight_and_edits` is `not_run`. Neither is counted as passed.
+**Latest: execution evidence supports 20 of 21 case groups; the native gate remains incomplete.** The broad capture below passes 19 groups. The later [standalone V15 capture](#later-standalone-v15-capture-midnight-and-owner-edits) supplies the midnight/edit proof. Refund-gap evidence and clean midnight-launcher termination remain open.
+
+Capture `fixed-gas-20261112T163836Z` finished at **16:44:11 UTC** with exit **2**, 116 passing case assertions, no fatal error and no unresolved submission locator. Its `refund_gap` is explicitly `unavailable`; its `midnight_and_edits` is `not_run`. Neither historical status is rewritten by the separate capture.
 
 This is actual execution on a fresh local NEAR Sandbox, separate from the [r2 testnet payments](testnet-r2-evidence.md). It does not establish an actual-model run, either complete rehearsal, browser interaction or submission readiness.
 
@@ -77,7 +79,7 @@ The original attempts remain unchanged:
 
 The accepted observations above belong only to the fresh `79917e2` capture; they do not upgrade or rewrite either failed attempt or the frozen candidate. The capture and its raw files remain ignored local evidence.
 
-**Still open:** an observed no-surplus refund gap with its required liquidity refusal, and a real successful callback crossing midnight while owner edits preserve the reservation and original dispatch-day accounting. Separate fixtures need their own successful captures and review; preparation does not close these cases. Consult the [runtime runbook](runtime-runbook.md) and [verification matrix](sprint/verification.md) for the wider gates.
+**Open at this capture:** an observed no-surplus refund gap with its required liquidity refusal, and a real successful callback crossing midnight while owner edits preserve the reservation and original dispatch-day accounting. The later standalone capture below supplies the second proof. Consult the [runtime runbook](runtime-runbook.md) and [verification matrix](sprint/verification.md) for the wider gates.
 
 To repeat only the read-only integrity check from the repository root:
 
@@ -87,3 +89,42 @@ node scripts/runtime-evidence.ts .sprint/worktrees/t13-runtime-gas/artifacts/loc
 ```
 
 Expected exit: **2**, because the native gate is incomplete. This command does not start a node or perform a chain operation.
+
+## Later standalone V15 capture: midnight and owner edits
+
+**The separate native fixture passed V15; its outer launcher exit is still unresolved.** Capture `midnight-inclusion-20261112T165320Z` completed at **16:56:04 UTC**, reporting fixture exit 0 and **15 passing assertions**. Independent read-only review verified all **163 unique artifact hashes** and 41 conditions derived directly from the raw receipts, block headers and stored state. This supplies the midnight evidence missing from the historical 19-of-21 capture above; that capture's manifest and results remain unchanged.
+
+| Item | Recorded value |
+| --- | --- |
+| Source / tag | Clean `719b5ed29a81ec817d4357a1a52f4fa12661d968` / `native-midnight-candidate-1` |
+| Fixture binary SHA256 | `109d50cd31eea7151b8612c1c81a21b85ce1b6946f54b5a9a6e53164ffaee2af` |
+| Manifest SHA256 | `b80a9d31b20f73fca06ffd22033f1d36ed330197f89112f41dc01cfcf4e39060` |
+| Runtime lock SHA256 | `0628a60430bb20bd255c4f68369f5c996064c2358a772903614134bc602e1406` |
+| Native controls | Sandbox 2.14.0, protocol 88; installed two-second block delays and epoch length 1,000,000 |
+
+The actual deployed core and Sandbox binary match the production and node hashes recorded above. This fixture uses no callback-fault or helper WASM. Its retained manifest is:
+
+```text
+.sprint/worktrees/t13-midnight/artifacts/local/runtime/midnight-inclusion-20261112T165320Z/manifest.json
+```
+
+The FINAL transaction and receipt outcomes bind these consecutive canonical block headers:
+
+| Event | Height | Native block timestamp (UTC) |
+| --- | ---: | --- |
+| Payment transaction inclusion | 12814 | 12 November, 23:59:56.321297 |
+| Payment dispatch | 12815 | 12 November, 23:59:58.322022 |
+| Owner edit receipt and native payout | 12816 | 13 November, 00:00:00.327270 |
+| Private settlement callback | 12817 | 13 November, 00:00:02.330286 |
+
+- The single owner receipt executes `set_policy`, `set_profile`, then `get_account`. Its committed return retains the entire **0.03 NEAR pending**, one outstanding transfer and one payment, even after lowering the daily cap to **0.02 NEAR** and moving the profile to revision 2.
+- The exact `actors:v1` plus Borsh owner key was located and decoded independently. Its settled map contains only dispatch day **20769 → 0.03 NEAR**; callback day **20770** is zero. Available principal moves from **1.75 to 1.72 NEAR** and stays there after callback; pending becomes zero.
+- A real core-to-merchant `Transfer` pays exactly **0.03 NEAR**. Its output data ID matches the private callback's input, and the recipient balance increases by exactly that amount. Stored invoice/hash and dispatch/finalization timestamps match the original signed request and actual outcomes.
+- One native exact replay uses the original request, signature, payment ID and restricted worker key. It returns `duplicate: true` with the identical settled payment; the full ledger and recipient balance remain unchanged, and its receipt graph contains no merchant payout or settlement callback.
+
+The earlier standalone attempts remain failures, without rewriting their artifacts:
+
+- `midnight-20261112T163957Z`, source `81cffe9`: four artifacts, HTTP 408 during setup, no midnight assertions.
+- `midnight-polling-20261112T164601Z`, source `72b7022`: 147 artifacts; the callback crossed midnight, but the owner edit committed after settlement. Three of 13 assertions failed and no replay ran.
+
+**Acceptance boundary:** the native V15 evidence is accepted. The Node launcher subsequently reported a generic failure and remained alive after the fixture finished; clean command termination is not yet established. The separate no-surplus **refund-gap evidence remains open**, so the full native gate is still incomplete. This result also does not establish model execution, two complete rehearsals or browser verification. See the [standalone fixture runbook](runtime-midnight-fixture.md) for its bounded user-run procedure.
