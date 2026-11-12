@@ -10,7 +10,8 @@
     "packages/near-sdk/src/**/*.ts",
     "examples/invoice-audit/src/**/*.ts",
     "packages/mcp/src/**/*.ts",
-    "examples/testnet-demo/src/**/*.ts"
+    "examples/testnet-demo/src/**/*.ts",
+    "examples/buyer-agent/src/**/*.ts"
   ],
   "exclude": [
     "**/node_modules/**",

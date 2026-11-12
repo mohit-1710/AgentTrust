@@ -27,7 +27,9 @@
     "build:services": "tsc -p tsconfig.services.json && node scripts/copy-service-fixtures.mjs",
     "start:invoice-audit": "node dist/examples/invoice-audit/src/run-server.js",
     "start:mcp": "node dist/packages/mcp/src/run-server.js",
-    "test:mcp:stdio": "pnpm build:services && node packages/mcp/test/stdio-smoke.mjs"
+    "test:mcp:stdio": "pnpm build:services && node packages/mcp/test/stdio-smoke.mjs",
+    "start:buyer": "node dist/examples/buyer-agent/src/run.js",
+    "test:buyer:stdio": "pnpm build:services && node examples/buyer-agent/test/stdio-smoke.mjs"
   },
   "dependencies": {
     "near-api-js": "7.4.0",

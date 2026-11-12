@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "job_id": "CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg=",
+  "mcp_config_file": "/absolute/private/mcp.json",
+  "job_directory": "/absolute/private/buyer-jobs",
+  "csv_utf8": "vendor_id,invoice_id,amount,currency\nv1,i1,1.00,USD\n",
+  "candidates": [
+    { "service_id": "primary.testnet", "payment_id": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=" },
+    { "service_id": "alternative.testnet", "payment_id": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=" }
+  ],
+  "mode": "scripted",
+  "max_steps": 8,
+  "max_completion_tokens": 1024
+}
