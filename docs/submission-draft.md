@@ -1,18 +1,18 @@
 # Submission preparation
 
-**Draft only, 12 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The r2 scripted paid task and 20 of 21 native case groups are recorded; the refund-gap, actual-model buyer, two full rehearsals and video are still open gates. This document does not close them.
+**Draft only, 13 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The dated public decision feed still shows r2. Two fresh local-model/MCP operator rehearsals, [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md), each captured a separate settled 0.002 NEAR purchase, direct refusals, an exact retry and checked output. Native Sandbox evidence supports 20 of 21 case groups; the refund-gap, browser visual QA, video, public source release and submission remain open.
 
 ## Intended project and tracks
 
-Project: **AgentTrust on NEAR**. Proposed primary track: `security`. Add `agents` when the actual agent-driven paid task is captured. This is a recommendation for the human's final choice, not a submitted track selection. The frozen scope does not justify adding privacy, swarms, DeFi or business tracks.
+Project: **AgentTrust on NEAR**. Proposed primary track: `security`, with `agents` as a second track supported by the [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md) local-model paid-task traces. This is a recommendation for the human's final choice, not a submitted track selection. The frozen scope does not justify adding privacy, swarms, DeFi or business tracks.
 
 The existing repository is [mohit-1710/AgentTrust](https://github.com/mohit-1710/AgentTrust). Its public release is a separate action. The source boundary is `upstream-ui-baseline`; create and inspect a final submission tag only after the accepted implementation and evidence freeze. The final README must link the baseline-to-submission diff and preserve upstream license notices.
 
 ## Description to finalize after verification
 
-> AgentTrust lets an agent buy an invoice-audit service under its owner's spending and supplier rules. A restricted NEAR function-call key can invoke only the payment method. The native contract checks the exact supplier identity, capability credential, limits and signed request before reserving funds and transferring NEAR. The buyer can move to an eligible provider after a definite refusal; unresolved attempts keep their original ID. The service releases its report only after final settled-payment verification, and the buyer checks the output separately. The demonstration uses NEAR testnet, synthetic invoices, two controlled providers and a project-operated capability issuer. We reused AgentTrust's website/docs design; the native NEAR contract, SDK, paid HTTP flow and local MCP are new hackathon work.
+> AgentTrust lets an agent buy an invoice-audit service under its owner's spending and supplier rules. A restricted NEAR function-call key can invoke only the payment method. The native contract checks the exact supplier identity, capability credential, limits and signed request before reserving funds and transferring NEAR. In two local-model runs, A received a read-only missing-credential preview; the model then requested the owner-approved B exposed by the host. The host supplied the original payment ID and exact CSV, and B's separate 0.002 NEAR payment settled. The service released its report after final settled-payment verification, and the buyer checked the output separately. The demonstration uses NEAR testnet, synthetic invoices, two controlled providers and a project-operated capability issuer. We reused AgentTrust's website/docs design; the native NEAR contract, SDK, paid HTTP flow and local MCP are new hackathon work.
 
-This wording describes the intended completed behavior. It is **not ready to submit** until the proof map supports each sentence. If a gate remains incomplete, rewrite the relevant claim explicitly rather than omitting its limitation.
+The [evidence map](evidence-map.md) and two dated rehearsal records support this bounded behavior. The final submission still needs the actual video, public source, selected tracks and human-confirmed payload. Disclose the open native refund-gap and visual-QA limits wherever a complete runtime or polished-demo claim would otherwise be implied.
 
 ## X post draft
 
@@ -20,7 +20,7 @@ Publish only after the actual video and public source are ready; the human posts
 
 > my agent needs an invoice audit.
 >
-> the first supplier is missing the required credential. the purchase is refused. the agent picks an eligible alternative and checks the report.
+> the first supplier is missing the required credential. the preview refuses it. the model requests the owner-approved alternative exposed by the host, then checks the paid report.
 >
 > AgentTrust on NEAR. built at NEAR HACKATHON.
 >

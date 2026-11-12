@@ -5,7 +5,7 @@ description: "Owner-controlled service purchases with exact identity, capability
 
 AgentTrust is being built so an agent can buy a service only from the identity its owner permits, with the required capability evidence, within a bounded NEAR allowance.
 
-The first version uses one native NEAR contract, one asset and one capability: `invoice.audit.v1`. Its demonstration is an invoice-CSV audit from two controlled providers. The agent should reject invalid supplier evidence, choose an eligible service, pay once and receive a real report.
+The first version uses one native NEAR contract, one asset and one capability: `invoice.audit.v1`. Its demonstration is an invoice-CSV audit from two controlled providers. The agent should reject invalid supplier evidence, request an eligible owner-approved service, pay once and receive a real report.
 
 ## What each fact means
 
@@ -21,7 +21,7 @@ These are separate facts. Registration or a credential does not grant permission
 
 ## Current build boundary
 
-Start with the [milestone status](/reference/changelog). A controlled [r2 testnet run](/verification/live-evidence) records a deployed native core, two settled payments, contract refusals, an exact retry and a scripted MCP buyer. Native runtime captures support 20 of 21 case groups. This read-only documentation and the [website](https://www.agenttrust.tech) are live; paid providers, MCP and the model buyer remain local. The actual-model purchase, two full rehearsals, refund-gap observation and visual QA remain open. Follow [local quickstart](/getting-started/quickstart) for reproducible local checks.
+Start with the [milestone status](/reference/changelog). The controlled [r2 testnet run](/verification/live-evidence) recorded a scripted MCP buyer. Two fresh [r3](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r3-evidence.md) and [r4](https://github.com/mohit-1710/AgentTrust/blob/main/docs/testnet-r4-evidence.md) operator rehearsals each recorded five local-model responses, a host-allowed B request, a separate settled 0.002 NEAR purchase, direct contract refusals and an exact retry. Native runtime captures support 20 of 21 case groups. The public read-only [website](https://www.agenttrust.tech) and docs are live; the website's decision feed still uses dated r2, while paid providers, MCP and the model buyer remain local. Refund-gap observation, browser visual QA and the video remain open. Follow [local quickstart](/getting-started/quickstart) for reproducible local checks.
 
 Unknown services are denied. The first version has no one-off approval bypass, numeric reputation, social trust, second payment asset, escrow or hosted signer.
 
