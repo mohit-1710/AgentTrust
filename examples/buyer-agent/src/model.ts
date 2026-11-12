@@ -9,12 +9,13 @@ export async function checkModel(model: string): Promise<void> {
   const r = await fetch(modelCatalog, { redirect: "error", signal: AbortSignal.timeout(30_000) });
   if (!r.ok || r.redirected) throw new Error("MODEL_CATALOG_UNAVAILABLE");
   const body = await readJson(r.body, 1024 * 1024);
-  if (!object(body) || !Array.isArray(body.models) || !body.models.some((m) => object(m) && m.modelId === model && object(m.metadata) && m.metadata.isReady !== false && Array.isArray(m.metadata.supportedFeatures) && m.metadata.supportedFeatures.includes("tools"))) throw new Error("MODEL_NOT_READY_FOR_TOOLS");
+  if (!object(body) || !Array.isArray(body.models) || !body.models.some((m) => object(m) && m.modelId === model && object(m.metadata) && m.metadata.isReady === true && Array.isArray(m.metadata.supportedFeatures) && m.metadata.supportedFeatures.includes("tools"))) throw new Error("MODEL_NOT_READY_FOR_TOOLS");
 }
 export function nearAiDriver(config: BuyerConfig, apiKey: string): Driver {
   if (config.mode !== "near-ai" || !config.model || !apiKey || /[\r\n]/.test(apiKey)) throw new Error("MODEL_CONFIGURATION_REQUIRED");
   return { async next(history: readonly ChatMessage[], tools: readonly ToolDefinition[]): Promise<{ call?: ProposedCall; trace: ModelTrace }> {
-    const body = { model: config.model, messages: history, tools: tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.inputSchema } })), tool_choice: "auto", parallel_tool_calls: false, max_tokens: config.max_completion_tokens, stream: false };
+    // Qwen 3.6 reasons by default; leave the bounded completion for tool calls.
+    const body = { model: config.model, messages: history, tools: tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.inputSchema } })), tool_choice: "auto", parallel_tool_calls: false, max_tokens: config.max_completion_tokens, stream: false, ...(config.model === "Qwen/Qwen3.6-35B-A3B-FP8" ? { chat_template_kwargs: { enable_thinking: false } } : {}) };
     const response = await fetch(endpoint, { method: "POST", redirect: "error", headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) });
     if (!response.ok || response.redirected) throw new Error("MODEL_REQUEST_FAILED");
     const value = await readJson(response.body, 512 * 1024);
