@@ -23,6 +23,12 @@ use std::{
 };
 
 const NEAR: u128 = 1_000_000_000_000_000_000_000_000;
+const STANDARD_WORKER_ALLOWANCE: NearToken = NearToken::from_millinear(500);
+// max_gas() attaches 300 Tgas. Cover protocol88's observed 1e9 yocto/gas floor plus 1 Tgas fee headroom.
+const _: () = assert!(
+    STANDARD_WORKER_ALLOWANCE.as_yoctonear() >= 301_000_000_000_000u128 * 1_000_000_000
+        && STANDARD_WORKER_ALLOWANCE.as_yoctonear() <= NEAR / 2
+);
 const REQUIRED_CASES: &[(&str, &[&str])] = &[
     ("initialization_authority", &["V01"]),
     ("restricted_key", &["V02"]),
@@ -327,7 +333,7 @@ impl OwnerSetup {
             purchase: NEAR / 10,
             session_lifetime_ns: 86_400_000_000_000,
             requirement: Value::Null,
-            worker_allowance: NearToken::from_millinear(50),
+            worker_allowance: STANDARD_WORKER_ALLOWANCE,
         }
     }
 }
@@ -556,7 +562,7 @@ async fn run(
         ),
         (
             "finite nonzero allowance",
-            decimal(&p["allowance"]).is_ok_and(|n| n > 0 && n <= NEAR / 20),
+            decimal(&p["allowance"]).is_ok_and(|n| n > 0 && n <= NEAR / 2),
         ),
     ];
     // A transport error is not a permission proof: require the actual access-key error class.
@@ -1082,6 +1088,11 @@ async fn main() -> Result<()> {
     h.artifact("node-status", "node_status", &status)?;
     h.manifest["environment"]["reported_chain_id"] = status["result"]["chain_id"].clone();
     h.manifest["environment"]["node_version"] = status["result"]["version"].clone();
+    let protocol_request = json!({"finality":"final"});
+    let protocol_config = h
+        .rpc("EXPERIMENTAL_protocol_config", protocol_request.clone())
+        .await?;
+    h.manifest["environment"]["protocol_config"] = json!({"method":"EXPERIMENTAL_protocol_config","params":protocol_request,"response":protocol_config});
     if let Err(error) = run(&mut h, &wasm, fault.as_deref(), helper.as_deref()).await {
         h.manifest["fatal_error"] = json!(error.to_string());
     }
