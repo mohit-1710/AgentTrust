@@ -6,6 +6,18 @@ The central question: **Can an agent buy a useful service without choosing its o
 
 For a recording from the reviewed evidence, use the [live decision page](https://www.agenttrust.tech/decisions) and the public [r4](https://docs.agenttrust.tech/verification/testnet-r4) proof page as the main path; the [r3](https://docs.agenttrust.tech/verification/testnet-r3) page shows the independent second run. The r4 provider B credential was revoked and its identity rotated after the successful purchases. Its saved buyer result may be shown as a labeled replay, but another fresh purchase needs a newly prepared eligible environment. Keep local keys, private journals and raw configuration out of the screen capture.
 
+From this workspace root, the reviewed r4 job has a keyless playback command for the 114–130s segment:
+
+```sh
+(
+  . scripts/env.sh
+  unset AGENTTRUST_WORKER_PRIVATE_KEY AGENTTRUST_SETUP_PRIVATE_KEY NEAR_AI_API_KEY
+  pnpm demo:operator --directory "$PWD/.agenttrust/testnet-demo-r4" --replay-buyer local-model
+)
+```
+
+The command was rechecked with no worker/setup/model key in the child environment. It returned `recorded_replay`, zero model responses, the original settled r4 B payment ID and the checked 15-row report (8 accepted, 7 rejected). Label it as a saved result, not a new model call or payment. The private r4 bundle is intentionally absent from the public repository.
+
 ## The 140-second sequence
 
 | Time | Show | Say, after the evidence exists |
