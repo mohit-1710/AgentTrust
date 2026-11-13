@@ -4,6 +4,8 @@
 
 The central question: **Can an agent buy a useful service without choosing its own spending authority?** Show the existing product and one real invoice audit. Do not lead with an architecture diagram, a test count or an award claim.
 
+For a recording from the reviewed evidence, use the [live decision page](https://www.agenttrust.tech/decisions) and the public [r4](https://docs.agenttrust.tech/verification/testnet-r4) proof page as the main path; the [r3](https://docs.agenttrust.tech/verification/testnet-r3) page shows the independent second run. The r4 provider B credential was revoked and its identity rotated after the successful purchases. Its saved buyer result may be shown as a labeled replay, but another fresh purchase needs a newly prepared eligible environment. Keep local keys, private journals and raw configuration out of the screen capture.
+
 ## The 140-second sequence
 
 | Time | Show | Say, after the evidence exists |

@@ -1,6 +1,6 @@
 # Local demo environment
 
-The event permits a local demo with a public repository, reproducible instructions and a video. This runbook prepares that option without a cloud deployment. It does not establish a successful native payment. Keep the repository private until the separately authorized release; the final video must show actual captured results.
+The event permits a local paid demo with a public repository, reproducible instructions and a video. The read-only website and docs are [already public](hosting-evidence.md); this runbook prepares local providers and surfaces without hosting a signer or paid service. These startup commands alone do not establish a native payment; the separate [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md) captures do. Keep the repository private until the separately authorized release; the final video must show actual captured results.
 
 All listeners below bind to `127.0.0.1`. No command opens a browser, installs a certificate in the OS, creates a NEAR account, deploys a contract or starts Sandbox. Provider startup itself does not send transactions. The separate T18 setup and purchase commands are explicitly user-run and must pass their evidence gates before claiming a paid task.
 

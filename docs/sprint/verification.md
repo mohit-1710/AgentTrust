@@ -4,6 +4,8 @@ Verification requirements frozen 11 November 2026. Actual task results are recor
 
 **Execution update, 12 November:** the user authorized bounded testnet operations, and the accepted Sandbox captures were executed under a one-time database exception that has ended. [Actual Sandbox evidence](../native-runtime-evidence.md) supports 20 groups across the broad run and separate accepted midnight/edit capture, including a clean standalone exit 0 with observed process-group cleanup. Refund-gap remains open. [Testnet evidence](../testnet-r2-evidence.md) records native payments and a scripted MCP purchase. These observations do not complete G2–G4; the lane rules below remain the current execution boundary.
 
+**Execution update, 13 November:** fresh [r3](../testnet-r3-evidence.md) and [r4](../testnet-r4-evidence.md) runs used distinct roles, sessions and payment IDs. Each records five local-model responses through restricted MCP, a host-allowed B purchase settling 0.002 NEAR, a checked report, direct contract refusals, an exact native retry and a keyless replay. The T27 review found no new Critical/Important demo-path issue and accepted the two controlled rehearsals before recording. V17 refund ordering still lacks its separate native observation, and browser visual behavior remains unverified; these runs do not close the full G2–G4 gates. The read-only website/docs and r4 decision feed are public, while providers, MCP and model buyer remain local.
+
 ## Lanes and execution
 
 | Lane | What it establishes | Current execution rule |
@@ -12,9 +14,9 @@ Verification requirements frozen 11 November 2026. Actual task results are recor
 | H: Rust contract memory host | Actual contract methods, serialized storage and recorded promise actions through SDK map-backed host | Explicit isolated `tests/contract-memory` suite; ordinary Rust maps/vectors only, no database/chain. Context and promise results are supplied; no WASM/rollback/receipt execution proof. |
 | T: pure TypeScript/HTTP | Client byte agreement, parsing, tool schemas, request/receipt checks | May run if effects are inspected and no database/live mutation |
 | W: WASM build | Contract compiles for target | May run; does not establish runtime correctness |
-| U: UI/docs | Visual preservation, truthful data mapping, generated corpus | Local/read-only smoke allowed; no auto-deploy |
+| U: UI/docs | Visual preservation, truthful data mapping, generated corpus | Local HTTP/build checks and the separately authorized public read-only deployment passed; browser visual QA remains unperformed |
 | R: runtime | Actual NEAR key restrictions, receipts, storage/balance/refund behavior | Sandbox persists database: prepare exact command, user executes under standing rule |
-| L: live demo | Actual testnet purchase and hosted service behavior | Outside planning authorization; separate reviewed execution and evidence |
+| L: live demo | Actual testnet purchase and controlled service behavior | Bounded r2/r3/r4 testnet operations were separately authorized and captured; each new live run remains an explicit evidence-bound action |
 
 Never put R/L into default install/build/test scripts, postinstall hooks, GitHub Actions or scheduled jobs. A prepared user-run harness is not a passed gate. No approval prompt can waive the standing prohibited-write rule; provide the command for user execution instead.
 
