@@ -8,7 +8,7 @@ The [judge-facing public RPC extract](evidence/r2-native/README.md) includes sel
 
 | Item | Accepted value |
 | --- | --- |
-| Source commit | `315503c59eb5b515768d4c7c176983180ff15576` |
+| Source commit | `43af598c71340fd95f94b65b18f9101092854574` |
 | Working tree in all r2 step manifests | Clean |
 | Network / RPC | `near:testnet` / `https://test.rpc.fastnear.com` |
 | Core | `core.agenttrust-73cf3674cd1978d09120a484.testnet` |

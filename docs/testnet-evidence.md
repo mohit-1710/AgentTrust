@@ -8,7 +8,7 @@
 - Core: `core.agenttrust-21b5bd861c084ee60b5c2f9b.testnet`.
 - Production WASM SHA-256: `f55e07c756bf2b7f3e6c4011dbed49eb0e10048b4d55eccd8f6bba4d829b719f`.
 - Observed deployed code hash: `HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS`, the same digest encoded in base58.
-- Deployment source: [1de8171](https://github.com/mohit-1710/AgentTrust/commit/1de8171db60242048413968ed009627cfac71ba5). Setup, validation and issuance: [5e0c7c5](https://github.com/mohit-1710/AgentTrust/commit/5e0c7c5e0dfea32c92aa54c6991fec8be5100994), recorded clean.
+- Deployment source: [f56c6f5](https://github.com/mohit-1710/AgentTrust/commit/f56c6f5aff3d5ae42552ef6f035e04e152d96784). Setup, validation and issuance: [f448259](https://github.com/mohit-1710/AgentTrust/commit/f448259478fa0356c3e597210c350062894b54e4), recorded clean.
 
 The deployment manifest retains `working_tree_dirty:true`. Its pre-run executable provenance recorded the same source commit as clean, the production hash and emitted-file hashes. The operator investigation attributed the difference to historical untracked `.playwright-mcp/` artifacts becoming visible when the isolated child lacked the parent's global Git ignore configuration. The project ignore was then made explicit before setup. The original manifest is preserved; this annotation does not rewrite it as a clean capture or prove executable identity by itself.
 

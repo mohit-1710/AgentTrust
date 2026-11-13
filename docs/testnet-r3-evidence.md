@@ -6,7 +6,7 @@
 
 | Item | Observed value |
 | --- | --- |
-| Captured source commit / working tree | 9338803431ecce07bb62945cd0ddecc0bf0a9d87 / clean |
+| Captured source commit / working tree | bebea6f033edc4dbfd1933b8c42f053b5fd72bda / clean |
 | Network / RPC | near:testnet / https://test.rpc.fastnear.com |
 | Core / owner | core.agenttrust-2ae097b8b3780f87dc41fbba.testnet / owner.agenttrust-2ae097b8b3780f87dc41fbba.testnet |
 | Issuer | issuer.agenttrust-2ae097b8b3780f87dc41fbba.testnet |

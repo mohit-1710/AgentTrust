@@ -1,6 +1,6 @@
 # r2 native testnet proof extract
 
-These [selected public RPC fields](public-rpc-extract.json) come from five direct AgentTrust r2 transactions captured on 12 November 2026. The source commit was `315503c59eb5b515768d4c7c176983180ff15576`. The deployed production core was `core.agenttrust-73cf3674cd1978d09120a484.testnet`, with on-chain code hash `HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS`. The extract records the exact transaction and receipt IDs, contract return, final payment views, service-account balances and SHA-256 hashes of the retained source artifacts.
+These [selected public RPC fields](public-rpc-extract.json) come from five direct AgentTrust r2 transactions captured on 12 November 2026. The source commit was `43af598c71340fd95f94b65b18f9101092854574`. The deployed production core was `core.agenttrust-73cf3674cd1978d09120a484.testnet`, with on-chain code hash `HWp3imxWMrJgKQ7zAA2muWZYcXozELiWikUnLV6DwHxS`. The extract records the exact transaction and receipt IDs, contract return, final payment views, service-account balances and SHA-256 hashes of the retained source artifacts.
 
 | Direct call | Transaction | Return and final payment view | Service payout in that call |
 | --- | --- | --- | --- |

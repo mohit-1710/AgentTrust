@@ -10,7 +10,7 @@ This is actual execution on a fresh local NEAR Sandbox, separate from the [r2 te
 
 | Item | Recorded value |
 | --- | --- |
-| Source commit | `79917e2502266322df0e65099db75c0415b503e0` |
+| Source commit | `78382889f6d6d8cd565184a8b222838458284f21` |
 | Working tree | Clean |
 | Node / protocol | Sandbox `2.14.0`, protocol `88`; loopback RPC |
 | Core account | `core.test.near` |
@@ -74,10 +74,10 @@ Receipt IDs, predecessor/receiver/action bindings, transfer-to-callback data dep
 
 The original attempts remain unchanged:
 
-- `.sprint/worktrees/runtime-candidate-3/artifacts/local/runtime/candidate-3-20261112T162701Z/manifest.json`: source `ca49c19`, exit 1, HTTP 408 after three passed groups.
-- `.sprint/worktrees/t13-runtime-gas/artifacts/local/runtime/gas-repair-20261112T163400Z/manifest.json`: source `9f5b05a`, exit 1, HTTP 408 after three passed groups. The SDK's `max_gas()` attached 1,000 Tgas; the subsequent repair pins 300 Tgas instead of assuming an SDK maximum.
+- `.sprint/worktrees/runtime-candidate-3/artifacts/local/runtime/candidate-3-20261112T162701Z/manifest.json`: source `24cba9f`, exit 1, HTTP 408 after three passed groups.
+- `.sprint/worktrees/t13-runtime-gas/artifacts/local/runtime/gas-repair-20261112T163400Z/manifest.json`: source `a4ee1aa`, exit 1, HTTP 408 after three passed groups. The SDK's `max_gas()` attached 1,000 Tgas; the subsequent repair pins 300 Tgas instead of assuming an SDK maximum.
 
-The accepted observations above belong only to the fresh `79917e2` capture; they do not upgrade or rewrite either failed attempt or the frozen candidate. The capture and its raw files remain ignored local evidence.
+The accepted observations above belong only to the fresh `7838288` capture; they do not upgrade or rewrite either failed attempt or the frozen candidate. The capture and its raw files remain ignored local evidence.
 
 **Open at this capture:** an observed no-surplus refund gap with its required liquidity refusal, and a real successful callback crossing midnight while owner edits preserve the reservation and original dispatch-day accounting. The later standalone capture below supplies the second proof. Consult the [runtime runbook](runtime-runbook.md) and [verification matrix](sprint/verification.md) for the wider gates.
 
@@ -96,7 +96,7 @@ Expected exit: **2**, because the native gate is incomplete. This command does n
 
 | Item | Recorded value |
 | --- | --- |
-| Source / tag | Clean `719b5ed29a81ec817d4357a1a52f4fa12661d968` / `native-midnight-candidate-1` |
+| Source / tag | Clean `74828d1335fa283b80116fef3a08d933f8c6e928` / `native-midnight-candidate-1` |
 | Fixture binary SHA256 | `109d50cd31eea7151b8612c1c81a21b85ce1b6946f54b5a9a6e53164ffaee2af` |
 | Manifest SHA256 | `b80a9d31b20f73fca06ffd22033f1d36ed330197f89112f41dc01cfcf4e39060` |
 | Runtime lock SHA256 | `0628a60430bb20bd255c4f68369f5c996064c2358a772903614134bc602e1406` |
@@ -124,14 +124,14 @@ The FINAL transaction and receipt outcomes bind these consecutive canonical bloc
 
 The earlier standalone attempts remain failures, without rewriting their artifacts:
 
-- `midnight-20261112T163957Z`, source `81cffe9`: four artifacts, HTTP 408 during setup, no midnight assertions.
-- `midnight-polling-20261112T164601Z`, source `72b7022`: 147 artifacts; the callback crossed midnight, but the owner edit committed after settlement. Three of 13 assertions failed and no replay ran.
+- `midnight-20261112T163957Z`, source `30887d1`: four artifacts, HTTP 408 during setup, no midnight assertions.
+- `midnight-polling-20261112T164601Z`, source `374a5e5`: 147 artifacts; the callback crossed midnight, but the owner edit committed after settlement. Three of 13 assertions failed and no replay ran.
 
 **Acceptance boundary:** the native V15 evidence is accepted. This original Node launcher subsequently reported a generic failure and remained alive after the fixture finished; it did not establish clean command termination. The separate no-surplus **refund-gap evidence remains open**, so the full native gate is still incomplete. This result also does not establish model execution, two complete rehearsals or browser verification. See the [standalone fixture runbook](runtime-midnight-fixture.md) for its bounded user-run procedure.
 
 ## Clean launcher rerun
 
-Capture `midnight-reaped-20261112T171500Z` completed at **17:18:17 UTC** from clean `cc4f02d7e9aad079cad3f05a2dfb8c18e51a7bfd`, tagged `native-midnight-candidate-3`. Both the native fixture and the outer command exited **0**. All **15 native assertions passed** and all **163 artifact hashes matched** in independent review. The production WASM, runtime lock and Rust fixture binary are unchanged from the accepted V15 proof.
+Capture `midnight-reaped-20261112T171500Z` completed at **17:18:17 UTC** from clean `68bc5a5588743d5ad80ce2edff64f1c3924cc6e5`, tagged `native-midnight-candidate-3`. Both the native fixture and the outer command exited **0**. All **15 native assertions passed** and all **163 artifact hashes matched** in independent review. The production WASM, runtime lock and Rust fixture binary are unchanged from the accepted V15 proof.
 
 | Item | Recorded value |
 | --- | --- |
@@ -145,4 +145,4 @@ Independent raw review binds canonical blocks 12148–12151, the committed 0.03 
 
 The launcher recorded `MIDNIGHT_OWNED_GROUP_OBSERVED_ABSENT_AFTER_EPERM`: after the direct child exited, bounded read-only probes observed the owned group disappear. That terminal observation, not the permission error itself, permits success. A subsequent process inspection found no remaining fixture, Sandbox or launcher. Fourteen isolated process cases and a real owned zombie/reaping test also passed independent review; persistent permission errors and unrelated failures remain nonzero.
 
-The preceding `f64571b` capture, `midnight-cleanup-20261112T170430Z`, remains separately retained: 163 verified hashes, 15 native assertions, fixture exit 0, outer exit **1** with `EPERM`. Its manifest SHA256 is `25ddfd8466a06abaee2858997207968e867e205283d2928d65f10b9e7d19e365`. No earlier capture or outer result was rewritten. This clean rerun closes launcher termination; it does not close refund-gap coverage or either actual-model rehearsal.
+The preceding `0a74575` capture, `midnight-cleanup-20261112T170430Z`, remains separately retained: 163 verified hashes, 15 native assertions, fixture exit 0, outer exit **1** with `EPERM`. Its manifest SHA256 is `25ddfd8466a06abaee2858997207968e867e205283d2928d65f10b9e7d19e365`. No earlier capture or outer result was rewritten. This clean rerun closes launcher termination; it does not close refund-gap coverage or either actual-model rehearsal.
