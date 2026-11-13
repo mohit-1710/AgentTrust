@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Render the evidence-led AgentTrust NEAR video from public visuals and local voice.
 
-All source facts below are in video/brief.md and the public r4 proof. Captures and
-output stay ignored locally; the video does not display private operator bundles.
+All source facts below are in video/brief.md and the public r4 proof. The dated
+public-page captures are tracked source assets; generated output stays ignored.
+The video does not display private operator bundles.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ import argparse
 import json
 import math
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -133,7 +135,7 @@ def opening(stage: int) -> Image.Image:
     lines(d, 90, 184, "A bad payment\nstops here.", face=FONT_SERIF, size=112, fill=WHITE, line_height=126)
     lines(d, 96, 468, "The audit still gets done.", size=48, fill="#C8C3D4")
     cards = [
-        (90, 590, 610, 780, RED_LIGHT, RED, "A / MISSING", "READ-ONLY PREVIEW\nNO TRANSACTION"),
+        (90, 590, 610, 780, RED_LIGHT, RED, "A / MISSING", "READ-ONLY PREVIEW: NO TX\nSEPARATE CORE R4-16: NO PAYOUT"),
         (660, 590, 1180, 780, GREEN_LIGHT, GREEN, "B / 0.002 NEAR", "FINAL TRANSFER RECEIPT\nSETTLED CALLBACK"),
         (1230, 590, 1830, 780, PURPLE_LIGHT, PURPLE, "15 ROWS CHECKED", "8 ACCEPTED · 7 REJECTED\nSYNTHETIC INVOICE AUDIT"),
     ]
@@ -144,7 +146,7 @@ def opening(stage: int) -> Image.Image:
               fill=fg if visible else "#716B7F")
         lines(d, x0 + 30, y0 + 99, sub, face=FONT_MONO, size=21,
               fill=INK if visible else "#625B71", line_height=31)
-    label(d, 255, 818, "Preview refusal and B purchase are the same saved buyer run", fill="#B7B2C4", size=19)
+    label(d, 255, 818, "Preview A + paid B are one saved run; direct r4-16 is a separate test", fill="#B7B2C4", size=19)
     return im
 
 
@@ -173,7 +175,7 @@ def owner(stage: int) -> Image.Image:
 
 def preview(stage: int) -> Image.Image:
     im, d = base(3, eyebrow="R4 / SELF-RECORDED MODEL + MCP TRACE")
-    lines(d, 88, 177, "The first request never reaches the chain.", face=FONT_SERIF, size=72)
+    lines(d, 88, 177, "A's payment never becomes a transaction.", face=FONT_SERIF, size=72)
     box(d, (86, 296, 1125, 781), fill=WHITE, radius=20)
     label(d, 119, 326, "RECORDED TOOL ORDER · 23:45 UTC", fill=PURPLE)
     rows = [(1, "get_policy", "read"), (2, "list_services", "read"), (3, "get_service(A)", "read"), (4, "pay_service(A)", "MISSING")]
@@ -200,6 +202,22 @@ def preview(stage: int) -> Image.Image:
 def purchase(stage: int) -> Image.Image:
     im, d = base(4, eyebrow="R4 MODEL PURCHASE / HOST-ALLOWED B / NATIVE NEAR")
     lines(d, 88, 177, "B is paid. The contract decides.", face=FONT_SERIF, size=79)
+    if stage >= 2:
+        box(d, (90, 309, 1830, 781), fill=GREEN_LIGHT, outline=GREEN_LIGHT, radius=20)
+        label(d, 126, 340, "FINAL MODEL PAYMENT · PROVIDER B", fill=GREEN, size=26)
+        lines(d, 120, 397, "0.002 NEAR", face=FONT_SERIF, size=112, fill=GREEN)
+        label(d, 128, 554, "PAYMENT ID", fill=GREEN, size=23)
+        lines(d, 124, 592, "ZIu51g…JJaHo=", face=FONT_MONO, size=40)
+        chip(d, 128, 689, "CALLBACK: SETTLED", bg=WHITE, fg=GREEN, size=25)
+        d.line((960, 340, 960, 744), fill="#A5D7B7", width=3)
+        label(d, 1005, 350, "FINAL TRANSACTION", fill=GREEN, size=24)
+        lines(d, 1000, 395, "EAmDNch3…GfSF", face=FONT_MONO, size=45)
+        label(d, 1005, 488, "TRANSFER RECEIPT", fill=GREEN, size=24)
+        lines(d, 1000, 533, "HS3fQWFt…7QSaX5j", face=FONT_MONO, size=42)
+        lines(d, 1005, 611, "Core to provider B", face=FONT_SERIF, size=46)
+        lines(d, 1005, 694, "Dispatch first. Callback later.", size=31, fill=MUTED)
+        label(d, 255, 818, "Public r4 proof · exact final receipts and settled contract callback", size=21)
+        return im
     blocks = [
         (90, "MODEL", "requests B", PURPLE),
         (540, "HOST", "binds CSV + ID", PURPLE),
@@ -221,10 +239,11 @@ def purchase(stage: int) -> Image.Image:
     photo(im, ROOT / "assets/decisions-r4-2026-11-13.png", (107, 624, 1108, 761), crop=(340, 430, 1110, 560), radius=9)
     box(d, (1163, 605, 1830, 779), fill=GREEN_LIGHT if stage >= 2 else WHITE,
         outline=GREEN_LIGHT if stage >= 2 else LINE, radius=16)
-    label(d, 1190, 625, "FINAL TRANSFER + LATER CALLBACK", fill=GREEN if stage >= 2 else MUTED, size=20)
-    lines(d, 1190, 663, "HS3f…SaX5j → B", face=FONT_MONO, size=30, fill=INK if stage >= 2 else "#A09CA5")
-    lines(d, 1190, 716, "SETTLED", face=FONT_SERIF, size=42, fill=GREEN if stage >= 2 else "#A09CA5")
-    label(d, 255, 818, "Live payment view + separate r4 final transaction/receipts", size=21)
+    label(d, 1190, 620, "FINAL TX EAmDN…GfSF", fill=GREEN if stage >= 2 else MUTED, size=20)
+    lines(d, 1190, 655, "0.002 NEAR", face=FONT_SERIF, size=65,
+          fill=GREEN if stage >= 2 else "#A09CA5")
+    label(d, 1190, 735, "RECEIPT HS3f… → B · CALLBACK SETTLED", fill=GREEN if stage >= 2 else MUTED, size=19)
+    label(d, 255, 818, "Public page capture of payment view + separate r4 final receipts", size=21)
     return im
 
 
@@ -250,12 +269,12 @@ def report(stage: int) -> Image.Image:
     label(d, 1134, 331, "CHECKED REPORT", fill=PURPLE)
     lines(d, 1130, 380, "15", face=FONT_SERIF, size=99, fill=INK)
     label(d, 1300, 458, "ROWS", size=23)
-    chip(d, 1132, 500, "8 ACCEPTED", bg=GREEN_LIGHT, fg=GREEN, size=27, height=56)
-    chip(d, 1454, 500, "7 REJECTED", bg=RED_LIGHT, fg=RED, size=27, height=56)
+    chip(d, 1132, 500, "8 ACCEPTED", bg=GREEN_LIGHT, fg=GREEN, size=34, height=62)
+    chip(d, 1454, 500, "7 REJECTED", bg=RED_LIGHT, fg=RED, size=34, height=62)
     if stage:
-        lines(d, 1133, 591, "A-100 · duplicate rows 1+2", face=FONT_MONO, size=26)
-        lines(d, 1133, 638, "Row 9 · NEGATIVE_AMOUNT", face=FONT_MONO, size=25, fill=RED)
-        chip(d, 1132, 704, "OUTPUT CHECK PASSED", bg=PURPLE_LIGHT, fg=PURPLE, size=22)
+        lines(d, 1133, 591, "A-100 · duplicate rows 1+2", face=FONT_MONO, size=31)
+        lines(d, 1133, 638, "Row 9 · NEGATIVE_AMOUNT", face=FONT_MONO, size=30, fill=RED)
+        chip(d, 1132, 704, "OUTPUT CHECK PASSED", bg=PURPLE_LIGHT, fg=PURPLE, size=25)
     else:
         lines(d, 1133, 591, "Findings appear after settlement", size=27, fill=MUTED)
     label(d, 255, 818, "Synthetic input · public fixture and r4 checked outcome · not a general accuracy claim", size=20)
@@ -267,14 +286,14 @@ def direct_refusal(stage: int) -> Image.Image:
     lines(d, 88, 182, "Skipping preview still fails.", face=FONT_SERIF, size=86, fill=WHITE)
     box(d, (86, 320, 1225, 751), fill=WHITE, outline=WHITE, radius=19)
     photo(im, ROOT / "assets/decisions-r4-2026-11-13.png", (105, 339, 1206, 561), crop=(310, 680, 1080, 820), radius=10)
-    label(d, 120, 590, "LIVE READ-ONLY DECISIONS PAGE", fill=PURPLE, size=22)
+    label(d, 120, 590, "PUBLIC DECISIONS PAGE CAPTURE", fill=PURPLE, size=22)
     lines(d, 120, 638, "A direct worker call reached the core.", size=35, fill=INK)
     box(d, (1270, 320, 1835, 751), fill=RED_LIGHT if stage else "#272333",
         outline=RED_LIGHT if stage else "#474052", radius=19)
     label(d, 1300, 354, "CORE RESULT", fill=RED if stage else "#A8A0B0", size=23)
     lines(d, 1295, 421, "MISSING", face=FONT_SERIF, size=75,
           fill=RED if stage else "#777183")
-    lines(d, 1300, 548, "Payment: absent\nProvider payout: 0", face=FONT_MONO, size=28,
+    lines(d, 1300, 548, "Payment: absent\nProvider payout: 0", face=FONT_MONO, size=34,
           fill=INK if stage else "#7A7484", line_height=49)
     chip(d, 1300, 679, "GAS STILL APPLIES", bg=WHITE if stage else "#332E3C", fg=RED if stage else "#867D91", size=19)
     label(d, 255, 818, "Executed FINAL transaction 9HXL…1GQWD · distinct from model A preview", fill="#C2BDCA", size=20)
@@ -303,7 +322,7 @@ def retry(stage: int) -> Image.Image:
     return im
 
 
-def close() -> Image.Image:
+def close(stage: int) -> Image.Image:
     im, d = base(8, dark=True, eyebrow="NATIVE NEAR TESTNET / PROOF AND QUICKSTART")
     source = Image.open(REPO / "web/public/media/agenttrust-hero-poster.png").convert("RGB")
     source = ImageOps.fit(source, (W, 680), Image.Resampling.LANCZOS)
@@ -313,13 +332,15 @@ def close() -> Image.Image:
     lines(d, 90, 190, "Trust has to survive\nthe transaction.", face=FONT_SERIF, size=89,
           fill=WHITE, line_height=110)
     lines(d, 95, 438, "Owner rules. Contract enforcement. Checked output.", size=44, fill="#E6E0F8")
-    chip(d, 95, 531, "LOCAL MODEL + MCP", bg="#302748", fg=WHITE, size=22)
-    chip(d, 455, 531, "PROJECT-OPERATED PROVIDERS + ISSUER", bg="#302748", fg=WHITE, size=22)
-    chip(d, 1250, 531, "REUSED UI / NEW NEAR FLOW", bg="#302748", fg=WHITE, size=22)
-    box(d, (92, 622, 1832, 781), fill=WHITE, outline=WHITE, radius=20)
-    label(d, 122, 644, "PUBLIC PROOF + QUICKSTART", fill=PURPLE, size=22)
-    lines(d, 118, 681, "docs.agenttrust.tech/verification/testnet-r4", face=FONT_MONO, size=43, fill=INK)
-    lines(d, 118, 738, "docs.agenttrust.tech/quickstart", face=FONT_MONO, size=31, fill=MUTED)
+    if stage >= 1:
+        chip(d, 95, 531, "LOCAL MODEL + MCP", bg="#302748", fg=WHITE, size=22)
+        chip(d, 455, 531, "PROJECT-OPERATED PROVIDERS + ISSUER", bg="#302748", fg=WHITE, size=22)
+        chip(d, 1250, 531, "REUSED UI / NEW NEAR FLOW", bg="#302748", fg=WHITE, size=22)
+        box(d, (92, 622, 1832, 781), fill=WHITE, outline=WHITE, radius=20)
+        label(d, 122, 644, "DATED EVIDENCE + QUICKSTART", fill=PURPLE, size=22)
+        lines(d, 118, 675, "docs.agenttrust.tech/verification/testnet-r4", face=FONT_MONO, size=50, fill=INK)
+        if stage >= 2:
+            lines(d, 118, 730, "docs.agenttrust.tech/quickstart", face=FONT_MONO, size=34, fill=MUTED)
     label(d, 255, 818, "Open limit: one refund-order runtime case · website/docs live read-only", fill="#C8C3D4", size=20)
     return im
 
@@ -333,8 +354,34 @@ def scene_images() -> list[list[Image.Image]]:
         [report(0), report(1)],
         [direct_refusal(0), direct_refusal(1)],
         [retry(0), retry(1)],
-        [close()],
+        [close(0), close(1), close(2)],
     ]
+
+
+def clip_frames(name: str) -> list[Path]:
+    source = ROOT / f"assets/decisions-{name}-2026-11-13.webm"
+    destination = ROOT / f"work/clip-{name}"
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(source),
+                    "-vf", f"fps={FPS}", "-q:v", "3", str(destination / "frame-%04d.jpg")], check=True)
+    frames = sorted(destination.glob("frame-*.jpg"))
+    if len(frames) < FPS * 6:
+        raise ValueError(f"short public Decisions capture: {source}")
+    return frames
+
+
+def browser_frame(base_image: Image.Image, frame_path: Path, scene_index: int) -> Image.Image:
+    image = base_image.copy()
+    source = Image.open(frame_path).convert("RGB")
+    crop = (0, 260, 1920, 790) if scene_index == 3 else (0, 280, 1920, 770)
+    target = (90, 307, 1830, 780) if scene_index == 3 else (88, 320, 1832, 751)
+    source = ImageOps.fit(source.crop(crop), (target[2] - target[0], target[3] - target[1]),
+                          Image.Resampling.LANCZOS)
+    image.paste(source, (target[0], target[1]))
+    ImageDraw.Draw(image).rounded_rectangle(target, radius=12, outline=PURPLE, width=3)
+    return image
 
 
 def captions(scene: dict) -> list[tuple[float, float, str]]:
@@ -358,7 +405,8 @@ def caption_image(text: str) -> Image.Image:
     return image
 
 
-def frame_at(t: float, timing: dict, stages: list[list[Image.Image]], caption_cache: dict[str, Image.Image]) -> Image.Image:
+def frame_at(t: float, timing: dict, stages: list[list[Image.Image]],
+             clips: dict[int, list[Path]], caption_cache: dict[str, Image.Image]) -> Image.Image:
     scenes = timing["scenes"]
     index = 0
     for i, scene in enumerate(scenes):
@@ -368,8 +416,8 @@ def frame_at(t: float, timing: dict, stages: list[list[Image.Image]], caption_ca
     relative = max(0.0, min(scene["duration"], t - scene["start"]))
     variants = stages[index]
     thresholds = {0: [0.0, 0.48], 1: [0.0, 0.58], 2: [0.0, 0.59],
-                  3: [0.0, 0.34, 0.67], 4: [0.0, 0.37], 5: [0.0, 0.49],
-                  6: [0.0, 0.48], 7: [0.0]}[index]
+                  3: [0.0, 0.34, 0.54], 4: [0.0, 0.37], 5: [0.0, 0.49],
+                  6: [0.0, 0.48], 7: [0.0, 0.35, 0.70]}[index]
     current = 0
     for i, threshold in enumerate(thresholds):
         if relative / max(scene["duration"], 0.001) >= threshold:
@@ -383,6 +431,21 @@ def frame_at(t: float, timing: dict, stages: list[list[Image.Image]], caption_ca
     if index > 0 and relative < 0.35:
         blend = max(0.0, min(1.0, relative / 0.35))
         base_image = Image.blend(stages[index - 1][-1], base_image, blend)
+    if index in clips:
+        window = (0.31, 0.54) if index == 3 else (0.27, 0.59)
+        start, end = (fraction * scene["duration"] for fraction in window)
+        if start <= relative < end:
+            clip_time = 0.85 + relative - start
+            frames = clips[index]
+            frame_number = min(len(frames) - 1, int(clip_time * FPS))
+            live = browser_frame(base_image, frames[frame_number], index)
+            if index == 3 and end - relative < 0.28:
+                base_image = Image.blend(live, stages[index][-1], 1 - (end - relative) / 0.28)
+            else:
+                blend = min(1.0, (relative - start) / 0.24, (end - relative) / 0.24)
+                base_image = Image.blend(base_image, live, max(0.0, blend))
+        elif index == 3 and relative >= end:
+            base_image = stages[index][-1]
     frame = base_image.copy()
     phrase = captions(scene)[-1][2]
     for start, end, sentence in captions(scene):
@@ -414,6 +477,7 @@ def main() -> None:
     if args.stills_only:
         print(f"wrote {sum(map(len, stages))} scene cards")
         return
+    clips = {3: clip_frames("model-b"), 5: clip_frames("direct-a")}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "rawvideo",
            "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "pipe:0",
@@ -428,7 +492,7 @@ def main() -> None:
     count = math.ceil(timing["duration"] * FPS)
     try:
         for number in range(count):
-            frame = frame_at(number / FPS, timing, stages, caption_cache)
+            frame = frame_at(number / FPS, timing, stages, clips, caption_cache)
             process.stdin.write(frame.tobytes())
             if number % (FPS * 10) == 0:
                 print(f"rendering {number / FPS:.0f}s / {timing['duration']:.1f}s", flush=True)

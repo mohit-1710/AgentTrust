@@ -1,6 +1,6 @@
 # AgentTrust NEAR demo narration
 
-Working script for a 125–130 second X video. Final cue times follow the generated voice. `r4` is a saved 12 November testnet run; the direct-call refusal and retry are separate attempts.
+Working script for a short X video. Final cue times follow the generated voice. `r4` is a saved 12 November testnet run; the direct-call refusal and retry are separate attempts.
 
 ## 1 · Outcome first
 
@@ -24,12 +24,12 @@ After verifying settlement, B releases the audit. Row nine is rejected for a neg
 
 ## 6 · Separate direct bypass test
 
-The preview is convenient, but the rule is mandatory. In separate direct test r4-16, the worker skips the preview and tries A. The contract returns `MISSING`. No payment exists, and no provider payout occurs. Network gas still applies.
+Preview is convenient, but the rule is mandatory. In separate direct r4-16, the worker skips preview and tries A. The contract returns `MISSING`: no payment and no provider payout. Network gas still applies.
 
 ## 7 · Separate exact retry test
 
-Separate direct purchase r4-17 paid B. Its exact retry, r4-18, keeps the original payment ID, quote, and credential. The contract returns `duplicate: true`, with the settled record unchanged and no second provider transfer.
+Separate direct r4-17 paid B. Its exact r4-18 retry keeps the same payment ID, quote, and credential. The contract returns `duplicate: true`. The original settlement remains, with no second provider transfer.
 
 ## 8 · Scope and proof
 
-This is native NEAR testnet. The model and MCP ran locally; both providers and the issuer were project-operated. The website is reused; the NEAR payment flow is new. One refund-order runtime case remains open. Full proof and a quickstart are in the public docs.
+This is NEAR testnet. The model and MCP ran locally; both providers and the issuer were project-operated. We reused the website and built a new native payment flow. One refund-order case remains open. Dated proof and quickstart are in our docs.

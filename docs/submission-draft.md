@@ -6,27 +6,24 @@
 
 Project: **AgentTrust on NEAR**. Proposed primary track: `security`, with `agents` as a second track supported by the [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md) local-model paid-task traces. This is a recommendation for the human's final choice, not a submitted track selection. The frozen scope does not justify adding privacy, swarms, DeFi or business tracks.
 
-The existing repository is [mohit-1710/AgentTrust](https://github.com/mohit-1710/AgentTrust). Its public release is a separate action. The source boundary is `upstream-ui-baseline`; the README links its [comparison with the `hackathon-submission` snapshot](https://github.com/mohit-1710/AgentTrust/compare/upstream-ui-baseline...hackathon-submission) and preserves upstream license notices. The final tag is created only after the accepted implementation and evidence freeze.
+The existing repository is [mohit-1710/AgentTrust](https://github.com/mohit-1710/AgentTrust). Its public release is a separate action. The source boundary is `upstream-ui-baseline`; the README links its [comparison with the `hackathon-submission` snapshot](https://github.com/mohit-1710/AgentTrust/compare/upstream-ui-baseline...hackathon-submission) and preserves upstream license notices. The tag fixes the accepted implementation snapshot; the finished video edit source is on main after that tag.
 
 ## Description to finalize after verification
 
 > AgentTrust lets an agent buy an invoice-audit service under its owner's spending and supplier rules. A restricted NEAR function-call key can invoke only the payment method. The native contract checks the exact supplier identity, capability credential, limits and signed request before reserving funds and transferring NEAR. In two local-model runs, A received a read-only missing-credential preview; the model then requested the owner-approved B exposed by the host. The host supplied the original payment ID and exact CSV, and B's separate 0.002 NEAR payment settled. The service released its report after final settled-payment verification, and the buyer checked the output separately. The demonstration uses NEAR testnet, synthetic invoices, two controlled providers and a project-operated capability issuer. We reused AgentTrust's website/docs design; the native NEAR contract, SDK, paid HTTP flow and local MCP are new hackathon work.
 
-The [evidence map](evidence-map.md) and two dated rehearsal records support this bounded behavior. The final submission still needs the actual video, public source, selected tracks and human-confirmed payload. Disclose the open native refund-gap and visual-QA limits wherever a complete runtime or polished-demo claim would otherwise be implied.
+The [evidence map](evidence-map.md) and two dated rehearsal records support this bounded behavior. The finished video is a local ignored MP4 with a reproducible [source edit](../video/README.md); it still needs the human X post. The final submission also needs public source, selected tracks and a human-confirmed payload. Disclose the open native refund-gap and broader visual-QA limits wherever a complete runtime claim would otherwise be implied.
 
 ## X post draft
 
 Publish only after the actual video and public source are ready; the human posts it.
 
-> my agent needs an invoice audit.
+> AgentTrust: Supplier A lacks the audit credential, so preview stops payment. The model asks for host-approved B. Testnet NEAR pays B; a checked invoice report follows.
 >
-> the first supplier is missing the required credential. the preview refuses it. the model requests the owner-approved alternative exposed by the host, then checks the paid report.
->
-> AgentTrust on NEAR. built at NEAR HACKATHON.
->
-> @NEARProtocol #NEARHackathon
+> Built at NEAR HACKATHON. @NEARProtocol #NEARHackathon
+> https://github.com/mohit-1710/AgentTrust
 
-Attach the actual demo video and add the final public repository link. Revise the behavior claims if the recorded run does not demonstrate them. This is a draft, not permission to publish.
+Attach the finished demo MP4. This 263-character draft already includes the intended repository URL; verify the repository opens anonymously after the separately authorized public release. This is a draft, not permission to publish.
 
 ## Release and submission requirements
 
