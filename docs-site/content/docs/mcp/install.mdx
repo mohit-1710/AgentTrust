@@ -13,6 +13,14 @@ pnpm build:services
 node dist/packages/mcp/src/run-server.js --help
 ```
 
+To exercise all six tools without a worker key or deployed contract:
+
+```sh
+pnpm test:mcp:stdio
+```
+
+This starts the compiled stdio server through an MCP client against loopback mock RPC and writes an ignored mock-only transcript under `artifacts/local/mcp/`. It sends no transaction or native payment.
+
 Configure an MCP host to invoke that compiled Node entry with `--config` and an absolute path to the public operator JSON. The [package runbook](https://github.com/mohit-1710/AgentTrust/blob/main/packages/mcp/README.md) defines the exact configuration and host invocation. Use the direct Node entry so stdout contains only MCP protocol messages. There is no published `npx` package or hosted signing URL.
 
 Prepare these separate roles:

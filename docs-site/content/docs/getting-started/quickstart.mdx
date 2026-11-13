@@ -3,7 +3,7 @@ title: "Local quickstart"
 description: "Run the implemented checks without starting a chain runtime or deploying a contract."
 ---
 
-Use an authorized checkout of `mohit-1710/AgentTrust`. The repository is private during preparation. There is no published native package or public payment endpoint to install from this snapshot.
+Use a checkout of `mohit-1710/AgentTrust`; access requires authorization while the repository is private. The paid MCP and providers run locally. There is no published native package or public payment endpoint.
 
 ## Pin the tools
 
@@ -16,9 +16,10 @@ From the repository root:
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm check:fast
 pnpm build:contract
+pnpm test:mcp:stdio
 ```
 
-`check:fast` runs pure Rust tests, TypeScript tests and native typechecking. `build:contract` compiles WASM and inspects its NEAR host imports without executing it. A successful build is not a native payment or runtime proof.
+`check:fast` runs pure Rust tests, TypeScript tests and native typechecking. `build:contract` compiles WASM and inspects its NEAR host imports without executing it. `test:mcp:stdio` builds the local MCP server and calls all six tools against loopback mock RPC without a worker key; its ignored transcript is mock-only. These commands send no transaction or native payment.
 
 ## Build the preserved surfaces
 
