@@ -1,0 +1,35 @@
+[direct] An AI agent needs to buy an invoice audit. | Supplier A lacks the required credential.
+[direct] A separate testnet call returns MISSING | with no provider payout.
+[direct] The saved model requests approved B. | Its 0.002 NEAR payment settles.
+[direct] B releases a checked 15-row report.
+
+[site] We built AgentTrust for the moment | an AI agent wants to spend.
+[site] The owner names exact suppliers, | required capabilities and limits.
+[site] The agent receives a narrow payment tool.
+
+[owner] The test owner trusts two exact service identities, | requires an invoice.audit.v1 credential | from an accepted issuer, and caps each purchase.
+[owner] The worker key can call | only execute_payment.
+
+[preview] In our saved local-model run, | five tool requests are recorded.
+[preview] The model reads policy and supplier details, | then asks to pay A.
+[preview] The host previews MISSING; | no transaction is sent.
+
+[model-b] We then offer approved B. | The model requests B;
+[model-b] the host binds the original CSV | and payment ID.
+[model-b] The public Decisions page shows | that B payment settled.
+
+[receipt] The final NEAR receipt shows | 0.002 NEAR transferring from the core to B.
+[receipt] A later callback marks the payment settled.
+
+[report] Only after settlement does B | release its report.
+[report] Of 15 synthetic invoice rows, | eight pass and seven fail.
+[report] It catches a negative amount on row nine | and duplicate invoice A-100.
+[report] A separate checker verifies this fixed report.
+
+[retry] A separate direct B purchase settled.
+[retry] Its exact retry reused the same | payment ID, quote and credential.
+[retry] The contract returned duplicate true; | no second provider payout.
+
+[close] That's AgentTrust on NEAR testnet: | the owner's rules in the payment path.
+[close] The model and MCP ran locally; | we ran both providers and the issuer.
+[close] The dated proof, quickstart | and open refund-order case are in our docs.

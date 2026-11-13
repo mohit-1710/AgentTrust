@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "status": "editorial_cut_source",
+  "script": "video/narration_editorial.md",
+  "target_duration_seconds": 127.605,
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "frames_per_second": 30
+  },
+  "screen_time": {
+    "dated_public_captures_and_cropped_docs_seconds_approx": 85.0,
+    "typeset_evidence_slides_seconds_approx": 42.6
+  },
+  "picture_rules": [
+    "Use only the committed dated site/docs PNGs, original site hero-loop MP4 and two dated Decisions WebMs as page imagery. Slides summarize checked r4 facts; rendering must not capture a browser or imply a new live call.",
+    "The landing and docs are still images. Editorial crop, push-in and highlight are allowed, but must not resemble a native scroll, click or page transition.",
+    "Only the two Decisions WebMs contain recorded page interaction: expanding Inspect evidence on a read-only public page. Those clicks did not create a payment or run a model.",
+    "Keep the separate executed r4-16 refusal, saved r4 model B purchase and checked report, and separate r4-17/r4-18 direct retry visibly labeled. The first proof montage changes its source label at every cut.",
+    "Slides use the existing AgentTrust paper, ink and violet visual language, with precise data and no generic robot or blockchain imagery.",
+    "The Decisions final payment view has no transaction hash or checked HTTP report. Pair it with the existing r4 docs still and a sourced receipt slide for those claims."
+  ],
+  "caption_rules": {
+    "source": "Whisper-aligned local Kokoro af_heart narration",
+    "position": "fixed bottom center",
+    "style": "one compact charcoal box, 48 px SF Pro Semibold, 18 px horizontal and 9 px vertical padding; 1500 px maximum box width",
+    "maximum_lines": 2,
+    "chunk_words": "3 to 8",
+    "face_circle": "none in this licensed-narration cut"
+  },
+  "shots": [
+    {
+      "id": "01_direct_refusal_hook",
+      "in_seconds": 0.0,
+      "out_seconds": 21.391,
+      "kind": "dated_read_only_clips_docs_still_and_checked_report_graphic",
+      "source_label": "changes at each proof cut; see subshots",
+      "narration": "An AI agent needs to buy an invoice audit. Supplier A lacks the required credential. A separate testnet call returns MISSING with no provider payout. The saved model requests approved B. Its 0.002 NEAR payment settles. B releases a checked 15-row report.",
+      "subshots": [
+        {
+          "local_in_seconds": 0.0,
+          "local_out_seconds": 6.55,
+          "in_seconds": 0.0,
+          "out_seconds": 6.55,
+          "url": "https://www.agenttrust.tech/decisions",
+          "asset": "video/assets/decisions-direct-a-2026-11-13.webm",
+          "source_label": "READ-ONLY DECISIONS CAPTURE / SEPARATE DIRECT r4-16",
+          "edit": "Play the dated, expanded rejection view, cropped to Supplier A, MISSING and Not dispatched. This is a read-only replay of an executed past call."
+        },
+        {
+          "local_in_seconds": 6.55,
+          "local_out_seconds": 10.75,
+          "in_seconds": 6.55,
+          "out_seconds": 10.75,
+          "url": "https://docs.agenttrust.tech/verification/testnet-r4",
+          "asset": "video/assets/docs-r4-direct-2026-11-13.png",
+          "source_label": "DATED PUBLIC r4 DOCS / SEPARATE DIRECT r4-16",
+          "edit": "Show the dated r4-16 docs row with editorial 0 provider payout; network gas still applies."
+        },
+        {
+          "local_in_seconds": 10.75,
+          "local_out_seconds": 17.6,
+          "in_seconds": 10.75,
+          "out_seconds": 17.6,
+          "url": "https://www.agenttrust.tech/decisions",
+          "asset": "video/assets/decisions-model-b-2026-11-13.webm",
+          "source_label": "READ-ONLY DECISIONS CAPTURE / SAVED MODEL B",
+          "edit": "Cut to the dated first settled model B row with payment ID ZIu51g…JJaHo= in a clear editorial callout. Its receipt is in the public r4 proof; this final view is not itself a receipt."
+        },
+        {
+          "local_in_seconds": 17.6,
+          "local_out_seconds": 21.391,
+          "in_seconds": 17.6,
+          "out_seconds": 21.391,
+          "renderer": "video/render_editorial.py:report_slide",
+          "source_label": "CONTROLLED SYNTHETIC FIXTURE / CHECKED MODEL B REPORT",
+          "edit": "Show the fully populated typeset 15-row, 8 accepted, 7 rejected report graphic; its separate checker supports this fixed synthetic input only."
+        }
+      ],
+      "proof": [
+        "docs-site/content/docs/verification/testnet-r4.mdx#direct-native-calls",
+        "docs-site/content/docs/verification/testnet-r4.mdx#actual-local-model-and-mcp-purchase",
+        "https://testnet.nearblocks.io/txns/9HXLnfY5nmcLy9nWsc61HpdkskCTaw3qn5vyTBm1GQWD",
+        "https://testnet.nearblocks.io/txns/EAmDNch3Qi9LLeD2cSxp93oC5NAFD6N8SWzFT3eNGfSF"
+      ],
+      "claim_limit": "The hook is an editorial montage of separate saved outcomes, not one continuous live call. The executed r4-16 A refusal and zero payout are separate from the saved model B purchase. B’s read-only Decisions view is a final state, and the checked report comes from the fixed synthetic fixture."
+    },
+    {
+      "id": "02_dated_homepage",
+      "in_seconds": 21.391,
+      "out_seconds": 33.829,
+      "kind": "dated_public_site_still_with_existing_loop",
+      "source_label": "DATED PUBLIC SITE CAPTURE / NATIVE NEAR",
+      "narration": "We built AgentTrust for the moment an AI agent wants to spend. The owner names exact suppliers, required capabilities and limits. The agent receives a narrow payment tool.",
+      "url": "https://www.agenttrust.tech/",
+      "avoid": "Do not animate a website scroll, click Read the Quickstart or open the private GitHub CTA. The page does not perform payments.",
+      "asset": "video/assets/site-2026-11-13.png",
+      "motion_asset": "web/public/media/agenttrust-hero-loop.mp4",
+      "edit": "Show the dated real landing capture full frame until approximately 00:26, push in on the actual spending-limit and permitted-supplier copy, then magnify the actual Scoped worker-key panel as the narrow-tool line is spoken. The original hero loop moves within the matching site region; no scroll or click is simulated."
+    },
+    {
+      "id": "03_owner_boundary_slide",
+      "in_seconds": 33.829,
+      "out_seconds": 47.453,
+      "kind": "designed_slide",
+      "source_label": "r4 OWNER CONFIGURATION / NEAR TESTNET",
+      "narration": "The test owner trusts two exact service identities, requires an invoice.audit.v1 credential from an accepted issuer, and caps each purchase. The worker key can call only execute_payment.",
+      "layout": "Warm-paper editorial slide: first reveal A+B exact service identities, invoice.audit.v1 and accepted issuer; then reveal the 0.01 NEAR session purchase cap; finally reveal Owner → Native core ← restricted worker key with execute_payment only.",
+      "motion": "Reveal identity and credential conditions from the first sentence, purchase cap as spoken, and worker authority path on the final sentence. No approval switch or reputation score.",
+      "proof": [
+        "docs-site/content/docs/verification/testnet-r4.mdx#source-and-controlled-environment"
+      ]
+    },
+    {
+      "id": "04_saved_model_a_preview",
+      "in_seconds": 47.453,
+      "out_seconds": 60.714,
+      "kind": "dated_public_docs_stills",
+      "source_label": "SAVED r4 LOCAL MODEL + MCP TRACE / SELF-RECORDED",
+      "narration": "In our saved local-model run, five tool requests are recorded. The model reads policy and supplier details, then asks to pay A. The host previews MISSING; no transaction is sent.",
+      "url": "https://docs.agenttrust.tech/verification/testnet-r4",
+      "proof": [
+        "docs-site/content/docs/verification/testnet-r4.mdx#actual-local-model-and-mcp-purchase"
+      ],
+      "claim_limit": "These are dated documentation stills of a saved self-recorded local trace, not footage of a new model call. The A preview has no transaction and is distinct from executed direct r4-16.",
+      "assets": [
+        "video/assets/docs-r4-model-2026-11-13.png"
+      ],
+      "edit": "Keep the dated model-section still on screen. Editorial panel lists the five saved tool requests; step 04 pay_service(A) then becomes a READ-ONLY PREVIEW / MISSING / No transaction. B’s later final view is outside this scene."
+    },
+    {
+      "id": "05_saved_model_b_final_view",
+      "in_seconds": 60.714,
+      "out_seconds": 72.203,
+      "kind": "dated_public_docs_still_and_decisions_clip",
+      "source_label": "SAVED r4 MODEL B / FINAL CONTRACT VIEW",
+      "narration": "We then offer approved B. The model requests B; the host binds the original CSV and payment ID. The public Decisions page shows that B payment settled.",
+      "subshots": [
+        {
+          "in_seconds": 60.714,
+          "out_seconds": 66.048,
+          "url": "https://docs.agenttrust.tech/verification/testnet-r4",
+          "asset": "video/assets/docs-r4-result-2026-11-13.png",
+          "edit": "Crop dated r4 result prose; editorial panel identifies STEP 05 / MODEL B and the original host-bound CSV + payment ID. This is a static capture.",
+          "source_label": "DATED PUBLIC r4 DOCS / SAVED MODEL B"
+        },
+        {
+          "in_seconds": 66.048,
+          "out_seconds": 72.203,
+          "url": "https://www.agenttrust.tech/decisions",
+          "asset": "video/assets/decisions-model-b-2026-11-13.webm",
+          "edit": "Play the dated read-only Decisions expansion, cropped to the first settled B row and model payment ID ZIu51g…JJaHo= in an editorial panel. The callout points to the receipt in the public r4 proof; the page click does not run the model or execute payment.",
+          "source_label": "SAVED r4 MODEL B / FINAL CONTRACT VIEW"
+        }
+      ],
+      "proof": [
+        "docs-site/content/docs/verification/testnet-r4.mdx#actual-local-model-and-mcp-purchase",
+        "web/app/(marketing)/decisions/page.tsx"
+      ],
+      "claim_limit": "The dated Decisions clip displays a final contract view, not model activity, transaction receipts or the checked report. The existing r4 docs still ties ZIu51…JJaHo= to the saved model request."
+    },
+    {
+      "id": "06_model_b_receipt_slide",
+      "in_seconds": 72.203,
+      "out_seconds": 81.508,
+      "kind": "designed_slide",
+      "source_label": "SAVED r4 MODEL B / FINAL NEAR RECEIPT",
+      "narration": "The final NEAR receipt shows 0.002 NEAR transferring from the core to B. A later callback marks the payment settled.",
+      "layout": "Editorial receipt slide: large 0.002 NEAR, Core → Provider B, final transaction EAmDN…GfSF and transfer receipt HS3f…QSaX5j. A separately revealed later private callback marks SETTLED. Exact public proof URLs are in this shot list and the r4 docs, not on-screen as a QR code.",
+      "motion": "Transfer and final receipt appear first; callback SETTLED appears later. Do not animate an atomic all-or-nothing transfer.",
+      "proof": [
+        "https://testnet.nearblocks.io/txns/EAmDNch3Qi9LLeD2cSxp93oC5NAFD6N8SWzFT3eNGfSF",
+        "docs-site/content/docs/verification/testnet-r4.mdx#actual-local-model-and-mcp-purchase"
+      ],
+      "claim_limit": "The receipt and final RPC observation support this model B payment; public RPC observations are not light-client proofs."
+    },
+    {
+      "id": "07_checked_audit_slide",
+      "in_seconds": 81.508,
+      "out_seconds": 98.481,
+      "kind": "designed_slide",
+      "source_label": "CONTROLLED SYNTHETIC FIXTURE / CHECKED REPORT",
+      "narration": "Only after settlement does B release its report. Of 15 synthetic invoice rows, eight pass and seven fail. It catches a negative amount on row nine and duplicate invoice A-100. A separate checker verifies this fixed report.",
+      "layout": "Typeset checked synthetic report on warm paper. The input excerpt shows rows 01–02 as duplicate invoice A-100, then row 09 negative -0.01 USD. The report side reveals 15 rows, 8 accepted and 7 rejected, verified against the fixed input.",
+      "motion": "Duplicate excerpt is present first; 15-row count appears, then the 8 accepted / 7 rejected split in sync with the spoken line. Negative row follows; the fixed-input checker note appears last.",
+      "proof": [
+        "docs-site/content/docs/verification/testnet-r4.mdx#actual-local-model-and-mcp-purchase"
+      ],
+      "claim_limit": "This is a controlled synthetic-input result, not evidence of general invoice-audit accuracy."
+    },
+    {
+      "id": "08_separate_direct_retry",
+      "in_seconds": 98.481,
+      "out_seconds": 111.189,
+      "kind": "dated_public_docs_still",
+      "source_label": "SEPARATE DIRECT r4-17/18 / EXACT RETRY",
+      "narration": "A separate direct B purchase settled. Its exact retry reused the same payment ID, quote and credential. The contract returned duplicate true; no second provider payout.",
+      "url": "https://docs.agenttrust.tech/verification/testnet-r4",
+      "proof": [
+        "docs-site/content/docs/verification/testnet-r4.mdx#direct-native-calls",
+        "https://testnet.nearblocks.io/txns/4E6XwrwGAN7YepiQZ7HV3VjRQn7Ux7B5WUKcBWfFVYet"
+      ],
+      "claim_limit": "The retried ID vhPJvv…BCniU= belongs to direct r4-17, not to the saved model B purchase.",
+      "asset": "video/assets/docs-r4-direct-2026-11-13.png",
+      "edit": "Briefly show the original dated docs table, then typeset Same ID. One payout. around a literal enlarged crop containing only r4-17 and r4-18. Highlight each row in turn; show duplicate:true and 0 additional provider payouts. The attempt IDs are visual labels, not spoken IDs."
+    },
+    {
+      "id": "09_dated_docs_and_site_close",
+      "in_seconds": 111.189,
+      "out_seconds": 127.605,
+      "kind": "dated_public_docs_and_site_stills",
+      "source_label": "PUBLIC r4 PROOF / LOCAL TESTNET SCOPE",
+      "narration": "That's AgentTrust on NEAR testnet: the owner's rules in the payment path. The model and MCP ran locally; we ran both providers and the issuer. The dated proof, quickstart and open refund-order case are in our docs.",
+      "url": "https://docs.agenttrust.tech/verification/testnet-r4",
+      "disclosure_overlay": [
+        "Model and MCP ran locally",
+        "Providers and issuer project operated",
+        "Website and docs read-only",
+        "Refund-order runtime case open"
+      ],
+      "proof": [
+        "docs-site/content/docs/getting-started/quickstart.mdx",
+        "docs-site/content/docs/verification/testnet-r4.mdx"
+      ],
+      "claim_limit": "The quickstart is spoken as a linked doc, not shown as fresh footage. No browser capture, simulated navigation, public paid MCP endpoint or anonymous access to the private GitHub repo is implied.",
+      "subshots": [
+        {
+          "in_seconds": 111.189,
+          "out_seconds": 121.039,
+          "url": "https://docs.agenttrust.tech/verification/testnet-r4",
+          "asset": "video/assets/docs-r4-top-2026-11-13.png",
+          "edit": "Hold the dated r4 docs title and controlled-scope disclosure. Editorial panel names local model/MCP, project-run providers/issuer and open refund-order case.",
+          "source_label": "PUBLIC r4 PROOF / LOCAL TESTNET SCOPE"
+        },
+        {
+          "in_seconds": 121.039,
+          "out_seconds": 127.605,
+          "url": "https://www.agenttrust.tech/",
+          "asset": "video/assets/site-2026-11-13.png",
+          "edit": "Return to the dated site capture with original hero loop and typeset agenttrust.tech plus the exact r4 docs URL for the close. No fresh navigation.",
+          "source_label": "DATED PUBLIC SITE CAPTURE / AGENTTRUST ON NEAR"
+        }
+      ]
+    }
+  ],
+  "existing_page_assets": [
+    "video/assets/site-2026-11-13.png",
+    "video/assets/docs-r4-top-2026-11-13.png",
+    "video/assets/docs-r4-direct-2026-11-13.png",
+    "video/assets/docs-r4-model-2026-11-13.png",
+    "video/assets/docs-r4-result-2026-11-13.png",
+    "video/assets/decisions-direct-a-2026-11-13.webm",
+    "video/assets/decisions-model-b-2026-11-13.webm",
+    "web/public/media/agenttrust-hero-loop.mp4"
+  ],
+  "audio": {
+    "narration": "video/voice/editorial-narration.wav (ignored render input)",
+    "timing": "video/voice/editorial-timing.json (ignored render input)",
+    "rights": "Kokoro-82M Apache-2.0 through kokoro-onnx MIT; free ElevenLabs output not used"
+  }
+}
