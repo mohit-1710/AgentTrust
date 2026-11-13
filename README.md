@@ -44,7 +44,7 @@ Unknown services deny. One-off approvals, second assets, cross-chain routing, nu
 
 ## Reused baseline and new work
 
-Visual/source reference: [agenttrust-labs/agenttrust at 21a3b111](https://github.com/agenttrust-labs/agenttrust/tree/21a3b111b7677d0b06ab1b063d647e4f52ea3b17). Its Solana implementation and historical verification badges are prior work, not NEAR results. The `upstream-ui-baseline` tag preserves 345 selectively imported files with MIT notices and an exact [path/hash manifest](docs/sprint/ui-baseline-manifest.json). Native changes follow in separate task commits.
+Visual/source reference: [agenttrust-labs/agenttrust at 21a3b111](https://github.com/agenttrust-labs/agenttrust/tree/21a3b111b7677d0b06ab1b063d647e4f52ea3b17). Its Solana implementation and historical verification badges are prior work, not NEAR results. The `upstream-ui-baseline` tag preserves 345 selectively imported files with MIT notices and an exact [path/hash manifest](docs/sprint/ui-baseline-manifest.json). [Compare that baseline with the NEAR main branch](https://github.com/mohit-1710/AgentTrust/compare/upstream-ui-baseline...main); native changes follow in separate task commits.
 
 The older Monad project is a separate legacy repository; it is not the baseline for this NEAR implementation. See the [reuse inventory](docs/sprint/baseline.md).
 

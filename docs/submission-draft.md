@@ -1,12 +1,12 @@
 # Submission preparation
 
-**Draft only, 13 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The public decision feed shows dated on-chain decisions, while the paid workflow remains local. Two fresh local-model/MCP operator rehearsals, [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md), each captured a separate settled 0.002 NEAR purchase, direct refusals, an exact retry and checked output. Native Sandbox evidence supports 20 of 21 case groups; the refund-gap, browser visual QA, video, public source release and submission remain open.
+**Draft only, 13 November 2026.** The repository remains private. Nothing has been submitted or posted. The [read-only website and docs](hosting-evidence.md) are live, while paid providers/MCP/buyer remain local. The website's current r4 decision feed shows two settled payments and three executed refusals; the docs host public [r2](https://docs.agenttrust.tech/verification/testnet-r2), [r3](https://docs.agenttrust.tech/verification/testnet-r3) and [r4](https://docs.agenttrust.tech/verification/testnet-r4) proof pages. Two fresh local-model/MCP operator rehearsals, [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md), each captured a separate settled 0.002 NEAR purchase, direct refusals, an exact retry and checked output. Native Sandbox evidence supports 20 of 21 case groups; the refund-gap, browser visual QA, video, public source release and submission remain open.
 
 ## Intended project and tracks
 
 Project: **AgentTrust on NEAR**. Proposed primary track: `security`, with `agents` as a second track supported by the [r3](testnet-r3-evidence.md) and [r4](testnet-r4-evidence.md) local-model paid-task traces. This is a recommendation for the human's final choice, not a submitted track selection. The frozen scope does not justify adding privacy, swarms, DeFi or business tracks.
 
-The existing repository is [mohit-1710/AgentTrust](https://github.com/mohit-1710/AgentTrust). Its public release is a separate action. The source boundary is `upstream-ui-baseline`; create and inspect a final submission tag only after the accepted implementation and evidence freeze. The final README must link the baseline-to-submission diff and preserve upstream license notices.
+The existing repository is [mohit-1710/AgentTrust](https://github.com/mohit-1710/AgentTrust). Its public release is a separate action. The source boundary is `upstream-ui-baseline`; the README now links its [comparison with NEAR main](https://github.com/mohit-1710/AgentTrust/compare/upstream-ui-baseline...main) and preserves upstream license notices. Create and inspect a final submission tag only after the accepted implementation and evidence freeze.
 
 ## Description to finalize after verification
 
