@@ -1,5 +1,13 @@
 # Public website and docs: deployment evidence
 
+## Pre-video docs proof update: 13 November 2026
+
+**Observed 00:34 UTC.** Private source commit `06c1f3f93636c5b812f68c541c9cdeaeb54db637` was pushed and archived from a clean working tree. The archive had 583 tracked files; Vercel's docs dry run selected 579 upload files (9,278,222 bytes) and no ignored private-state path, live `.env` or key file. Production-target docs deployment `dpl_4WnYYtsCRexeBgJXvhrnap4D1W4p` reached `READY` at its [immutable URL](https://agenttrust-docs-site-dc1wn95ey-mohit-kumars-projects.vercel.app) before promotion.
+
+The immutable quickstart and MCP install pages returned HTTP 200 with the no-key six-tool `pnpm test:mcp:stdio` command and its loopback-mock limit. The r4 proof returned HTTP 200 with the five-row allowlisted model/tool trace, response hashes and the original public final transaction. Docs `GET /api/ask` still reported `available: false`. After promotion, Vercel inspection resolved `docs.agenttrust.tech` to that exact deployment ID; the same three public pages returned HTTP 200 with the new visible text, and Ask AI remained unavailable. The separate [website decision feed](https://www.agenttrust.tech/api/decisions) remained `ready` with two settled items, three executed refusals and zero unresolved references.
+
+This update published read-only evidence and instructions. It did not make a new payment, run the model, host the MCP or release the private repository. Browser visual QA and the native refund-order case remain open; GitHub source links remain inaccessible to unauthenticated judges until the separately authorized repository release.
+
 ## Current r4 promotion: 13 November 2026
 
 **Observed 00:03 UTC.** Source commit `5b58b70f7a6a8c7be494cbe42bdbe2f7b0918e23` was pushed to the private personal repository and archived from a clean working tree. The archive contained 583 tracked files; both Vercel dry runs selected 579 upload files (9,263,337 bytes). The upload contained no ignored `.agenttrust`, `.sprint`, private capture, or live `.env` file. The tracked `web/.env.example` is a sample. Both production-target deployments used `--skip-domain`, reached `READY`, and passed immutable-URL checks before promotion.
